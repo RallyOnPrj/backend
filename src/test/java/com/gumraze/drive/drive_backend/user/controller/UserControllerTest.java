@@ -64,16 +64,6 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private RequestPostProcessor authenticatedUser(Long userId) {
-        return authentication(
-                new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                )
-        );
-    }
-
     @Test
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
     void get_me_returns_pending_user_status() throws Exception {
@@ -308,5 +298,15 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("OK"))
                 .andExpect(jsonPath("$.message").value("닉네임/태그 변경 성공"));
+
+    // Helper method
+    private RequestPostProcessor authenticatedUser(Long userId) {
+        return authentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
     }
 }
