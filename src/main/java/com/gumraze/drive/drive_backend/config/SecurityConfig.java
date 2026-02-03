@@ -2,16 +2,17 @@ package com.gumraze.drive.drive_backend.config;
 
 import com.gumraze.drive.drive_backend.auth.security.JwtAuthenticationFilter;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
-import com.gumraze.drive.drive_backend.common.api.ApiResponse;
-import com.gumraze.drive.drive_backend.common.api.ResultCode;
 import com.gumraze.drive.drive_backend.common.logging.ApiLoggingFilter;
 import com.gumraze.drive.drive_backend.common.security.BotBlockFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -70,11 +72,25 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(
                                 (request, response, authException) ->
-                                        writeErrorResponse(response, ResultCode.UNAUTHORIZED)
+                                        writeErrorResponse(
+                                                request,
+                                                response,
+                                                HttpStatus.UNAUTHORIZED,
+                                                "/problems/unauthorized",
+                                                "인증되지 않은 사용자입니다.",
+                                                "인증되지 않은 사용자입니다."
+                                        )
                         )
                         .accessDeniedHandler(
                                 (request, response, accessDeniedException) ->
-                                        writeErrorResponse(response, ResultCode.FORBIDDEN)
+                                        writeErrorResponse(
+                                                request,
+                                                response,
+                                                HttpStatus.FORBIDDEN,
+                                                "/problems/forbidden",
+                                                "접근 권한이 없습니다.",
+                                                "접근 권한이 없습니다."
+                                        )
                         )
                 )
 
@@ -146,13 +162,25 @@ public class SecurityConfig {
     }
 
     private void writeErrorResponse(
+            HttpServletRequest request,
             HttpServletResponse response,
-            ResultCode code
+            HttpStatus status,
+            String type,
+            String title,
+            String detail
     ) throws IOException {
-        response.setStatus(code.httpStatus().value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        ProblemDetail problem = ProblemDetail.forStatus(status);
+        problem.setType(URI.create(type));
+        problem.setTitle(title);
+        problem.setDetail(detail);
+        if (request != null) {
+            problem.setInstance(URI.create(request.getRequestURI()));
+        }
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        objectMapper.writeValue(response.getWriter(), ApiResponse.failure(code));
+        objectMapper.writeValue(response.getWriter(), problem);
     }
 
 
