@@ -1,9 +1,12 @@
 package com.gumraze.drive.drive_backend.user.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
-public record UserProfileCreateResponseDto(
-        @Schema(description = "사용자 ID", example = "123")
-        Long userId
-) {
+@Builder
+@AllArgsConstructor
+@Getter
+public class UserProfileCreateResponseDto {
+        Long userId;
 }
