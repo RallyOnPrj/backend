@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.courtManager.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.common.exception.NotFoundException;
 import com.gumraze.drive.drive_backend.config.SecurityConfig;
@@ -13,11 +12,15 @@ import com.gumraze.drive.drive_backend.user.constants.GradeType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +28,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,6 +50,16 @@ class CourtManagerControllerTest {
     @MockitoBean
     private JwtAccessTokenValidator jwtAccessTokenValidator;
 
+    private RequestPostProcessor authenticatedUser(Long userId) {
+        return authentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
+    }
+
     @Test()
     @DisplayName("최소 필수값으로 자유게임 생성 성공")
     void createFreeGame_success() throws Exception {
@@ -58,9 +72,6 @@ class CourtManagerControllerTest {
                 .thenReturn(response);
 
         // 토큰 검증을 stub
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // request 객체 생성
         CreateFreeGameRequest request = CreateFreeGameRequest.builder()
                 .title("자유게임1")
@@ -75,7 +86,7 @@ class CourtManagerControllerTest {
         // then: 201과 응답 바디 구조/값이 일치하는지 확인
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
@@ -96,15 +107,11 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        // 유효한 token
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when: 자유 게임 생성 호출
         // then: VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -124,14 +131,10 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        // 유효한 토큰
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -151,14 +154,10 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        // 유효한 토큰
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -176,14 +175,10 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        // jwt 검증
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -214,13 +209,10 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
@@ -249,13 +241,10 @@ class CourtManagerControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -311,16 +300,13 @@ class CourtManagerControllerTest {
                 .build();
 
         // 유효한 토큰
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // mapping
         String body = objectMapper.writeValueAsString(request);
 
         // when & then: 자유게임 생성 시 400 에러 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -342,13 +328,10 @@ class CourtManagerControllerTest {
                 """;
 
         // 유효 토큰 설정
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         // when & then: 자유게임 생성 시 400 에러 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -365,11 +348,9 @@ class CourtManagerControllerTest {
         FreeGameDetailResponse response = buildFreeGameDetailResponse(userId, gameId);
 
         when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
 
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(userId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("OK"))
@@ -414,11 +395,9 @@ class CourtManagerControllerTest {
         Long gameId = 1L;
         when(freeGameService.getFreeGameDetail(userId, gameId))
                 .thenThrow(new NotFoundException("게임이 존재하지 않습니다."));
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
 
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(userId)))
                 .andDo(print()) // 응답 로그 출력
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -444,14 +423,12 @@ class CourtManagerControllerTest {
                 .build();
 
         // stub
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
         when(freeGameService.updateFreeGameInfo(anyLong(), anyLong(), any(UpdateFreeGameRequest.class)))
                 .thenReturn(response);
 
         mockMvc.perform(patch("/free-games/{gameId}", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(userId))
                         .content(body))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -517,12 +494,9 @@ class CourtManagerControllerTest {
         when(freeGameService.getFreeGameRoundMatchResponse(userId, gameId))
                 .thenReturn(response);
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
-
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/rounds-and-matches", gameId)
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(userId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("OK"))
@@ -546,9 +520,6 @@ class CourtManagerControllerTest {
         Long userId = 1L;
         Long gameId = 1L;
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
-
         when(freeGameService.updateFreeGameRoundMatch(anyLong(), anyLong(), any()))
                 .thenReturn(new UpdateFreeGameRoundMatchResponse(gameId));
 
@@ -570,7 +541,7 @@ class CourtManagerControllerTest {
 
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(userId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
@@ -601,13 +572,11 @@ class CourtManagerControllerTest {
 
         when(freeGameService.getFreeGameParticipants(1L, gameId, true))
                 .thenReturn(response);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
                         .queryParam("include", "stats")
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(1L)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("OK"))
@@ -639,12 +608,10 @@ class CourtManagerControllerTest {
 
         when(freeGameService.getFreeGameParticipants(1L, gameId, false))
                 .thenReturn(response);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(1L)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("OK"))

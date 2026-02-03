@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.courtManager.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.common.exception.ForbiddenException;
 import com.gumraze.drive.drive_backend.config.SecurityConfig;
@@ -11,18 +10,22 @@ import com.gumraze.drive.drive_backend.courtManager.service.FreeGameService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +46,16 @@ public class CourtManagerControllerAuthTest {
 
     @MockitoBean
     private JwtAccessTokenValidator jwtAccessTokenValidator;
+
+    private RequestPostProcessor authenticatedUser(Long userId) {
+        return authentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
+    }
 
     @Test
     @DisplayName("라운드/매치 부분 수정 PATCH - 토큰 없음이면 401")
@@ -78,7 +91,6 @@ public class CourtManagerControllerAuthTest {
         Long gameId = 1L;
         Long userId = 2L;       // organizer 아님
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token")).thenReturn(Optional.of(userId));
         when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
 
@@ -100,7 +112,7 @@ public class CourtManagerControllerAuthTest {
         // when & then
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(userId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
