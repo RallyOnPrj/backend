@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.api.user;
 
-import com.gumraze.drive.drive_backend.common.api.ApiResponse;
 import com.gumraze.drive.drive_backend.user.dto.*;
 import com.gumraze.drive.drive_backend.user.entity.UserProfileUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 
 @Tag(name = "Users", description = "사용자 API")
 public interface UserApi {
@@ -43,7 +41,7 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<Page<UserSearchResponse>>> searchUsers(
+    ResponseEntity<Page<UserSearchResponse>> searchUsers(
             String nickname,
             String tag,
             Pageable pageable
@@ -76,7 +74,7 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<UserMeResponse>> me(
+    ResponseEntity<UserMeResponse> me (
             Long userId
     );
 
@@ -102,9 +100,9 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<UserProfileCreateResponseDto>>
+    ResponseEntity<UserProfileCreateResponseDto>
     createProfile(
-            Authentication authentication,
+            Long userId,
             UserProfileCreateRequest request
     );
 
@@ -125,8 +123,8 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<UserProfilePrefillResponseDto>> prefillProfile(
-            Authentication authentication
+    ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(
+            Long userId
     );
 
     @Operation(
@@ -151,7 +149,7 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<UserProfileResponseDto>> getMyProfile(
+    ResponseEntity<UserProfileResponseDto> getMyProfile(
             Long userId
     );
 
@@ -182,7 +180,7 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<Void>> updateMyProfile(
+    ResponseEntity<Void> updateMyProfile(
             Long userId,
             UserProfileUpdateRequest request
     );
@@ -224,7 +222,7 @@ public interface UserApi {
             )
     })
     @SecurityRequirement(name = "bearerAuth")
-    ResponseEntity<ApiResponse<Void>> updateIdentity(
+    ResponseEntity<Void> updateIdentity(
             Long userId,
             UserProfileIdentityUpdateRequest request
     );
