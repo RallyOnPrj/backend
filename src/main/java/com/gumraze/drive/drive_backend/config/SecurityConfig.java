@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gumraze.drive.drive_backend.auth.security.JwtAuthenticationFilter;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.common.api.ApiResponse;
@@ -21,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

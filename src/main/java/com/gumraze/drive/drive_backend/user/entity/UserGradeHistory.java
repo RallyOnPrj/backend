@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user_grade_history")
@@ -26,6 +27,7 @@ public class UserGradeHistory {
     private Grade grade;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "grade_type", nullable = false)
     private GradeType gradeType;
 
     @Column(name = "changed_at")
@@ -45,7 +47,7 @@ public class UserGradeHistory {
     ) {
         this.user = user;
         this.grade = grade;
-        this.gradeType = gradeType;
+        this.gradeType = Objects.requireNonNull(gradeType, "gradeType must not be null");
         this.changedAt = LocalDateTime.now();
     }
 }

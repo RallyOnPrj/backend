@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.config.SecurityConfig;
 import com.gumraze.drive.drive_backend.user.constants.Gender;
@@ -17,15 +16,19 @@ import com.gumraze.drive.drive_backend.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +38,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -60,6 +64,16 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private RequestPostProcessor authenticatedUser(Long userId) {
+        return authentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
+    }
+
     @Test
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
     void get_me_returns_pending_user_status() throws Exception {
@@ -71,12 +85,10 @@ public class UserControllerTest {
         // stub
         when(userService.getUserMe(1L))
                 .thenReturn(responseDto);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         // when: /users/me로 GET 요청을 보냄.
         mockMvc.perform(get("/users/me")
-                        .header("Authorization", "Bearer token"))
+                        .with(authenticatedUser(1L)))
                 // then: 응답은 status만 포함되어야 함.
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -96,11 +108,9 @@ public class UserControllerTest {
                 .build();
 
         when(userService.getUserMe(1L)).thenReturn(response);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         mockMvc.perform(get("/users/me")
-                .header("Authorization", "Bearer token")
+                .with(authenticatedUser(1L))
                 .accept("application/json"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -135,15 +145,13 @@ public class UserControllerTest {
 
         when(userSearchService.searchByNickname(eq(nickname), any(Pageable.class)))
                 .thenReturn(page);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         // when & then
         mockMvc.perform(get("/users")
                         .param("nickname", nickname)
                         .param("page", "0")
                         .param("size", "20")
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -171,14 +179,12 @@ public class UserControllerTest {
 
         when(userSearchService.searchByNicknameAndTag(nickname, tag))
                 .thenReturn(Optional.of(response));
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
 
         // when & then
         mockMvc.perform(get("/users")
                         .param("nickname", nickname)
                         .param("tag", tag)
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -191,11 +197,8 @@ public class UserControllerTest {
     @Test
     @DisplayName("nickname 파라미터 누락 시 400 반환")
     void search_user_missing_nickname_returns_400() throws Exception {
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(1L));
-
         mockMvc.perform(get("/users")
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(1L))
                         .accept("application/json")
                 )
                 .andExpect(status().isBadRequest());
@@ -233,7 +236,7 @@ public class UserControllerTest {
 
         // when & then
         mockMvc.perform(get("/users/me/profile")
-                        .header("Authorization", "Bearer token")
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -263,14 +266,12 @@ public class UserControllerTest {
                         .build();
 
         String body = objectMapper.writeValueAsString(request);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
         doNothing().when(userProfileService)
                 .updateMyProfile(eq(userId), any(UserProfileUpdateRequest.class));
 
 
         mockMvc.perform(patch("/users/me/profile")
-                          .header("Authorization", "Bearer token")
+                          .with(authenticatedUser(userId))
                           .contentType(MediaType.APPLICATION_JSON)
                           .accept(MediaType.APPLICATION_JSON)
                           .content(body))
@@ -294,14 +295,12 @@ public class UserControllerTest {
 
         String body = objectMapper.writeValueAsString(request);
 
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.of(userId));
         doNothing().when(userProfileService)
                 .updateNicknameAndTags(eq(userId), any(UserProfileIdentityUpdateRequest.class));
 
         // when & then
         mockMvc.perform(patch("/users/me/profile/identity")
-                .header("Authorization", "Bearer token")
+                .with(authenticatedUser(userId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(body))
