@@ -80,7 +80,7 @@ public interface UserApi {
 
     @Operation(
             summary = "프로필 생성",
-            description = "닉네임/지역/등급을 입력해 프로필을생성하고 계정을 ACTIVE로 전환합니다;."
+            description = "닉네임/지역/등급을 입력해 프로필을 생성하고 계정을 ACTIVE로 전환합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -159,8 +159,8 @@ public interface UserApi {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "내 프로필 수정 성공",
+                    responseCode = "204",
+                    description = "내 프로필 수정 성공 (No Content)",
                     content = @Content
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -191,8 +191,8 @@ public interface UserApi {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "닉네임/태그 변경 성공",
+                    responseCode = "204",
+                    description = "닉네임/태그 변경 성공 (No Content)",
                     content = @Content
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

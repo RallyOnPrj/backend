@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -59,7 +60,8 @@ public class UserController implements UserApi {
     ) {
         userProfileService.createProfile(userId, request);
         UserProfileCreateResponseDto body = UserProfileCreateResponseDto.builder().userId(userId).build();
-        return ResponseEntity.ok(body);
+        URI location = URI.create("/users/me/profile");
+        return ResponseEntity.created(location).body(body);
     }
 
     @GetMapping("/me/profile/prefill")
