@@ -7,8 +7,6 @@ import com.gumraze.drive.drive_backend.auth.dto.OAuthRefreshTokenResponseDto;
 import com.gumraze.drive.drive_backend.auth.service.AuthService;
 import com.gumraze.drive.drive_backend.auth.service.OAuthLoginResult;
 import com.gumraze.drive.drive_backend.auth.token.JwtProperties;
-import com.gumraze.drive.drive_backend.common.api.ApiResponse;
-import com.gumraze.drive.drive_backend.common.api.ResultCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -27,7 +25,7 @@ public class AuthController implements AuthApi {
 
     @Override
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> login(
+    public ResponseEntity<OAuthLoginResponseDto> login(
             @RequestBody OAuthLoginRequestDto request
     ) {
         OAuthLoginResult result = authService.login(request);
@@ -44,17 +42,15 @@ public class AuthController implements AuthApi {
 
         OAuthLoginResponseDto response = new OAuthLoginResponseDto(result.userId(), result.accessToken());
 
-        ResultCode code = ResultCode.OAUTH_LOGIN_SUCCESS;
-
         return ResponseEntity
-                .status(code.httpStatus())
+                .ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success(code, response));
+                .body(response);
     }
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<OAuthRefreshTokenResponseDto>> refresh (
+    public ResponseEntity<OAuthRefreshTokenResponseDto> refresh (
             @CookieValue(name = "refresh_token", required = false) String refreshToken
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -74,17 +70,15 @@ public class AuthController implements AuthApi {
 
         OAuthRefreshTokenResponseDto response = new OAuthRefreshTokenResponseDto(result.userId(), result.accessToken());
 
-        ResultCode code = ResultCode.OAUTH_REFRESH_TOKEN_SUCCESS;
-
         return ResponseEntity
-                .status(code.httpStatus())
+                .ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success(code, response));
+                .body(response);
     }
 
     @Override
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(
+    public ResponseEntity<Void> logout(
             @CookieValue(name = "refresh_token", required = false) String refreshToken
     ) {
         if (refreshToken != null) {
@@ -99,11 +93,8 @@ public class AuthController implements AuthApi {
                         .maxAge(0)
                         .build();
 
-        ResultCode code = ResultCode.LOGOUT_SUCCESS;
-
-        return ResponseEntity
-                .status(code.httpStatus())
+        return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
-                .body(ApiResponse.success(code));
+                .build();
     }
 }
