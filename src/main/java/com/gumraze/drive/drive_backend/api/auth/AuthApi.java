@@ -1,5 +1,7 @@
 package com.gumraze.drive.drive_backend.api.auth;
 
+import com.gumraze.drive.drive_backend.api.common.ApiBadRequestResponse;
+import com.gumraze.drive.drive_backend.api.common.ApiServerErrorResponse;
 import com.gumraze.drive.drive_backend.auth.dto.OAuthLoginRequestDto;
 import com.gumraze.drive.drive_backend.auth.dto.OAuthLoginResponseDto;
 import com.gumraze.drive.drive_backend.auth.dto.OAuthRefreshTokenResponseDto;
@@ -14,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "Auth", description = "OAuth 로그인/토큰 관련 API")
@@ -40,6 +41,8 @@ public interface AuthApi {
                     )
             )
     )
+    @ApiBadRequestResponse
+    @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -47,22 +50,6 @@ public interface AuthApi {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = OAuthLoginResponseDto.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "요청 검증 실패",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류가 발생했습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
                     )
             )
     })
@@ -74,6 +61,8 @@ public interface AuthApi {
             summary = "Access 토큰 리프레시",
             description = "Refresh Token으로 새로운 Access/Refresh 토큰을 발급합니다."
     )
+    @ApiBadRequestResponse
+    @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -81,22 +70,6 @@ public interface AuthApi {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = OAuthRefreshTokenResponseDto.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "요청 검증 실패",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류가 발생했습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
                     )
             )
     })
@@ -114,19 +87,12 @@ public interface AuthApi {
             summary = "로그아웃",
             description = "Refresh Token을 무효화합니다."
     )
+    @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
                     responseCode = "204",
                     description = "로그아웃 성공 (No Content)",
                     content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류가 발생했습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
             )
     })
     ResponseEntity<Void> logout(
