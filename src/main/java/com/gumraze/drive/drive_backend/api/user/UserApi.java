@@ -3,12 +3,16 @@ package com.gumraze.drive.drive_backend.api.user;
 import com.gumraze.drive.drive_backend.user.dto.*;
 import com.gumraze.drive.drive_backend.user.entity.UserProfileUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "Users", description = "사용자 API")
@@ -22,27 +26,41 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "유저 검색 성공",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PageImpl.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "유저가 없습니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
     ResponseEntity<Page<UserSearchResponse>> searchUsers(
+            @Parameter(description = "검색할 닉네임", required = true)
             String nickname,
+            @Parameter(description = "닉네임과 함께 사용할 태그(선택)")
             String tag,
             Pageable pageable
     );
@@ -55,22 +73,34 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "내 프로필 조회 성공",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserMeResponse.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -86,17 +116,26 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "201",
                     description = "프로필 생성 성공",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfileCreateResponseDto.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -114,12 +153,18 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfilePrefillResponseDto.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -135,17 +180,26 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "내 프로필 조회 성공",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfileResponseDto.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -166,17 +220,26 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -198,27 +261,42 @@ public interface UserApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
                     description = "이미 존재하는 닉네임과 태그입니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "422",
                     description = "요청을 처리할 수 없습니다.",
-                    content = @Content
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
             )
     })
     @SecurityRequirement(name = "bearerAuth")
