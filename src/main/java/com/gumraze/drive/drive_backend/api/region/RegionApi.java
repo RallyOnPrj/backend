@@ -1,5 +1,7 @@
 package com.gumraze.drive.drive_backend.api.region;
 
+import com.gumraze.drive.drive_backend.api.common.ApiBadRequestResponse;
+import com.gumraze.drive.drive_backend.api.common.ApiServerErrorResponse;
 import com.gumraze.drive.drive_backend.region.dto.RegionDistrictResponseDto;
 import com.gumraze.drive.drive_backend.region.dto.RegionProvinceResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public interface RegionApi {
             description = "전체 시/도 목록을 조회합니다.",
             security = {}
     )
+    @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -29,14 +31,6 @@ public interface RegionApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = RegionProvinceResponseDto.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류가 발생했습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
                     )
             )
     })
@@ -47,6 +41,8 @@ public interface RegionApi {
             description = "시/도 ID로 시/군/구 목록을 조회합니다.",
             security = {}
     )
+    @ApiBadRequestResponse
+    @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -54,22 +50,6 @@ public interface RegionApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = RegionDistrictResponseDto.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "요청 검증 실패",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "서버 오류가 발생했습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
                     )
             )
     })
