@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ public interface UserApi {
             description = "닉네임으로 사용자를 검색하고, tag가 있으면 태그 조건을 함께 적용합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "유저 검색 성공",
                     content = @Content(
@@ -31,7 +32,7 @@ public interface UserApi {
                             schema = @Schema(implementation = PageImpl.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -39,7 +40,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -47,7 +48,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "유저가 없습니다.",
                     content = @Content(
@@ -70,7 +71,7 @@ public interface UserApi {
             description = "현재 로그인한 사용자의 프로필을 조회합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "내 프로필 조회 성공",
                     content = @Content(
@@ -78,7 +79,7 @@ public interface UserApi {
                             schema = @Schema(implementation = UserMeResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -86,7 +87,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -94,7 +95,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -113,7 +114,7 @@ public interface UserApi {
             description = "닉네임/지역/등급을 입력해 프로필을 생성하고 계정을 ACTIVE로 전환합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "201",
                     description = "프로필 생성 성공",
                     content = @Content(
@@ -121,7 +122,7 @@ public interface UserApi {
                             schema = @Schema(implementation = UserProfileCreateResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -129,7 +130,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -150,7 +151,7 @@ public interface UserApi {
             description = "제3자 로그인 닉네임이 있으면 suggestedNickname으로 반환합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
                     content = @Content(
@@ -158,7 +159,7 @@ public interface UserApi {
                             schema = @Schema(implementation = UserProfilePrefillResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -177,7 +178,7 @@ public interface UserApi {
             description = "현재 로그인한 사용자의 프로필 상세 정보를 조회합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "내 프로필 조회 성공",
                     content = @Content(
@@ -185,7 +186,7 @@ public interface UserApi {
                             schema = @Schema(implementation = UserProfileResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -193,7 +194,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
                     content = @Content(
@@ -212,12 +213,12 @@ public interface UserApi {
             description = "내 프로필 정보를 수정합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "204",
                     description = "내 프로필 수정 성공 (No Content)",
                     content = @Content
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -225,7 +226,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -233,7 +234,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
                     content = @Content(
@@ -253,12 +254,12 @@ public interface UserApi {
             description = "닉네임과 태그를 변경합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "204",
                     description = "닉네임/태그 변경 성공 (No Content)",
                     content = @Content
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -266,7 +267,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -274,7 +275,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "사용자의 프로필을 찾을 수 없습니다.",
                     content = @Content(
@@ -282,7 +283,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "409",
                     description = "이미 존재하는 닉네임과 태그입니다.",
                     content = @Content(
@@ -290,7 +291,7 @@ public interface UserApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "422",
                     description = "요청을 처리할 수 없습니다.",
                     content = @Content(

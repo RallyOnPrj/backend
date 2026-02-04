@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
@@ -22,7 +23,7 @@ public interface RegionApi {
             security = {}
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "시/도 조회 성공",
                     content = @Content(
@@ -30,7 +31,7 @@ public interface RegionApi {
                             schema = @Schema(implementation = RegionProvinceResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류가 발생했습니다.",
                     content = @Content(
@@ -47,7 +48,7 @@ public interface RegionApi {
             security = {}
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "시/군/구 조회 성공",
                     content = @Content(
@@ -55,7 +56,7 @@ public interface RegionApi {
                             schema = @Schema(implementation = RegionDistrictResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -63,7 +64,7 @@ public interface RegionApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류가 발생했습니다.",
                     content = @Content(

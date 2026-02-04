@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +20,7 @@ public interface CourtManagerApi {
             description = "새로운 자유게임을 생성합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "201",
                     description = "자유게임 생성 성공",
                     content = @Content(
@@ -27,7 +28,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = CreateFreeGameResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -35,7 +36,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -43,7 +44,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -63,7 +64,7 @@ public interface CourtManagerApi {
             description = "자유게임의 상세 정보를 조회합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "자유게임 상세 조회 성공",
                     content = @Content(
@@ -71,7 +72,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = FreeGameDetailResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -79,7 +80,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -87,7 +88,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "자유게임을 찾을 수 없습니다.",
                     content = @Content(
@@ -107,7 +108,7 @@ public interface CourtManagerApi {
             description = "자유게임의 기본 정보를 수정합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "자유게임 기본 정보 수정 성공",
                     content = @Content(
@@ -115,7 +116,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = UpdateFreeGameResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -123,7 +124,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -131,7 +132,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -139,7 +140,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "자유게임을 찾을 수 없습니다.",
                     content = @Content(
@@ -160,7 +161,7 @@ public interface CourtManagerApi {
             description = "자유게임 라운드 및 매치 정보를 조회합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "자유게임 라운드 및 매치 정보 조회 성공",
                     content = @Content(
@@ -168,7 +169,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = FreeGameRoundMatchResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -176,7 +177,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -184,7 +185,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "자유게임을 찾을 수 없습니다.",
                     content = @Content(
@@ -204,12 +205,12 @@ public interface CourtManagerApi {
             description = "자유게임 라운드 및 매치 정보를 수정합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "204",
                     description = "자유게임 라운드 및 매치 정보 수정 성공 (No Content)",
                     content = @Content
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -217,7 +218,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -225,7 +226,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -233,7 +234,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "자유게임을 찾을 수 없습니다.",
                     content = @Content(
@@ -254,7 +255,7 @@ public interface CourtManagerApi {
             description = "자유게임 참가자 목록을 조회합니다. include=stats인 경우 매치 집계 정보를 포함합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "자유게임 참가자 목록 조회 성공",
                     content = @Content(
@@ -262,7 +263,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = FreeGameParticipantsResponse.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -270,7 +271,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "403",
                     description = "접근 권한 없음",
                     content = @Content(
@@ -278,7 +279,7 @@ public interface CourtManagerApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "404",
                     description = "자유게임을 찾을 수 없습니다.",
                     content = @Content(

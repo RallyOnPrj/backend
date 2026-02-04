@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -21,7 +23,7 @@ public interface AuthApi {
     @Operation(
             summary = "OAuth 로그인",
             description = "외부 OAuth 공급자로 로그인 후 서비스용 Access/Refresh 토큰을 발급합니다.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
                     required = true,
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -39,7 +41,7 @@ public interface AuthApi {
             )
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "로그인 성공",
                     content = @Content(
@@ -47,7 +49,7 @@ public interface AuthApi {
                             schema = @Schema(implementation = OAuthLoginResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -55,7 +57,7 @@ public interface AuthApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류가 발생했습니다.",
                     content = @Content(
@@ -73,7 +75,7 @@ public interface AuthApi {
             description = "Refresh Token으로 새로운 Access/Refresh 토큰을 발급합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "리프레시 성공",
                     content = @Content(
@@ -81,7 +83,7 @@ public interface AuthApi {
                             schema = @Schema(implementation = OAuthRefreshTokenResponseDto.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
                     description = "요청 검증 실패",
                     content = @Content(
@@ -89,7 +91,7 @@ public interface AuthApi {
                             schema = @Schema(implementation = ProblemDetail.class)
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류가 발생했습니다.",
                     content = @Content(
@@ -113,12 +115,12 @@ public interface AuthApi {
             description = "Refresh Token을 무효화합니다."
     )
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "204",
                     description = "로그아웃 성공 (No Content)",
                     content = @Content
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            @ApiResponse(
                     responseCode = "500",
                     description = "서버 오류가 발생했습니다.",
                     content = @Content(
