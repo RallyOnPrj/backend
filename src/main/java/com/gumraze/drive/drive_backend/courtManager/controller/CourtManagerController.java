@@ -5,10 +5,11 @@ import com.gumraze.drive.drive_backend.courtManager.dto.*;
 import com.gumraze.drive.drive_backend.courtManager.service.FreeGameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,9 +26,10 @@ public class CourtManagerController implements CourtManagerApi {
 
         // 서비스 호출
         CreateFreeGameResponse response = freeGameService.createFreeGame(userId, request);
+        URI location = URI.create("/free-games/" + response.getGameId());
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .created(location)
                 .body(response);
     }
 

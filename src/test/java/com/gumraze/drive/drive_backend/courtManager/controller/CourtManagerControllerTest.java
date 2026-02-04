@@ -63,8 +63,8 @@ class CourtManagerControllerTest {
     @DisplayName("최소 필수값으로 자유게임 생성 성공")
     void createFreeGame_success() throws Exception {
         // given: 최소 필수값만 포함된 생성 요청을 준비함.
-        CreateFreeGameResponse response = new CreateFreeGameResponse();
-        response.setGameId(101L);           // 게임 Id를 101으로 설정
+        CreateFreeGameResponse response = CreateFreeGameResponse.builder()
+                .gameId(101L).build();
 
         // 서비스 응답을 stub
         when(freeGameService.createFreeGame(anyLong(), any()))
@@ -216,6 +216,11 @@ class CourtManagerControllerTest {
                         )
                 )
                 .build();
+
+        CreateFreeGameResponse response = CreateFreeGameResponse.builder()
+                .gameId(101L).build();
+        when(freeGameService.createFreeGame(anyLong(), any()))
+                .thenReturn(response);
 
         String body = objectMapper.writeValueAsString(request);
 
