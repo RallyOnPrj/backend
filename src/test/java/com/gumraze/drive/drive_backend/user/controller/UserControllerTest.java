@@ -41,8 +41,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 @Import(SecurityConfig.class)
@@ -64,37 +63,28 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private RequestPostProcessor authenticatedUser(Long userId) {
-        return authentication(
-                new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                )
-        );
-    }
-
     @Test
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
     void get_me_returns_pending_user_status() throws Exception {
         // given: 사용자는 현재 PENDING 상태임.
-        UserMeResponse responseDto = UserMeResponse.builder()
+        UserMeResponse response = UserMeResponse.builder()
                 .status(UserStatus.PENDING)
                 .build();
 
         // stub
         when(userService.getUserMe(1L))
-                .thenReturn(responseDto);
+                .thenReturn(response);
 
-        // when: /users/me로 GET 요청을 보냄.
+        // when & then: /users/me로 GET 요청을 보내며, 응답은 status를 제외하고 null 값임.
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(1L)))
-                // then: 응답은 status만 포함되어야 함.
+                        .with(authenticatedUser(1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value(UserStatus.PENDING.name()))
-                .andExpect(jsonPath("$.data.profileImageUrl").value(nullValue()))
-                .andExpect(jsonPath("$.data.nickname").value(nullValue()));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(response.getStatus().name()))
+                .andExpect(jsonPath("$.profileImageUrl").value(nullValue()))
+                .andExpect(jsonPath("$.nickname").value(nullValue()));
+
     }
 
     @Test
@@ -110,21 +100,25 @@ public class UserControllerTest {
         when(userService.getUserMe(1L)).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                .with(authenticatedUser(1L))
-                .accept("application/json"))
+                        .with(authenticatedUser(1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value(UserStatus.ACTIVE.name()))
-                .andExpect(jsonPath("$.data.nickname").value("테스트 닉네임"))
-                .andExpect(jsonPath("$.data.profileImageUrl").value("http://profile-image.com"));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(response.getStatus().name()))
+                .andExpect(jsonPath("$.nickname").value("테스트 닉네임"))
+                .andExpect(jsonPath("$.profileImageUrl").value("http://profile-image.com"));
     }
 
     @Test
     @DisplayName("토큰이 없으면 401을 반환한다.")
     void get_user_me_returns_unauthorized_when_token_is_missing() throws Exception {
         mockMvc.perform(get("/users/me")
-                        .accept("application/json"))
-                .andExpect(status().isUnauthorized());
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
     }
 
     @Test
@@ -143,6 +137,7 @@ public class UserControllerTest {
         Pageable pageable = PageRequest.of(0, 20);
         Page<UserSearchResponse> page = new PageImpl<>(List.of(response), pageable, 1);
 
+        // stub
         when(userSearchService.searchByNickname(eq(nickname), any(Pageable.class)))
                 .thenReturn(page);
 
@@ -154,11 +149,10 @@ public class UserControllerTest {
                         .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].userId").value(1L))
-                .andExpect(jsonPath("$.data.content[0].nickname").value(nickname))
-                .andExpect(jsonPath("$.data.content[0].tag").value("AB12"))
-                .andExpect(jsonPath("$.data.content[0].profileImageUrl").value(nullValue()))
+                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].nickname").value(nickname))
+                .andExpect(jsonPath("$.content[0].tag").value("AB12"))
+                .andExpect(jsonPath("$.content[0].profileImageUrl").value(nullValue()))
         ;
     }
 
@@ -187,21 +181,24 @@ public class UserControllerTest {
                         .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.content[0].userId").value(1L))
-                .andExpect(jsonPath("$.data.content[0].nickname").value(nickname))
-                .andExpect(jsonPath("$.data.content[0].tag").value(tag))
-                .andExpect(jsonPath("$.data.content[0].profileImageUrl").value(nullValue()));
+                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].nickname").value(nickname))
+                .andExpect(jsonPath("$.content[0].tag").value(tag))
+                .andExpect(jsonPath("$.content[0].profileImageUrl").value(nullValue()));
     }
 
     @Test
-    @DisplayName("nickname 파라미터 누락 시 400 반환")
+    @DisplayName("nickname 파라미터 누락 시 400에러 반환")
     void search_user_missing_nickname_returns_400() throws Exception {
         mockMvc.perform(get("/users")
                         .with(authenticatedUser(1L))
-                        .accept("application/json")
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON_VALUE)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
         verifyNoInteractions(userSearchService);
     }
 
@@ -239,17 +236,16 @@ public class UserControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.data.nickname").value("테스트 닉네임"))
-                .andExpect(jsonPath("$.data.tag").value("AB12"))
-                .andExpect(jsonPath("$.data.profileImageUrl").value("http://profile-image.com"))
-                .andExpect(jsonPath("$.data.birthVisible").value(true))
-                .andExpect(jsonPath("$.data.gender").value("MALE"))
-                .andExpect(jsonPath("$.data.regionalGrade").value("D급"))
-                .andExpect(jsonPath("$.data.nationalGrade").value("D급"))
-                .andExpect(jsonPath("$.data.districtName").value("테스트 구"))
-                .andExpect(jsonPath("$.data.provinceName").value("테스트 시/도"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.nickname").value("테스트 닉네임"))
+                .andExpect(jsonPath("$.tag").value("AB12"))
+                .andExpect(jsonPath("$.profileImageUrl").value("http://profile-image.com"))
+                .andExpect(jsonPath("$.birthVisible").value(true))
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.regionalGrade").value("D급"))
+                .andExpect(jsonPath("$.nationalGrade").value("D급"))
+                .andExpect(jsonPath("$.districtName").value("테스트 구"))
+                .andExpect(jsonPath("$.provinceName").value("테스트 시/도"));
     }
 
     @Test
@@ -271,14 +267,12 @@ public class UserControllerTest {
 
 
         mockMvc.perform(patch("/users/me/profile")
-                          .with(authenticatedUser(userId))
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .accept(MediaType.APPLICATION_JSON)
-                          .content(body))
-                  .andExpect(status().isOk())
-                  .andExpect(jsonPath("$.success").value(true))
-                  .andExpect(jsonPath("$.code").value("OK"))
-                  .andExpect(jsonPath("$.message").value("내 프로필 수정 성공"));
+                        .with(authenticatedUser(userId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -300,13 +294,22 @@ public class UserControllerTest {
 
         // when & then
         mockMvc.perform(patch("/users/me/profile/identity")
-                .with(authenticatedUser(userId))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.message").value("닉네임/태그 변경 성공"));
+                        .with(authenticatedUser(userId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+    }
+
+    // Helper method
+    private RequestPostProcessor authenticatedUser(Long userId) {
+        return authentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
     }
 }
