@@ -1,6 +1,5 @@
 package com.gumraze.drive.drive_backend.api.region;
 
-import com.gumraze.drive.drive_backend.common.api.ApiResponse;
 import com.gumraze.drive.drive_backend.region.dto.RegionDistrictResponseDto;
 import com.gumraze.drive.drive_backend.region.dto.RegionProvinceResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +30,7 @@ public interface RegionApi {
                     content = @Content
             )
     })
-    ResponseEntity<ApiResponse<List<RegionProvinceResponseDto>>> getProvinces();
+    ResponseEntity<List<RegionProvinceResponseDto>> getProvinces();
 
     @Operation(
             summary = "시/군/구 조회",
@@ -55,7 +54,7 @@ public interface RegionApi {
                     content = @Content
             )
     })
-    ResponseEntity<ApiResponse<List<RegionDistrictResponseDto>>> getDistricts(
+    ResponseEntity<List<RegionDistrictResponseDto>> getDistricts(
             Long provinceId
     );
 }

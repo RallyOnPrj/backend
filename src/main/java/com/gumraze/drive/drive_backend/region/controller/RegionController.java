@@ -1,8 +1,6 @@
 package com.gumraze.drive.drive_backend.region.controller;
 
 import com.gumraze.drive.drive_backend.api.region.RegionApi;
-import com.gumraze.drive.drive_backend.common.api.ApiResponse;
-import com.gumraze.drive.drive_backend.common.api.ResultCode;
 import com.gumraze.drive.drive_backend.region.dto.RegionDistrictResponseDto;
 import com.gumraze.drive.drive_backend.region.dto.RegionProvinceResponseDto;
 import com.gumraze.drive.drive_backend.region.service.RegionService;
@@ -27,24 +25,19 @@ public class RegionController implements RegionApi {
 
     @Override
     @GetMapping(value = "/provinces")
-    public ResponseEntity<ApiResponse<List<RegionProvinceResponseDto>>> getProvinces() {
-
+    public ResponseEntity<List<RegionProvinceResponseDto>> getProvinces() {
         List<RegionProvinceResponseDto> body = regionService.getProvinces().stream()
                 .map(p -> new RegionProvinceResponseDto(
                         p.getId(),
                         p.getName()
                 ))
                 .toList();
-
-        ResultCode code = ResultCode.OK;
-        return ResponseEntity
-                .status(code.httpStatus())
-                .body(ApiResponse.success(code, body));
+        return ResponseEntity.ok(body);
     }
 
     @Override
     @GetMapping(value = "/{provinceId}/districts")
-    public ResponseEntity<ApiResponse<List<RegionDistrictResponseDto>>> getDistricts(
+    public ResponseEntity<List<RegionDistrictResponseDto>> getDistricts(
             @PathVariable Long provinceId
     ) {
         List<RegionDistrictResponseDto> body = regionService.getDistricts(provinceId).stream()
@@ -53,10 +46,6 @@ public class RegionController implements RegionApi {
                         d.getName()
                 ))
                 .toList();
-
-        ResultCode code = ResultCode.OK;
-        return ResponseEntity
-                .status(code.httpStatus())
-                .body(ApiResponse.success(code, body));
+        return ResponseEntity.ok(body);
     }
 }
