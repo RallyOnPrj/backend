@@ -31,8 +31,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourtManagerController.class)
 @Import(SecurityConfig.class)
@@ -86,12 +85,11 @@ class CourtManagerControllerTest {
         // then: 201과 응답 바디 구조/값이 일치하는지 확인
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("CREATED"))
-                .andExpect(jsonPath("$.data.gameId").value(101));
+                .andExpect(jsonPath("$.gameId").value(101));
     }
 
     @Test
@@ -111,11 +109,14 @@ class CourtManagerControllerTest {
         // then: VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -134,11 +135,14 @@ class CourtManagerControllerTest {
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -157,11 +161,14 @@ class CourtManagerControllerTest {
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -178,11 +185,14 @@ class CourtManagerControllerTest {
         // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -212,12 +222,10 @@ class CourtManagerControllerTest {
         // when & then
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("CREATED"))
-        ;
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -244,11 +252,14 @@ class CourtManagerControllerTest {
         // when & then
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -281,10 +292,13 @@ class CourtManagerControllerTest {
         // when & then
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .content(body))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -306,11 +320,14 @@ class CourtManagerControllerTest {
         // when & then: 자유게임 생성 시 400 에러 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -331,11 +348,14 @@ class CourtManagerControllerTest {
         // when & then: 자유게임 생성 시 400 에러 발생
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -350,19 +370,18 @@ class CourtManagerControllerTest {
         when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
 
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .with(authenticatedUser(userId)))
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.data.gameId").value(1))
-                .andExpect(jsonPath("$.data.title").value("자유게임"))
-                .andExpect(jsonPath("$.data.gameType").value("FREE"))
-                .andExpect(jsonPath("$.data.gameStatus").value("NOT_STARTED"))
-                .andExpect(jsonPath("$.data.matchRecordMode").value("STATUS_ONLY"))
-                .andExpect(jsonPath("$.data.gradeType").value("NATIONAL"))
-                .andExpect(jsonPath("$.data.courtCount").value(2))
-                .andExpect(jsonPath("$.data.roundCount").value(2))
-                .andExpect(jsonPath("$.data.organizerId").value(99))
+                .andExpect(jsonPath("$.gameId").value(1))
+                .andExpect(jsonPath("$.title").value("자유게임"))
+                .andExpect(jsonPath("$.gameType").value("FREE"))
+                .andExpect(jsonPath("$.gameStatus").value("NOT_STARTED"))
+                .andExpect(jsonPath("$.matchRecordMode").value("STATUS_ONLY"))
+                .andExpect(jsonPath("$.gradeType").value("NATIONAL"))
+                .andExpect(jsonPath("$.courtCount").value(2))
+                .andExpect(jsonPath("$.roundCount").value(2))
+                .andExpect(jsonPath("$.organizerId").value(99))
         ;
     }
 
@@ -380,10 +399,13 @@ class CourtManagerControllerTest {
 
         // when & then
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .header("Authorization", "Bearer token"))
+                        .header("Authorization", "Bearer token")
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -397,12 +419,15 @@ class CourtManagerControllerTest {
                 .thenThrow(new NotFoundException("게임이 존재하지 않습니다."));
 
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .with(authenticatedUser(userId)))
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andDo(print()) // 응답 로그 출력
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("게임이 존재하지 않습니다."));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.detail").value("게임이 존재하지 않습니다."));
     }
 
     @Test
@@ -428,13 +453,12 @@ class CourtManagerControllerTest {
 
         mockMvc.perform(patch("/free-games/{gameId}", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .with(authenticatedUser(userId))
                         .content(body))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.data.gameId").value(80))
+                .andExpect(jsonPath("$.gameId").value(80))
         ;
     }
 
@@ -454,10 +478,13 @@ class CourtManagerControllerTest {
         // when & then
         mockMvc.perform(patch("/free-games/{gameId}", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .content(body))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
         ;
     }
 
@@ -496,20 +523,19 @@ class CourtManagerControllerTest {
 
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/rounds-and-matches", gameId)
-                        .with(authenticatedUser(userId)))
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.data.gameId").value(2L))
-                .andExpect(jsonPath("$.data.rounds[0].roundNumber").value(1L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].courtNumber").value(1L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].teamAIds[0]").value(201L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].teamAIds[1]").value(202L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].teamBIds[0]").value(203L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].teamBIds[1]").value(204L))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].matchStatus").value("NOT_STARTED"))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].matchResult").value("NULL"))
-                .andExpect(jsonPath("$.data.rounds[0].matches[0].isActive").value(true))
+                .andExpect(jsonPath("$.gameId").value(2L))
+                .andExpect(jsonPath("$.rounds[0].roundNumber").value(1L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].courtNumber").value(1L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[0]").value(201L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[1]").value(202L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[0]").value(203L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[1]").value(204L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].matchStatus").value("NOT_STARTED"))
+                .andExpect(jsonPath("$.rounds[0].matches[0].matchResult").value("NULL"))
+                .andExpect(jsonPath("$.rounds[0].matches[0].isActive").value(true))
         ;
     }
 
@@ -541,9 +567,11 @@ class CourtManagerControllerTest {
 
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .with(authenticatedUser(userId))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
 
     }
 
@@ -576,15 +604,14 @@ class CourtManagerControllerTest {
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
                         .queryParam("include", "stats")
-                        .with(authenticatedUser(1L)))
+                        .with(authenticatedUser(1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.data.gameId").value(101))
-                .andExpect(jsonPath("$.data.participants[0].assignedMatchCount").value(3))
-                .andExpect(jsonPath("$.data.participants[0].completedMatchCount").value(2))
-                .andExpect(jsonPath("$.data.participants[0].winCount").value(1))
-                .andExpect(jsonPath("$.data.participants[0].lossCount").value(1));
+                .andExpect(jsonPath("$.gameId").value(101))
+                .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3))
+                .andExpect(jsonPath("$.participants[0].completedMatchCount").value(2))
+                .andExpect(jsonPath("$.participants[0].winCount").value(1))
+                .andExpect(jsonPath("$.participants[0].lossCount").value(1));
     }
 
     @Test
@@ -611,15 +638,14 @@ class CourtManagerControllerTest {
 
         // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
-                        .with(authenticatedUser(1L)))
+                        .with(authenticatedUser(1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
-                .andExpect(jsonPath("$.data.gameId").value(101))
-                .andExpect(jsonPath("$.data.participants[0].assignedMatchCount").doesNotExist())
-                .andExpect(jsonPath("$.data.participants[0].completedMatchCount").doesNotExist())
-                .andExpect(jsonPath("$.data.participants[0].winCount").doesNotExist())
-                .andExpect(jsonPath("$.data.participants[0].lossCount").doesNotExist());
+                .andExpect(jsonPath("$.gameId").value(101))
+                .andExpect(jsonPath("$.participants[0].assignedMatchCount").doesNotExist())
+                .andExpect(jsonPath("$.participants[0].completedMatchCount").doesNotExist())
+                .andExpect(jsonPath("$.participants[0].winCount").doesNotExist())
+                .andExpect(jsonPath("$.participants[0].lossCount").doesNotExist());
     }
 
     /*
