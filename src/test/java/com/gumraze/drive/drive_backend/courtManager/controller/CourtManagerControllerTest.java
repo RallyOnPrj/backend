@@ -570,9 +570,7 @@ class CourtManagerControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .with(authenticatedUser(userId))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(""));
-
+                .andExpect(status().isNoContent());
     }
 
     @Test
