@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public OAuthLoginResult login(OAuthLoginRequestDto request) {
         if (!allowedProviders.getAllowedProviders().contains(request.getProvider())) {
-            throw new IllegalArgumentException("허용되지 않는 provider" + request.getProvider());
+            throw new IllegalArgumentException("허용되지 않는 provider: " + request.getProvider());
         }
 
         OAuthUserInfo userInfo = oAuthClientResolver
