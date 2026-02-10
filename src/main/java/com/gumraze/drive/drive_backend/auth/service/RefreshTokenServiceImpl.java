@@ -1,7 +1,7 @@
 package com.gumraze.drive.drive_backend.auth.service;
 
 import com.gumraze.drive.drive_backend.auth.entity.RefreshToken;
-import com.gumraze.drive.drive_backend.auth.repository.JpaRefreshTokenRepository;
+import com.gumraze.drive.drive_backend.auth.repository.RefreshTokenRepository;
 import com.gumraze.drive.drive_backend.auth.token.JwtProperties;
 import com.gumraze.drive.drive_backend.auth.token.RefreshTokenGenerator;
 import com.gumraze.drive.drive_backend.user.entity.User;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
-    private final JpaRefreshTokenRepository jpaRefreshTokenRepository;
+    private final RefreshTokenRepository jpaRefreshTokenRepository;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final UserRepository userRepository;
     private final JwtProperties properties;
