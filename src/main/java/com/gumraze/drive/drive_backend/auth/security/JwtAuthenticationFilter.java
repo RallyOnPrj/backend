@@ -3,8 +3,10 @@ package com.gumraze.drive.drive_backend.auth.security;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -12,20 +14,22 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-// OncePerRequestFilter -> 요청당 한 번만 실행되는 Spring Security Filter의 베이스 클래스
-// OncePerRequestFilter로 하나의 HTTP 요청당 한 번만 doFilterInternal()이 실행됨.
+/**
+ * 요청마다 액세스 토큰을 추출/검증해 SecurityContext에 인증 정보를 설정하는 필터.
+ *
+ * <p>토큰은 {@code access_token} 쿠키에서만 추출하며, 유효한 토큰이 없으면 인증 없이 다음
+ * 필터로 진행한다.</p>
+ */
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String ACCESS_TOKEN_COOKIE = "access_token";
 
-    // 필터는 Validator에 의존하도록 설정
     private final JwtAccessTokenValidator jwtAccessTokenValidator;
 
-    public JwtAuthenticationFilter(JwtAccessTokenValidator jwtAccessTokenValidator) {
-        this.jwtAccessTokenValidator = jwtAccessTokenValidator;
-    }
-
+    /**
+     * 요청에서 토큰을 추출해 검증하고, 성공 시 인증 객체를 SecurityContext에 저장한다.
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -33,23 +37,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // authorization 헤더 확인
         String token = resolveToken(request);
-        // 토큰 추출
 
         if (token != null) {
-            // JWT 검증
             jwtAccessTokenValidator
                     .validateAndGetUserId(token)
                     .ifPresent(userId -> {
-                        // Authentication 생성
                         var authentication =
                                 new UsernamePasswordAuthenticationToken(
-                                        userId,             // principal
-                                        null,               // credentials
-                                        List.of(() -> "ROLE_USER")  // authorities -> 아직 없음
+                                        userId,
+                                        null,
+                                        List.of(() -> "ROLE_USER")
                                 );
-                        // SecurityContext에 저장
                         SecurityContextHolder.getContext()
                                 .setAuthentication(authentication);
                     });
@@ -57,16 +56,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        // Authorization 헤더 확인
-        String header = request.getHeader(AUTHORIZATION_HEADER);
+    /**
+     * 요청에서 액세스 토큰을 추출한다.
+     *
+     * <p>{@code access_token} 쿠키만 사용한다.</p>
+     *
+     * @param request 현재 HTTP 요청
+     * @return 추출된 토큰 문자열, 없으면 {@code null}
+     */
+    private String resolveToken(
+            HttpServletRequest request
+    ) {
+        Cookie[] cookies = request.getCookies();
 
-        // 헤더가 존재하면 Token을 확인
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(BEARER_PREFIX.length());
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (ACCESS_TOKEN_COOKIE.equals(cookie.getName())
+                        && cookie.getValue() != null
+                        && !cookie.getValue().isBlank()) {
+                    return cookie.getValue();
+                }
+            }
         }
 
-        // 헤더가 없으면 토큰 없는 요청으로 그냥 통과 시킴.
         return null;
     }
 }

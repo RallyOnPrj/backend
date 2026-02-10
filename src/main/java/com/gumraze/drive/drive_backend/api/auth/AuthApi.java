@@ -3,8 +3,6 @@ package com.gumraze.drive.drive_backend.api.auth;
 import com.gumraze.drive.drive_backend.api.common.ApiBadRequestResponse;
 import com.gumraze.drive.drive_backend.api.common.ApiServerErrorResponse;
 import com.gumraze.drive.drive_backend.auth.dto.OAuthLoginRequestDto;
-import com.gumraze.drive.drive_backend.auth.dto.OAuthLoginResponseDto;
-import com.gumraze.drive.drive_backend.auth.dto.OAuthRefreshTokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -23,7 +21,7 @@ public interface AuthApi {
 
     @Operation(
             summary = "OAuth 로그인",
-            description = "외부 OAuth 공급자로 로그인 후 서비스용 Access/Refresh 토큰을 발급합니다.",
+            description = "외부 OAuth 공급자로 로그인 후 access_token, refresh_token 쿠키를 발급합니다.",
             requestBody = @RequestBody(
                     required = true,
                     content = @Content(
@@ -45,35 +43,29 @@ public interface AuthApi {
     @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
-                    description = "로그인 성공",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = OAuthLoginResponseDto.class)
-                    )
+                    responseCode = "204",
+                    description = "로그인 성공 (No Content, Set-Cookie: access_token, refresh_token)",
+                    content = @Content
             )
     })
-    ResponseEntity<OAuthLoginResponseDto> login(
+    ResponseEntity<Void> login(
             OAuthLoginRequestDto request
     );
 
     @Operation(
             summary = "Access 토큰 리프레시",
-            description = "Refresh Token으로 새로운 Access/Refresh 토큰을 발급합니다."
+            description = "refresh_token 쿠키로 새로운 access_token, refresh_token 쿠키를 재발급합니다."
     )
     @ApiBadRequestResponse
     @ApiServerErrorResponse
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
-                    description = "리프레시 성공",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = OAuthRefreshTokenResponseDto.class)
-                    )
+                    responseCode = "204",
+                    description = "리프레시 성공 (Set-Cookie: access_token, refresh_token)",
+                    content = @Content
             )
     })
-    ResponseEntity<OAuthRefreshTokenResponseDto> refresh(
+    ResponseEntity<Void> refresh(
             @Parameter(
                     name = "refresh_token",
                     description = "Refresh Token cookie",
@@ -85,7 +77,7 @@ public interface AuthApi {
 
     @Operation(
             summary = "로그아웃",
-            description = "Refresh Token을 무효화합니다."
+            description = "Refresh Token을 무효화하고 access_token, refresh_token 쿠키를 만료 처리합니다."
     )
     @ApiServerErrorResponse
     @ApiResponses({

@@ -4,109 +4,83 @@ import com.gumraze.drive.drive_backend.auth.dto.OAuthLoginRequestDto;
 import com.gumraze.drive.drive_backend.auth.oauth.OAuthAllowedProvidersProperties;
 import com.gumraze.drive.drive_backend.auth.oauth.OAuthClientResolver;
 import com.gumraze.drive.drive_backend.auth.oauth.OAuthUserInfo;
-import com.gumraze.drive.drive_backend.auth.repository.UserAuthRepository;
+import com.gumraze.drive.drive_backend.auth.port.out.UserIdentityPort;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenGenerator;
-import com.gumraze.drive.drive_backend.user.constants.UserStatus;
-import com.gumraze.drive.drive_backend.user.entity.User;
-import com.gumraze.drive.drive_backend.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * OAuth 로그인/리프레시/로그아웃에 대한 Auth 도메인 서비스 구현체.
+ *
+ * <p>사용자 식별·연동 정보의 저장/조회는 {@link UserIdentityPort}를 통해 수행하며,
+ * 토큰 발급/검증 흐름에만 집중한다.</p>
+ */
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
 
     private final JwtAccessTokenGenerator jwtAccessTokenGenerator;
-    private final UserAuthRepository userAuthRepository;
-    private final UserRepository userRepository;
+    private final UserIdentityPort userIdentityPort;
     private final RefreshTokenService refreshTokenService;
     private final OAuthClientResolver oAuthClientResolver;
     private final OAuthAllowedProvidersProperties allowedProviders;
 
-    public AuthServiceImpl(
-            JwtAccessTokenGenerator jwtAccessTokenGenerator,
-            UserAuthRepository userAuthRepository,
-            UserRepository userRepository,
-            RefreshTokenService refreshTokenService,
-            OAuthClientResolver oAuthClientResolver,
-            OAuthAllowedProvidersProperties allowedProviders) {
-        this.jwtAccessTokenGenerator = jwtAccessTokenGenerator;
-        this.userAuthRepository = userAuthRepository;
-        this.userRepository = userRepository;
-        this.refreshTokenService = refreshTokenService;
-        this.oAuthClientResolver = oAuthClientResolver;
-        this.allowedProviders = allowedProviders;
-    }
-
+    /**
+     * OAuth 공급자 로그인 결과를 바탕으로 사용자 식별 후 Access/Refresh 토큰을 발급한다.
+     *
+     * @param request OAuth 로그인 요청 정보
+     * @return 로그인 결과(내부 userId, accessToken, refreshToken)
+     */
     @Override
     public OAuthLoginResult login(OAuthLoginRequestDto request) {
         if (!allowedProviders.getAllowedProviders().contains(request.getProvider())) {
-            throw new IllegalArgumentException("허용되지 않는 provider" + request.getProvider());
+            throw new IllegalArgumentException("허용되지 않는 provider: " + request.getProvider());
         }
 
-        // OAuth Provider 사용자 식별 + 프로필 정보
         OAuthUserInfo userInfo = oAuthClientResolver
                 .resolve(request.getProvider())
                 .getOAuthUserInfo(request.getAuthorizationCode(), request.getRedirectUri());
 
-        // 우리 서비스의 사용자 확인
-        Long userId = userAuthRepository
-                .findUserId(
-                        request.getProvider(),
-                        userInfo.getProviderUserId()
-                )
+        Long userId = userIdentityPort
+                .findUserId(request.getProvider(), userInfo.getProviderUserId())
                 .orElseGet(() -> {
-                    // 신규 사용자 생성
-                    Long newUserId =
-                            userRepository.save(
-                                    User.builder()
-                                            .status(UserStatus.PENDING)
-                                            .build()
-                            ).getId();
-
-                    // 신규 사용자 저장
-                    userAuthRepository.save(
-                            request.getProvider(),
-                            userInfo,
-                            newUserId
-                    );
+                    Long newUserId = userIdentityPort.createPendingUser();
+                    userIdentityPort.saveOAuthLink(request.getProvider(), userInfo, newUserId);
                     return newUserId;
                 });
 
-        // 기존 사용자라면 프로필 갱신 -> 사용자의 최신 프로필이 업데이트 되면 해당 업데이트된 프로필을 가져옴
-        userAuthRepository.updateProfile(
-                request.getProvider(),
-                userInfo
-        );
+        userIdentityPort.updateOAuthProfile(request.getProvider(), userInfo);
 
-        // Access 토큰 발급 (userId 기반)
         String accessToken = jwtAccessTokenGenerator.generateAccessToken(userId);
-
-        // Refresh Token 발급(회전)
         String refreshToken = refreshTokenService.rotate(userId);
 
-        return new OAuthLoginResult(
-                userId,
-                accessToken,
-                refreshToken
-        );
+        return new OAuthLoginResult(userId, accessToken, refreshToken);
     }
 
+    /**
+     * Refresh Token을 검증해 사용자 식별자를 얻고 새 Access/Refresh 토큰을 발급한다.
+     *
+     * @param refreshToken 평문 Refresh Token
+     * @return 재발급 결과(내부 userId, accessToken, refreshToken)
+     */
     @Override
     public OAuthLoginResult refresh(String refreshToken) {
-        // Refresh Token으로 UserId 조회
         Long userId = refreshTokenService.validateAndGetUserId(refreshToken);
-
-        // 새로운 AccessToken, RefreshToken 발급
         String newAccessToken = jwtAccessTokenGenerator.generateAccessToken(userId);
         String newRefreshToken = refreshTokenService.rotate(userId);
 
         return new OAuthLoginResult(userId, newAccessToken, newRefreshToken);
     }
 
+    /**
+     * 주어진 Refresh Token을 무효화한다.
+     *
+     * @param refreshToken 평문 Refresh Token
+     */
     @Override
     public void logout(String refreshToken) {
         refreshTokenService.deleteByPlainToken(refreshToken);
     }
-
 }

@@ -19,9 +19,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.hamcrest.Matchers.containsString;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AuthController.class)
 @Import({SecurityConfig.class, AuthControllerTest.TestConfig.class})
 class AuthControllerTest {
+
+    private static final String ACCESS_TOKEN_COOKIE = "access_token=";
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token=";
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,7 +50,7 @@ class AuthControllerTest {
     private JwtAccessTokenValidator jwtAccessTokenValidator;
 
     @Test
-    @DisplayName("OAuth 로그인 성공 시 토큰 정보와 refresh_token 쿠키를 반환한다")
+    @DisplayName("OAuth 로그인 성공 시 access/refresh 쿠키를 반환한다")
     void login_success_returns_tokens_and_cookie() throws Exception {
         OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
                 .provider(AuthProvider.DUMMY)
@@ -59,19 +65,13 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Secure")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/auth")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Strict")))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.accessToken").value("access-token"));
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""))
+                .andExpect(this::assertIssuedTokenCookies);
     }
 
     @Test
-    @DisplayName("리프레시 성공 시 새로운 토큰과 refresh_token 쿠키를 반환한다")
+    @DisplayName("리프레시 성공 시 access/refresh 쿠키를 재발급한다")
     void refresh_success_returns_tokens_and_cookie() throws Exception {
         when(authService.refresh("old-refresh"))
                 .thenReturn(new OAuthLoginResult(2L, "new-access", "new-refresh"));
@@ -79,15 +79,9 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/refresh")
                         .cookie(new Cookie("refresh_token", "old-refresh"))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Secure")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/auth")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Strict")))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(2L))
-                .andExpect(jsonPath("$.accessToken").value("new-access"));
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""))
+                .andExpect(this::assertIssuedTokenCookies);
     }
 
     @Test
@@ -103,18 +97,14 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("로그아웃 시 refresh_token 쿠키를 만료 처리하고 성공 응답을 반환한다")
+    @DisplayName("로그아웃 시 access/refresh 쿠키를 만료 처리하고 성공 응답을 반환한다")
     void logout_with_cookie_expires_token() throws Exception {
         mockMvc.perform(post("/auth/logout")
                         .cookie(new Cookie("refresh_token", "refresh-token"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/auth")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Secure")))
-                .andExpect(content().string(""));
+                .andExpect(content().string(""))
+                .andExpect(this::assertExpiredTokenCookies);
 
         verify(authService).logout("refresh-token");
     }
@@ -125,12 +115,46 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/logout")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Path=/auth")))
-                .andExpect(content().string(""));
+                .andExpect(content().string(""))
+                .andExpect(this::assertExpiredTokenCookies);
 
         verify(authService, never()).logout(any());
+    }
+
+    /**
+     * 로그인/리프레시 응답의 Set-Cookie 헤더가 access/refresh 토큰 발급 규칙을 만족하는지 검증한다.
+     *
+     * <p>검증 항목: 쿠키 2개 존재, HttpOnly/Secure/SameSite, Path(/, /auth) 포함</p>
+     */
+    private void assertIssuedTokenCookies(MvcResult result) {
+        List<String> setCookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+
+        assertThat(setCookies).hasSize(2);
+        assertThat(setCookies).anyMatch(value -> value.contains(ACCESS_TOKEN_COOKIE));
+        assertThat(setCookies).anyMatch(value -> value.contains(REFRESH_TOKEN_COOKIE));
+        assertThat(setCookies).allMatch(value -> value.contains("HttpOnly"));
+        assertThat(setCookies).allMatch(value -> value.contains("Secure"));
+        assertThat(setCookies).allMatch(value -> value.contains("SameSite=Strict"));
+        assertThat(setCookies).anyMatch(value -> value.contains("Path=/"));
+        assertThat(setCookies).anyMatch(value -> value.contains("Path=/auth"));
+    }
+
+    /**
+     * 로그아웃 응답의 Set-Cookie 헤더가 access/refresh 토큰 만료 규칙을 만족하는지 검증한다.
+     *
+     * <p>검증 항목: 쿠키 2개 존재, Max-Age=0, HttpOnly/Secure, Path(/, /auth) 포함</p>
+     */
+    private void assertExpiredTokenCookies(MvcResult result) {
+        List<String> setCookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+
+        assertThat(setCookies).hasSize(2);
+        assertThat(setCookies).anyMatch(value -> value.contains(ACCESS_TOKEN_COOKIE));
+        assertThat(setCookies).anyMatch(value -> value.contains(REFRESH_TOKEN_COOKIE));
+        assertThat(setCookies).allMatch(value -> value.contains("Max-Age=0"));
+        assertThat(setCookies).allMatch(value -> value.contains("HttpOnly"));
+        assertThat(setCookies).allMatch(value -> value.contains("Secure"));
+        assertThat(setCookies).anyMatch(value -> value.contains("Path=/"));
+        assertThat(setCookies).anyMatch(value -> value.contains("Path=/auth"));
     }
 
     @TestConfiguration

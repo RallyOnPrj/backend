@@ -10,11 +10,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserAuthNicknameProvider implements UserNicknameProvider {
 
-    private final JpaUserAuthRepository jpaUserAuthRepository;
+    private final JpaUserAuthRepository userAuthRepository;
 
     @Override
     public Optional<String> findNicknameByUserId(Long userId) {
-        return jpaUserAuthRepository
+        return userAuthRepository
                 .findFirstByUser_IdOrderByUpdatedAtDesc(userId)
                 .map(userAuth -> userAuth.getNickname())
                 .filter(nickname -> nickname != null && !nickname.isBlank());
