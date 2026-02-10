@@ -6,7 +6,7 @@ import com.gumraze.drive.drive_backend.auth.port.out.UserIdentityPort;
 import com.gumraze.drive.drive_backend.user.constants.UserStatus;
 import com.gumraze.drive.drive_backend.user.entity.User;
 import com.gumraze.drive.drive_backend.user.entity.UserAuth;
-import com.gumraze.drive.drive_backend.user.repository.UserAuthRepository;
+import com.gumraze.drive.drive_backend.user.repository.JpaUserAuthRepository;
 import com.gumraze.drive.drive_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ import java.util.Optional;
 public class UserIdentityJpaAdapter implements UserIdentityPort {
 
     private final UserRepository userRepository;
-    private final UserAuthRepository userAuthRepository;
+    private final JpaUserAuthRepository userAuthRepository;
 
     /**
      * provider + providerUserId 조합으로 내부 사용자 식별자를 조회한다.
