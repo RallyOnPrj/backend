@@ -8,22 +8,17 @@ import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenGenerator;
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.auth.token.JwtProperties;
 import com.gumraze.drive.drive_backend.user.constants.Gender;
-import com.gumraze.drive.drive_backend.user.entity.User;
-import com.gumraze.drive.drive_backend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
     private AuthService authService;
     private JwtAccessTokenGenerator jwtAccessTokenGenerator;
@@ -31,12 +26,7 @@ class AuthServiceTest {
     private FakeOAuthClient fakeOAuthClient;
     private FakeUserAuthRepository userAuthRepository;
     private RefreshTokenService refreshTokenService;
-    private FakeOAuthClientResolver oAuthClientResolver;
 
-    @Mock
-    UserRepository userRepository;
-
-    // 테스트 실행되기 전에 항상 실행되는 메서드
     @BeforeEach
     void setUp() {
         properties = new JwtProperties(
@@ -44,41 +34,22 @@ class AuthServiceTest {
                         "test-secret-key-test-secret-key-test-secret-key",
                         1_800_000L
                 ),
-                new JwtProperties.RefreshToken(5L) // hours 기준이면 5시간
+                // 5시간
+                new JwtProperties.RefreshToken(5L)
         );
 
         jwtAccessTokenGenerator = new JwtAccessTokenGenerator(properties);
-        fakeOAuthClient = new FakeOAuthClient(
-                new OAuthUserInfo(
-                        "oauth-user-123",
-                        null, null, null, null, null, null, null,
-                        false, false
-                )
-        );
-        oAuthClientResolver = new FakeOAuthClientResolver();
-        oAuthClientResolver.register(AuthProvider.DUMMY, fakeOAuthClient);
+        fakeOAuthClient = new FakeOAuthClient(defaultOAuthUserInfo("oauth-user-123"));
+        FakeOAuthClientResolver oAuthClientResolver = resolverWith(AuthProvider.DUMMY, fakeOAuthClient);
         userAuthRepository = new FakeUserAuthRepository();
-
         refreshTokenService = new FakeRefreshTokenService();
 
-        OAuthAllowedProvidersProperties allowedProps = new OAuthAllowedProvidersProperties();
-        allowedProps.setAllowedProviders(List.of(AuthProvider.DUMMY, AuthProvider.KAKAO));
-
-        // stub
-        lenient().when(userRepository.save(any(User.class)))
-                .thenAnswer(invocation -> {
-                    User user = invocation.getArgument(0);
-                    user.setId(1L);
-                    return user;
-                });
-
-        authService = new AuthServiceImpl(
-                jwtAccessTokenGenerator,
+        authService = newAuthService(
                 userAuthRepository,
-                userRepository,
                 refreshTokenService,
                 oAuthClientResolver,
-                allowedProps
+                AuthProvider.DUMMY,
+                AuthProvider.KAKAO
         );
     }
 
@@ -86,11 +57,7 @@ class AuthServiceTest {
     @DisplayName("OAuth 로그인을 하면 결과 객체를 반환한다.")
     void login_returns_result_when_oauth_login() {
         // given
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
@@ -103,11 +70,7 @@ class AuthServiceTest {
     @DisplayName("로그인 결과에는 accessToken이 포함된다.")
     void login_result_contains_access_token() {
         // given
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
@@ -120,32 +83,20 @@ class AuthServiceTest {
     @DisplayName("accessToken은 사용자의 식별자(userId)를 포함한다.")
     void access_token_contains_user_identifier() {
         // given
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
 
         // then
-        JwtAccessTokenValidator validator = new JwtAccessTokenValidator(properties);
-
-        Long userIdFromToken = validator.validateAndGetUserId(result.accessToken()).orElseThrow();
-
-        assertThat(userIdFromToken).isEqualTo(result.userId());
+        assertAccessTokenContainsUserId(result, result.userId());
     }
 
     @Test
     @DisplayName("OAuth 로그인 시 사용자 식별이 먼저 수행된다.")
     void oauth_login_identifies_user() {
         // given
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
@@ -158,11 +109,7 @@ class AuthServiceTest {
     @DisplayName("OAuth 로그인 시 OAuthClient를 호출한다.")
     void oauth_login_calls_oauth_client() {
         // given
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
@@ -172,25 +119,27 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("OAuth 로그인 시 authorizationCode와 redirectUri를 OAuthClient에 전달한다.")
+    void oauth_login_passes_authorization_code_and_redirect_uri_to_oauth_client() {
+        // given
+        String authorizationCode = "auth-code-123";
+        String redirectUri = "https://example.com/callback";
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY, authorizationCode, redirectUri);
+
+        // when
+        authService.login(request);
+
+        // then
+        assertThat(fakeOAuthClient.getLastAuthorizationCode()).isEqualTo(authorizationCode);
+        assertThat(fakeOAuthClient.getLastRedirectUri()).isEqualTo(redirectUri);
+    }
+
+    @Test
     @DisplayName("이미 가입된 사용자는 providerUserId로 기존 userId를 반환한다.")
     void returns_existing_user_id_when_user_already_registered() {
-
         // given
-        userAuthRepository.save(
-                AuthProvider.DUMMY,
-                new OAuthUserInfo(
-                        "oauth-user-123",
-                        null, null, null, null, null, null, null,
-                        false, false
-                ),
-                10L
-        );
-
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        seedExistingUser(userAuthRepository, AuthProvider.DUMMY, "oauth-user-123", 10L);
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
         OAuthLoginResult result = authService.login(request);
@@ -200,102 +149,104 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("신규 사용자는 userId를 생성하고 user_auth에 저장한다.")
-    void creates_new_user_when_not_registered_yet() {
+    @DisplayName("기존 사용자 로그인 시 createPendingUser를 호출하지 않는다.")
+    void does_not_create_pending_user_when_existing_user_logs_in() {
         // given
-        FakeUserAuthRepository userAuthRepository =
-            new FakeUserAuthRepository();
-
-        FakeOAuthClient fakeOAuthClient =
-                new FakeOAuthClient(
-                        new OAuthUserInfo(
-                                "oauth-user-123",
-                                null, null, null, null, null, null, null,
-                                false, false
-                        )
-                );
-
-        FakeOAuthClientResolver oAuthClientResolver =
-                new FakeOAuthClientResolver();
-        oAuthClientResolver.register(AuthProvider.DUMMY, fakeOAuthClient);
-
-        OAuthAllowedProvidersProperties allowedProps = new OAuthAllowedProvidersProperties();
-        allowedProps.setAllowedProviders(List.of(AuthProvider.DUMMY, AuthProvider.KAKAO));
-
-        AuthService authService = new AuthServiceImpl(
-                jwtAccessTokenGenerator,
-                userAuthRepository,
-                userRepository,
+        FakeUserAuthRepository localUserIdentityPort = new FakeUserAuthRepository();
+        seedExistingUser(localUserIdentityPort, AuthProvider.DUMMY, "oauth-user-123", 10L);
+        AuthService localAuthService = newAuthService(
+                localUserIdentityPort,
                 refreshTokenService,
-                oAuthClientResolver,
-                allowedProps
+                resolverWith(AuthProvider.DUMMY, fakeOAuthClient),
+                AuthProvider.DUMMY,
+                AuthProvider.KAKAO
         );
 
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
-
         // when
-        OAuthLoginResult result = authService.login(request);
+        localAuthService.login(loginRequest(AuthProvider.DUMMY));
 
         // then
-        assertThat(result.userId()).isNotNull();
-
-        assertThat(
-                userAuthRepository.findUserId(
-                        AuthProvider.DUMMY,
-                        "oauth-user-123"
-                )
-        ).isPresent();      // Optional 안에 값이 존재하는지 여부를 알려주는 메서드
+        assertThat(localUserIdentityPort.getCreatePendingUserCallCount()).isZero();
     }
 
     @Test
-    @DisplayName("신규 사용자일 경우 UserRepository를 통해 사용자를 생성한다.")
-    void creates_user_through_user_repository_when_new_user() {
+    @DisplayName("신규 사용자는 userId를 생성하고 user_auth에 저장한다.")
+    void creates_new_user_when_not_registered_yet() {
         // given
-        FakeUserAuthRepository userAuthRepository =
-            new FakeUserAuthRepository();
-
-        FakeOAuthClientResolver oAuthClientResolver =
-                new FakeOAuthClientResolver();
-        oAuthClientResolver.register(AuthProvider.DUMMY, fakeOAuthClient);
-
-        OAuthAllowedProvidersProperties allowedProps = new OAuthAllowedProvidersProperties();
-        allowedProps.setAllowedProviders(List.of(AuthProvider.DUMMY, AuthProvider.KAKAO));
-
-        AuthService authService = new AuthServiceImpl(
-                jwtAccessTokenGenerator,
-                userAuthRepository,
-                userRepository,
+        FakeUserAuthRepository localUserIdentityPort = new FakeUserAuthRepository();
+        FakeOAuthClient localOAuthClient = new FakeOAuthClient(defaultOAuthUserInfo("oauth-user-123"));
+        FakeOAuthClientResolver localResolver = resolverWith(AuthProvider.DUMMY, localOAuthClient);
+        AuthService localAuthService = newAuthService(
+                localUserIdentityPort,
                 refreshTokenService,
-                oAuthClientResolver,
-                allowedProps
+                localResolver,
+                AuthProvider.DUMMY,
+                AuthProvider.KAKAO
         );
-
-        OAuthLoginRequestDto request = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.DUMMY)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
 
         // when
-        OAuthLoginResult result = authService.login(request);
+        OAuthLoginResult result = localAuthService.login(request);
 
         // then
-        verify(userRepository).save(any(User.class));
+        assertThat(result.userId()).isNotNull();
+        assertThat(
+                localUserIdentityPort.findUserId(AuthProvider.DUMMY, "oauth-user-123")
+        ).isPresent();
+    }
+
+    @Test
+    @DisplayName("신규 사용자일 경우 createPendingUser를 통해 사용자 식별자를 생성한다.")
+    void creates_user_id_through_create_pending_user_when_new_user() {
+        // given
+        FakeUserAuthRepository localUserIdentityPort = new FakeUserAuthRepository();
+        FakeOAuthClientResolver localResolver = resolverWith(AuthProvider.DUMMY, fakeOAuthClient);
+        AuthService localAuthService = newAuthService(
+                localUserIdentityPort,
+                refreshTokenService,
+                localResolver,
+                AuthProvider.DUMMY,
+                AuthProvider.KAKAO
+        );
+        OAuthLoginRequestDto request = loginRequest(AuthProvider.DUMMY);
+
+        // when
+        OAuthLoginResult result = localAuthService.login(request);
+
+        // then
+        assertThat(localUserIdentityPort.getCreatePendingUserCallCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("로그인 시 refreshTokenService.rotate는 식별된 userId로 호출된다.")
+    void login_calls_rotate_with_resolved_user_id() {
+        // given
+        FakeUserAuthRepository localUserIdentityPort = new FakeUserAuthRepository();
+        seedExistingUser(localUserIdentityPort, AuthProvider.DUMMY, "oauth-user-123", 10L);
+        RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
+        when(localRefreshTokenService.rotate(10L)).thenReturn("refresh-10");
+
+        AuthService localAuthService = newAuthService(
+                localUserIdentityPort,
+                localRefreshTokenService,
+                resolverWith(AuthProvider.DUMMY, fakeOAuthClient),
+                AuthProvider.DUMMY,
+                AuthProvider.KAKAO
+        );
+
+        // when
+        OAuthLoginResult result = localAuthService.login(loginRequest(AuthProvider.DUMMY));
+
+        // then
+        assertThat(result.refreshToken()).isEqualTo("refresh-10");
+        verify(localRefreshTokenService).rotate(10L);
     }
 
     @Test
     @DisplayName("구글 로그인 시 실패 Test")
     void fails_DUMMY_login() {
         // given: 구글 로그인으로 요청
-        OAuthLoginRequestDto requestDto = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.GOOGLE)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto requestDto = loginRequest(AuthProvider.GOOGLE);
 
         // when: 허용되지 않는 provider 라면 예외 발생
         assertThatThrownBy(() -> authService.login(requestDto))
@@ -308,43 +259,16 @@ class AuthServiceTest {
     @DisplayName("OAuth 로그인 시 user_auth에 닉네임/이메일/프로필이 저장됨")
     void save_oauth_profile_fields_on_login() {
         // given: OAuth 응답에 프로필 정보다 포함됨.
-        FakeOAuthClient fakeOAuthClient = new FakeOAuthClient(
-                new OAuthUserInfo(
-                        "kakao-123",
-                        "user@kakao.com",
-                        "홍길동",
-                        "http://profile-image.com",
-                        "http://thumb-image.com",
-                        Gender.MALE,
-                        "20~29",
-                        "01-15",
-                        true,
-                        true
-                        )
-        );
-
-        FakeOAuthClientResolver resolver = new FakeOAuthClientResolver();
-        resolver.register(AuthProvider.KAKAO, fakeOAuthClient);
-
-        RefreshTokenService refreshTokenService = new FakeRefreshTokenService();
-
-        OAuthAllowedProvidersProperties allowedProps = new OAuthAllowedProvidersProperties();
-        allowedProps.setAllowedProviders(List.of(AuthProvider.KAKAO));
-
-        AuthService service = new AuthServiceImpl(
-                jwtAccessTokenGenerator,
+        FakeOAuthClient localOAuthClient = new FakeOAuthClient(kakaoOAuthUserInfo());
+        FakeOAuthClientResolver resolver = resolverWith(AuthProvider.KAKAO, localOAuthClient);
+        RefreshTokenService localRefreshTokenService = new FakeRefreshTokenService();
+        AuthService service = newAuthService(
                 userAuthRepository,
-                userRepository,
-                refreshTokenService,
+                localRefreshTokenService,
                 resolver,
-                allowedProps
+                AuthProvider.KAKAO
         );
-
-        OAuthLoginRequestDto requestDto = OAuthLoginRequestDto.builder()
-                .provider(AuthProvider.KAKAO)
-                .authorizationCode("test-code")
-                .redirectUri("https://test.com")
-                .build();
+        OAuthLoginRequestDto requestDto = loginRequest(AuthProvider.KAKAO);
 
         // when: 로그인 시
         service.login(requestDto);
@@ -359,5 +283,179 @@ class AuthServiceTest {
         assertThat(saved.getNickname()).isEqualTo("홍길동");
         assertThat(saved.getProfileImageUrl()).isEqualTo("http://profile-image.com");
         assertThat(saved.getThumbnailImageUrl()).isEqualTo("http://thumb-image.com");
+    }
+
+    @Test
+    @DisplayName("refresh는 토큰 검증 후 같은 userId로 access/refresh 토큰을 재발급한다.")
+    void refresh_reissues_tokens_with_validated_user_id() {
+        // given
+        RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
+        when(localRefreshTokenService.validateAndGetUserId("old-refresh")).thenReturn(2L);
+        when(localRefreshTokenService.rotate(2L)).thenReturn("new-refresh");
+        AuthService localAuthService = newAuthService(
+                userAuthRepository,
+                localRefreshTokenService,
+                resolverWith(AuthProvider.DUMMY, fakeOAuthClient),
+                AuthProvider.DUMMY
+        );
+
+        // when
+        OAuthLoginResult result = localAuthService.refresh("old-refresh");
+
+        // then
+        assertThat(result.userId()).isEqualTo(2L);
+        assertAccessTokenContainsUserId(result, 2L);
+        assertThat(result.refreshToken()).isEqualTo("new-refresh");
+        verify(localRefreshTokenService).validateAndGetUserId("old-refresh");
+        verify(localRefreshTokenService).rotate(2L);
+    }
+
+    @Test
+    @DisplayName("refresh에서 토큰 검증이 실패하면 rotate를 호출하지 않고 예외를 전파한다.")
+    void refresh_propagates_exception_when_validation_fails() {
+        // given
+        RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
+        when(localRefreshTokenService.validateAndGetUserId("bad-refresh"))
+                .thenThrow(new RuntimeException("invalid refresh token"));
+        AuthService localAuthService = newAuthService(
+                userAuthRepository,
+                localRefreshTokenService,
+                resolverWith(AuthProvider.DUMMY, fakeOAuthClient),
+                AuthProvider.DUMMY
+        );
+
+        // when/then
+        assertThatThrownBy(() -> localAuthService.refresh("bad-refresh"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("invalid refresh token");
+        verify(localRefreshTokenService).validateAndGetUserId("bad-refresh");
+        verify(localRefreshTokenService, never()).rotate(anyLong());
+    }
+
+    @Test
+    @DisplayName("logout은 전달받은 refresh token을 삭제 요청한다.")
+    void logout_deletes_plain_refresh_token() {
+        // given
+        RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
+        AuthService localAuthService = newAuthService(
+                userAuthRepository,
+                localRefreshTokenService,
+                resolverWith(AuthProvider.DUMMY, fakeOAuthClient),
+                AuthProvider.DUMMY
+        );
+
+        // when
+        localAuthService.logout("refresh-token");
+
+        // then
+        verify(localRefreshTokenService).deleteByPlainToken("refresh-token");
+    }
+
+    /**
+     * 지정한 OAuth 공급자 기준의 기본 로그인 요청 객체를 생성한다.
+     */
+    private OAuthLoginRequestDto loginRequest(AuthProvider provider) {
+        return OAuthLoginRequestDto.builder()
+                .provider(provider)
+                .authorizationCode("test-code")
+                .redirectUri("https://test.com")
+                .build();
+    }
+
+    /**
+     * 요청 파라미터를 지정해 OAuth 로그인 요청 객체를 생성한다.
+     */
+    private OAuthLoginRequestDto loginRequest(AuthProvider provider, String authorizationCode, String redirectUri) {
+        return OAuthLoginRequestDto.builder()
+                .provider(provider)
+                .authorizationCode(authorizationCode)
+                .redirectUri(redirectUri)
+                .build();
+    }
+
+    /**
+     * providerUserId만 지정하고 나머지 프로필 필드는 비운 기본 OAuth 사용자 정보를 생성한다.
+     */
+    private OAuthUserInfo defaultOAuthUserInfo(String providerUserId) {
+        return new OAuthUserInfo(
+                providerUserId,
+                null, null, null, null, null, null, null,
+                false, false
+        );
+    }
+
+    /**
+     * 카카오 로그인 시나리오 검증에 사용하는 샘플 OAuth 사용자 정보를 생성한다.
+     */
+    private OAuthUserInfo kakaoOAuthUserInfo() {
+        return new OAuthUserInfo(
+                "kakao-123",
+                "user@kakao.com",
+                "홍길동",
+                "http://profile-image.com",
+                "http://thumb-image.com",
+                Gender.MALE,
+                "20~29",
+                "01-15",
+                true,
+                true
+        );
+    }
+
+    /**
+     * 단일 provider-client 매핑을 가진 FakeOAuthClientResolver를 생성한다.
+     */
+    private FakeOAuthClientResolver resolverWith(AuthProvider provider, FakeOAuthClient client) {
+        FakeOAuthClientResolver resolver = new FakeOAuthClientResolver();
+        resolver.register(provider, client);
+        return resolver;
+    }
+
+    /**
+     * 테스트 대상 AuthServiceImpl을 기본 토큰 생성기와 함께 생성한다.
+     *
+     * @param userIdentityPort 사용자 식별 Port 테스트 더블
+     * @param refreshTokenService 리프레시 토큰 서비스 테스트 더블
+     * @param resolver OAuth 클라이언트 리졸버 테스트 더블
+     * @param allowedProviders 허용할 OAuth 공급자 목록
+     * @return 테스트용 AuthService 구현체
+     */
+    private AuthService newAuthService(
+            FakeUserAuthRepository userIdentityPort,
+            RefreshTokenService refreshTokenService,
+            FakeOAuthClientResolver resolver,
+            AuthProvider... allowedProviders
+    ) {
+        OAuthAllowedProvidersProperties allowedProps = new OAuthAllowedProvidersProperties();
+        allowedProps.setAllowedProviders(List.of(allowedProviders));
+
+        return new AuthServiceImpl(
+                jwtAccessTokenGenerator,
+                userIdentityPort,
+                refreshTokenService,
+                resolver,
+                allowedProps
+        );
+    }
+
+    /**
+     * 기존 가입 사용자 시나리오를 위해 provider/providerUserId -> userId 매핑을 시드한다.
+     */
+    private void seedExistingUser(
+            FakeUserAuthRepository userIdentityPort,
+            AuthProvider provider,
+            String providerUserId,
+            Long userId
+    ) {
+        userIdentityPort.saveOAuthLink(provider, defaultOAuthUserInfo(providerUserId), userId);
+    }
+
+    /**
+     * 발급된 Access Token의 subject(sub)가 기대 사용자 식별자와 일치하는지 검증한다.
+     */
+    private void assertAccessTokenContainsUserId(OAuthLoginResult result, Long expectedUserId) {
+        JwtAccessTokenValidator validator = new JwtAccessTokenValidator(properties);
+        Long userIdFromToken = validator.validateAndGetUserId(result.accessToken()).orElseThrow();
+        assertThat(userIdFromToken).isEqualTo(expectedUserId);
     }
 }
