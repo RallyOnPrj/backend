@@ -9,6 +9,8 @@ public class FakeOAuthClient implements OAuthClient {
 
     // called는 fakeOAuthClient가 OAuthClient의 getOAuthUserInfo 메서드를 호출했는지 여부를 나타냄.
     private boolean called = false;
+    private String lastAuthorizationCode;
+    private String lastRedirectUri;
 
 
     /**
@@ -30,6 +32,8 @@ public class FakeOAuthClient implements OAuthClient {
     @Override
     public OAuthUserInfo getOAuthUserInfo(String authorizationCode, String redirectUri) {
         this.called = true;         // 테스트 검증용
+        this.lastAuthorizationCode = authorizationCode;
+        this.lastRedirectUri = redirectUri;
         return userInfo;
     }
 
@@ -40,5 +44,19 @@ public class FakeOAuthClient implements OAuthClient {
      */
     public boolean isCalled() {
         return called;
+    }
+
+    /**
+     * Returns the authorization code passed to the most recent invocation.
+     */
+    public String getLastAuthorizationCode() {
+        return lastAuthorizationCode;
+    }
+
+    /**
+     * Returns the redirect URI passed to the most recent invocation.
+     */
+    public String getLastRedirectUri() {
+        return lastRedirectUri;
     }
 }
