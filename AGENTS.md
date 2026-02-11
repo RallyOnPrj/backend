@@ -109,3 +109,20 @@ Stability and trust outweigh speed.
 
 When in doubt, choose the option that a future maintainer
 would find easiest to understand.
+
+---
+
+## 10. Project Context Source of Truth (Notion)
+
+For baseline project context (domain, requirements, terminology, and planning),
+the agent should reference the RallyOn Notion workspace first:
+
+- https://www.notion.so/2c462d8950ca8120b2a9fb14e8cb8ce2
+
+Usage rules:
+
+- Before implementation, check RallyOn context relevant to the task.
+- If Notion context conflicts with current code/tests or operational constraints,
+  stop and ask the user before changing APIs, domain models, or architecture.
+- If Notion access is unavailable, use repository-local docs (`README`, `docs/`)
+  and state uncertainty explicitly.
