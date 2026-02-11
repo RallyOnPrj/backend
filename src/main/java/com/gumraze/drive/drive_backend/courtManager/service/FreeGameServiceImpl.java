@@ -549,6 +549,7 @@ public class FreeGameServiceImpl implements FreeGameService {
      * @throws NotFoundException game/participant가 없거나 다른 게임 소속인 경우
      * @throws ForbiddenException 요청자가 organizer가 아닌 경우
      */
+    @Transactional(readOnly = true)
     @Override
     public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
             Long userId, Long gameId, Long participantId
@@ -570,6 +571,7 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .userId(participant.getUser() != null ? participant.getUser().getId() : null)
                 .displayName(participant.getDisplayName())
                 .gender(participant.getGender())
+                .grade(participant.getGrade())
                 .ageGroup(participant.getAgeGroup())
                 .build();
     }
