@@ -651,6 +651,56 @@ class CourtManagerControllerTest {
                 .andExpect(jsonPath("$.participants[0].lossCount").doesNotExist());
     }
 
+    @Test
+    @DisplayName("자유게임 참가자 상세 조회 성공")
+    void get_free_game_participant_detail_success() throws Exception {
+        // given
+        Long userId = 1L;
+        Long gameId = 101L;
+        Long participantId = 201L;
+
+        FreeGameParticipantDetailResponse response =
+                buildParticipantDetailResponse(gameId, participantId, 10L, "KimA");
+
+        when(freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId))
+                .thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(101))
+                .andExpect(jsonPath("$.participantId").value(201))
+                .andExpect(jsonPath("$.userId").value(10))
+                .andExpect(jsonPath("$.displayName").value("KimA"))
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.ageGroup").value(30));
+    }
+
+    @Test
+    @DisplayName("자유게임 참가자 상세 조회 시 존재하지 않는 participantId면 실패")
+    void get_free_game_participant_detail_with_unknown_participant_then_not_found() throws Exception {
+        // given
+        Long userId = 1L;
+        Long gameId = 101L;
+        Long participantId = 999L;
+
+        when(freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId))
+                .thenThrow(new NotFoundException("존재하지 않는 참가자입니다. participantId: " + participantId));
+
+        // when & then
+        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists())
+                .andExpect(jsonPath("$.detail").value("존재하지 않는 참가자입니다. participantId: " + participantId));
+    }
+
     /*
      * Test Helper Method
      */
