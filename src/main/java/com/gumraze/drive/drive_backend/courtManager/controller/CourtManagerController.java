@@ -92,4 +92,17 @@ public class CourtManagerController implements CourtManagerApi {
 
         return ResponseEntity.ok(response);
     }
+
+    @Override
+    @GetMapping("/free-games/{gameId}/participants/{participantId}")
+    public ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long gameId,
+            @PathVariable Long participantId
+    ) {
+        FreeGameParticipantDetailResponse response =
+                freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId);
+
+        return ResponseEntity.ok(response);
+    }
 }

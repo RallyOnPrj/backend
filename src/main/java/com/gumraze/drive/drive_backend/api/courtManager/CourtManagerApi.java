@@ -246,4 +246,48 @@ public interface CourtManagerApi {
             @Parameter(description = "include=stats인 경우 매치 집계 정보를 포함합니다.")
             String include
     );
+
+    @Operation(
+            summary = "자유게임 참가자 상세 조회",
+            description = "자유게임의 특정 참가자 상세 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "자유게임 참가자 상세 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FreeGameParticipantDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "접근 권한 없음",
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "자유게임 또는 참가자를 찾을 수 없습니다.",
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
+            Long userId,
+            Long gameId,
+            Long participantId
+    );
 }

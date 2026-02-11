@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -126,5 +127,40 @@ public class CourtManagerControllerAuthTest {
                 .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.title").exists())
         ;
+    }
+
+    @Test
+    @DisplayName("참가자 상세 조회 GET - 토큰 없음이면 401")
+    void getParticipantDetail_without_token_then_unauthorized() throws Exception {
+        // when & then
+        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", 1L, 10L)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
+    }
+
+    @Test
+    @DisplayName("참가자 상세 조회 - organizer 아니면 403")
+    void getParticipantDetail_when_not_organizer_then_forbidden() throws Exception {
+        // given
+        Long gameId = 1L;
+        Long participantId = 10L;
+        Long userId = 2L; // organizer 아님
+
+        when(freeGameService.getFreeGameParticipantDetail(eq(userId), eq(gameId), eq(participantId)))
+                .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
+
+        // when & then
+        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
+                        .with(authenticatedUser(userId))
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
     }
 }

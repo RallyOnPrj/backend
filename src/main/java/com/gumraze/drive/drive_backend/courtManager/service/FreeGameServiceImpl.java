@@ -532,6 +532,51 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .build();
     }
 
+    /**
+     * 자유게임 참가자 상세 정보를 조회한다.
+     *
+     * <p>처리 순서:
+     * 1) gameId 존재 여부 확인
+     * 2) 요청자 organizer 권한 확인
+     * 3) participantId 존재 여부 확인
+     * 4) participant의 game 소속 일치 여부 확인
+     * 5) 응답 DTO 매핑 반환</p>
+     *
+     * @param userId 조회 요청 사용자 ID
+     * @param gameId 자유게임 ID
+     * @param participantId 참가자 ID
+     * @return 참가자 상세 응답 DTO
+     * @throws NotFoundException game/participant가 없거나 다른 게임 소속인 경우
+     * @throws ForbiddenException 요청자가 organizer가 아닌 경우
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
+            Long userId, Long gameId, Long participantId
+    ) {
+        // 게임 존재 및 권한 체크 수행
+        validateGameAndOrganizer(gameId, userId);
+
+        // 참가자 조회
+        GameParticipant participant = gameParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 참가자입니다. participantId: " + participantId));
+
+        if (!participant.getFreeGame().getId().equals(gameId)) {
+            throw new NotFoundException("참가자가 다른 게임에 속해 있습니다. participantId: " + participantId);
+        }
+
+        return FreeGameParticipantDetailResponse.builder()
+                .gameId(gameId)
+                .participantId(participant.getId())
+                .userId(participant.getUser() != null ? participant.getUser().getId() : null)
+                .displayName(participant.getDisplayName())
+                .gender(participant.getGender())
+                .grade(participant.getGrade())
+                .ageGroup(participant.getAgeGroup())
+                .build();
+    }
+
+    // Helper Method
     private String suffix(int count) {
         return String.valueOf((char) ('A' + count - 1));
     }
