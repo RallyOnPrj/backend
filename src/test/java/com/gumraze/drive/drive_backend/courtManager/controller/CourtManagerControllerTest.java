@@ -561,6 +561,7 @@ class CourtManagerControllerTest {
                 .andExpect(jsonPath("$.userId").value(10))
                 .andExpect(jsonPath("$.displayName").value("KimA"))
                 .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.grade").value("초심"))
                 .andExpect(jsonPath("$.ageGroup").value(30));
     }
 
@@ -676,6 +677,7 @@ class CourtManagerControllerTest {
                 .userId(userId)
                 .displayName(displayName)
                 .gender(Gender.MALE)
+                .grade(Grade.ROOKIE)
                 .ageGroup(30)
                 .build();
     }

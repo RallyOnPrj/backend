@@ -161,6 +161,7 @@ public class GetFreeGameParticipantDetailUseCaseTest {
         assertThat(response.getUserId()).isEqualTo(participantUserId);
         assertThat(response.getDisplayName()).isEqualTo("KimA");
         assertThat(response.getGender()).isEqualTo(Gender.MALE);
+        assertThat(response.getGrade()).isEqualTo(Grade.ROOKIE);
         assertThat(response.getAgeGroup()).isEqualTo(30);
     }
 
@@ -189,6 +190,7 @@ public class GetFreeGameParticipantDetailUseCaseTest {
         assertThat(response.getUserId()).isNull();
         assertThat(response.getDisplayName()).isEqualTo("GuestA");
         assertThat(response.getGender()).isEqualTo(Gender.MALE);
+        assertThat(response.getGrade()).isEqualTo(Grade.ROOKIE);
         assertThat(response.getAgeGroup()).isEqualTo(30);
     }
 
