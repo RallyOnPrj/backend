@@ -1,128 +1,125 @@
-# AGENT.md
+# Backend Agent Guide
 
-## 0. Introduction
-Explain in Korean
+This file defines the working rules for agents and contributors operating inside the RallyOn backend repository.
 
-## 1. Purpose
+## Project Context
 
-This document defines how AI agents should behave when contributing to this repository.
+- Stack: Java 21, Spring Boot 3.5, Spring Web, Spring Security, OAuth2 Client, JPA, Flyway, PostgreSQL, JWT, springdoc OpenAPI
+- Build tool: Gradle
+- Main package root: `com.gumraze.rallyon.backend`
+- Main verification command: `./gradlew test`
 
-The agent acts as a **careful senior backend engineer**, prioritizing correctness,
-clarity, and long-term maintainability over speed or novelty.
+## Architecture Expectations
 
-The goal is not maximum automation, but **predictable and trustworthy assistance**.
+The backend follows a package-by-domain structure with layered internals.
 
----
+- `auth`, `user`, `region`, `courtManager`: domain-oriented packages
+- `controller`: web adapters and HTTP handling
+- `service`: use-case orchestration and business logic
+- `repository`: persistence access only
+- `entity`: JPA entities and persistence models
+- `dto`: request and response models
+- `api`: API contracts and interface-level definitions
+- `config`, `common`: cross-cutting configuration, exceptions, logging, security helpers
+- `web`: simple web-specific endpoints or redirects outside the main domain packages
 
-## 2. Role of the Agent
+Keep controllers thin, keep business decisions in services, and keep repositories focused on data access.
+Do not move domain logic into controllers, filters, or configuration classes.
 
-The agent is responsible for:
+## Engineering Principles
 
-- Assisting with backend-oriented design and implementation
-- Reviewing and improving code with respect to existing architecture
-- Explaining reasoning and trade-offs when proposing changes
-- Supporting documentation and test-oriented development
+### TDD
 
-The agent is **not** responsible for autonomous large-scale redesigns.
+TDD is the default approach for business logic changes, bug fixes, and new behavior.
 
----
+- Start with a failing test when the behavior is clear enough to specify.
+- Add or update tests before changing service logic whenever practical.
+- Prefer focused tests around use cases, validation rules, security behavior, and persistence boundaries.
+- Do not add shallow tests that only assert framework wiring unless the wiring itself is the change.
 
-## 3. Decision Authority
+### DRY
 
-The agent **may decide independently** when:
+- Remove real duplication, not incidental similarity.
+- Extract shared logic only after the duplication is stable and proven.
+- Prefer small local refactors over premature shared abstractions.
 
-- Making small, localized code improvements
-- Fixing clearly incorrect logic or bugs
-- Improving readability without changing behavior
+### KISS
 
-The agent **must ask before proceeding** when:
+- Prefer straightforward Spring patterns over clever abstractions.
+- Favor explicit service methods, simple DTOs, and readable transaction boundaries.
+- Avoid framework-heavy indirection unless it clearly reduces complexity.
 
-- Modifying public APIs or domain models
-- Introducing new architectural patterns
-- Performing multi-file or cross-module refactoring
-- Deleting or renaming existing code
+### YAGNI
 
-If uncertain, the agent must stop and ask.
+- Do not introduce new layers, base classes, generic utilities, or extension points without an immediate use case.
+- Do not design for speculative future modules.
+- Keep configuration surface area as small as possible.
 
----
+## Coding Rules
 
-## 4. Change Strategy
+- Prefer constructor injection. Do not introduce field injection.
+- Keep validation close to request boundaries and use explicit domain validation in services where needed.
+- Keep transactions intentional. Add them where business consistency requires them, not by default everywhere.
+- Prefer descriptive method names over comments that explain obvious behavior.
+- Preserve package boundaries. If a change spans multiple domains, make the use-case boundary explicit.
+- Keep security-sensitive code explicit and easy to audit.
 
-- Prefer small, incremental changes
-- Avoid speculative abstractions
-- Do not introduce features that are not explicitly requested
-- Preserve existing behavior unless a change is explicitly required
+## Testing Rules
 
-Backward compatibility is preferred over elegance.
+- Run `./gradlew test` for meaningful backend changes.
+- Add regression tests for bugs before or alongside the fix.
+- When changing security, auth, or token behavior, add tests that cover both allowed and denied flows.
+- When changing persistence behavior, verify repository and service interactions with realistic test coverage.
 
----
+## Git Workflow
 
-## 5. Coding and Architecture Principles
+Use this flow for backend work:
 
-- Code should be readable without explanation
-- Domain concepts must be explicit and named clearly
-- Follow existing project conventions before introducing new ones
-- Favor composition over inheritance
-- Avoid framework-specific tricks unless necessary
+1. Create an issue.
+2. Create a branch from that issue.
+3. Commit with the agreed convention.
+4. Open a PR.
+5. Merge with squash merge.
 
-Clarity is more important than cleverness.
+### Branch Naming
 
----
+- Format: `type/{issue-number}-{slug}`
+- Examples:
+  - `feat/123-login-page`
+  - `fix/87-cors`
+  - `refactor/201-auth-service-cleanup`
 
-## 6. Testing and Refactoring Rules
+Allowed `type` values:
 
-- Refactoring without tests is not allowed
-- When changing behavior, tests must be updated or added first
-- If no tests exist, propose tests before major refactoring
-- Do not optimize performance without evidence
+- `feat`
+- `fix`
+- `refactor`
+- `docs`
+- `chore`
+- `test`
+- `style`
 
-Refactoring is a **design activity**, not a cleanup task.
+### Commit Convention
 
----
+Use Conventional Commits with an English type and a Korean subject line.
 
-## 7. Communication Rules
+- Format: `type: Korean summary`
+- Examples:
+  - `feat: 카카오 로그인 리다이렉트 수정`
+  - `fix: 사용자 프로필 조회 null 처리 보완`
+  - `refactor: JWT 검증 흐름 분리`
 
-- Always explain *why* a change is proposed
-- State assumptions explicitly
-- Do not hide uncertainty
-- Use precise technical language
-- Avoid unexplained abbreviations
+PR titles must follow the same format because squash merge uses the PR title as the final commit title.
 
-The agent should be understandable by another engineer reading the output later.
+## Change Scope Discipline
 
----
+- Keep each PR focused on one issue.
+- Do not mix unrelated refactors with functional changes.
+- If a repository-wide policy or documentation change affects developer workflow, it is usually better tracked as a separate backend issue.
 
-## 8. Explicit Non-Goals
+## Practical Guidance For Agents
 
-The agent should NOT:
-
-- Rewrite large portions of the codebase autonomously
-- Introduce new frameworks or libraries without discussion
-- Optimize prematurely
-- Generate code that it cannot clearly explain
-
-Stability and trust outweigh speed.
-
----
-
-## 9. Final Principle
-
-When in doubt, choose the option that a future maintainer
-would find easiest to understand.
-
----
-
-## 10. Project Context Source of Truth (Notion)
-
-For baseline project context (domain, requirements, terminology, and planning),
-the agent should reference the RallyOn Notion workspace first:
-
-- https://www.notion.so/2c462d8950ca8120b2a9fb14e8cb8ce2
-
-Usage rules:
-
-- Before implementation, check RallyOn context relevant to the task.
-- If Notion context conflicts with current code/tests or operational constraints,
-  stop and ask the user before changing APIs, domain models, or architecture.
-- If Notion access is unavailable, use repository-local docs (`README`, `docs/`)
-  and state uncertainty explicitly.
+- Read existing domain structure before introducing new packages.
+- Match the current architecture instead of inventing a new one mid-change.
+- Prefer updating existing tests and flows over adding parallel patterns.
+- If a requested change conflicts with TDD, DRY, KISS, or YAGNI, simplify the approach before implementing it.
