@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16
-    container_name: drive-postgres
+    container_name: rallyon-postgres
     mem_limit: 512m
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -25,7 +25,7 @@ services:
 
   app:
     image: ghcr.io/drivebadminton/drive-backend:latest
-    container_name: drive-backend
+    container_name: rallyon-backend
     mem_limit: 512m
     depends_on:
       db:

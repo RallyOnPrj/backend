@@ -1,0 +1,43 @@
+package com.gumraze.rallyon.backend.user.entity;
+
+import com.gumraze.rallyon.backend.auth.constants.AuthProvider;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Entity
+@Table(name = "oauth_users", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"oauth_provider", "oauth_id"})
+})
+public class OauthUser {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oauth_provider", nullable = false, length = 20)
+    private AuthProvider oauthProvider;
+
+    @Column(name = "oauth_id", nullable = false, length = 100)
+    private String oauthId;
+
+    @Column(length = 320)
+    private String email;
+
+    @Column(length = 100)
+    private String nickname;
+
+    @Column(length = 500)
+    private String profileImageUrl;
+
+    public OauthUser updateProfile(String email, String nickname, String profileImageUrl) {
+        this.email = email;
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        return this;
+    }
+}
