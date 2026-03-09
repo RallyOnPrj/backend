@@ -1,6 +1,6 @@
-# Drive-Badminton
+# RallyOn Backend
 
-Spring Boot 3.5 기반 배드민턴 서비스 백엔드입니다. OAuth 로그인, 사용자 프로필, 지역 조회, 자유게임(코트 매니저) 기능을 제공합니다.
+Spring Boot 3.5 기반 RallyOn 백엔드 서비스입니다. OAuth 로그인, 사용자 프로필, 지역 조회, 자유게임(코트 매니저) 기능을 제공합니다.
 
 ## 주요 기능
 - **인증**: Kakao/Google OAuth(로컬에서는 Dummy provider 추가) → JWT Access Token(Bearer), Refresh Token은 `refresh_token` httpOnly/secure 쿠키로 발급. `/auth/login`, `/auth/refresh`, `/auth/logout` 제공.
