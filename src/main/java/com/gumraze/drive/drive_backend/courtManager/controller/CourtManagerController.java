@@ -12,13 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
+@RequestMapping("/free-games")
 @RequiredArgsConstructor
 public class CourtManagerController implements CourtManagerApi {
 
     private final FreeGameService freeGameService;
 
     @Override
-    @PostMapping("/free-games")
+    @PostMapping()
     public ResponseEntity<CreateFreeGameResponse> createFreeGame(
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid CreateFreeGameRequest request
@@ -34,7 +35,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @GetMapping("/free-games/{gameId}")
+    @GetMapping("/{gameId}")
     public ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId
@@ -45,7 +46,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @PatchMapping("/free-games/{gameId}")
+    @PatchMapping("/{gameId}")
     public ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId,
@@ -57,7 +58,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @GetMapping("/free-games/{gameId}/rounds-and-matches")
+    @GetMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId
@@ -68,7 +69,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @PatchMapping("/free-games/{gameId}/rounds-and-matches")
+    @PatchMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<Void> updateFreeGameRoundMatch(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId,
@@ -80,7 +81,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @GetMapping("/free-games/{gameId}/participants")
+    @GetMapping("/{gameId}/participants")
     public ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId,
@@ -94,7 +95,7 @@ public class CourtManagerController implements CourtManagerApi {
     }
 
     @Override
-    @GetMapping("/free-games/{gameId}/participants/{participantId}")
+    @GetMapping("/{gameId}/participants/{participantId}")
     public ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long gameId,
@@ -105,4 +106,13 @@ public class CourtManagerController implements CourtManagerApi {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/share/{shareCode}")
+    public ResponseEntity<FreeGameDetailResponse> getPublicFreeGameDetail(
+            @PathVariable String shareCode
+    ) {
+        FreeGameDetailResponse response = freeGameService.getPublicFreeGameDetail(shareCode);
+        return ResponseEntity.ok(response);
+    }
+
 }
