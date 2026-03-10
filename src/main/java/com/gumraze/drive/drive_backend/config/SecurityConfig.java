@@ -110,7 +110,8 @@ public class SecurityConfig {
                         // GET 요청 처리
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/regions/**"
+                                "/regions/**",
+                                "/free-games/share/**"
                         ).permitAll()
                         // POST 요청 처리
                         .requestMatchers(
