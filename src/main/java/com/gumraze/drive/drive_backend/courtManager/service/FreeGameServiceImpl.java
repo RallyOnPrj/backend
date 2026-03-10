@@ -576,6 +576,27 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .build();
     }
 
+    @Override
+    public FreeGameDetailResponse getPublicFreeGameDetail(String shareCode) {
+        FreeGame freeGame = gameRepository.findByShareCode(shareCode)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 공유 링크입니다. shareCode: " + shareCode));
+        FreeGameSetting setting = freeGameSettingRepository.findByFreeGameId(freeGame.getId())
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 게임 세팅입니다. gameId: \" + freeGame.getId()"));
+
+        return FreeGameDetailResponse.builder()
+                .gameId(freeGame.getId())
+                .title(freeGame.getTitle())
+                .gameType(freeGame.getGameType())
+                .gameStatus(freeGame.getGameStatus())
+                .matchRecordMode(freeGame.getMatchRecordMode())
+                .gradeType(freeGame.getGradeType())
+                .courtCount(setting.getCourtCount())
+                .roundCount(setting.getRoundCount())
+                .organizerId(freeGame.getOrganizer().getId())
+                .shareCode(freeGame.getShareCode())
+                .build();
+    }
+
     // Helper Method
     private String suffix(int count) {
         return String.valueOf((char) ('A' + count - 1));

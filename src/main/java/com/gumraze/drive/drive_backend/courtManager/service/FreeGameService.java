@@ -29,4 +29,6 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 organizer가 아닌 경우
      */
     FreeGameParticipantDetailResponse getFreeGameParticipantDetail(Long userId, Long gameId, Long participantId);
+
+    FreeGameDetailResponse getPublicFreeGameDetail(String shareCode);
 }
