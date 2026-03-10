@@ -2,11 +2,17 @@ package com.gumraze.drive.drive_backend.courtManager.controller;
 
 import com.gumraze.drive.drive_backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.drive.drive_backend.common.exception.ForbiddenException;
+import com.gumraze.drive.drive_backend.common.exception.NotFoundException;
 import com.gumraze.drive.drive_backend.config.SecurityConfig;
+import com.gumraze.drive.drive_backend.courtManager.constants.GameStatus;
+import com.gumraze.drive.drive_backend.courtManager.constants.GameType;
+import com.gumraze.drive.drive_backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.drive.drive_backend.courtManager.dto.FreeGameDetailResponse;
 import com.gumraze.drive.drive_backend.courtManager.dto.MatchRequest;
 import com.gumraze.drive.drive_backend.courtManager.dto.RoundRequest;
 import com.gumraze.drive.drive_backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
 import com.gumraze.drive.drive_backend.courtManager.service.FreeGameService;
+import com.gumraze.drive.drive_backend.user.constants.GradeType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +30,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -162,5 +169,51 @@ public class CourtManagerControllerAuthTest {
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.title").exists());
+    }
+
+    @Test
+    @DisplayName("shareCode로 공개 게임 조회 시, 토큰 없이 요청 가능")
+    void getPublicFreeGameDetail_without_token_then_ok() throws Exception {
+        // given
+        String shareCode = "public-share-code";
+
+        FreeGameDetailResponse response = FreeGameDetailResponse.builder()
+                .gameId(1L)
+                .title("공개 게임")
+                .gameType(GameType.FREE)
+                .gameStatus(GameStatus.NOT_STARTED)
+                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
+                .gradeType(GradeType.NATIONAL)
+                .courtCount(2)
+                .roundCount(3)
+                .organizerId(10L)
+                .shareCode(shareCode)
+                .build();
+
+        when(freeGameService.getPublicFreeGameDetail(shareCode))
+                .thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(1L))
+                .andExpect(jsonPath("$.shareCode").value(shareCode))
+                .andExpect(jsonPath("$.title").value("공개 게임"));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 공유 링크면 404를 반환한다.")
+    void getPublicFreeGameDetail_when_shareCode_not_found_then_not_found() throws Exception {
+        // given
+        String shareCode = "misssing-share-code";
+
+        when(freeGameService.getPublicFreeGameDetail(shareCode))
+                .thenThrow(new NotFoundException("존재하지 않는 공유 링크입니다."));
+
+        // when & then
+        mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isNotFound());
     }
 }
