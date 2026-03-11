@@ -38,7 +38,7 @@ public class FreeGameDetailResponse {
                 .courtCount(setting.getCourtCount())
                 .roundCount(setting.getRoundCount())
                 .organizerId(freeGame.getOrganizer().getId())
-                .shareCode(null)
+                .shareCode(freeGame.getShareCode())
                 .build();
     }
 }

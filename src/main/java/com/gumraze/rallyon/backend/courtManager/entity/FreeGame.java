@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "free_games")
 public class FreeGame {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,13 +30,15 @@ public class FreeGame {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;     // 게임을 생성한 유저(FK)
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_type", nullable = false)
-    private GradeType gradeType;        // 참가자들의 급수 형식
+    private GradeType gradeType = GradeType.NATIONAL;        // 참가자들의 급수 형식
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "game_type", nullable = false)
-    private GameType gameType;
+    private GameType gameType = GameType.FREE;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -58,6 +61,18 @@ public class FreeGame {
 
     protected FreeGame() {}
 
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void updateBasicInfo(
             String title,
             MatchRecordMode matchRecordMode,
@@ -66,6 +81,5 @@ public class FreeGame {
         this.title = title != null ? title : this.title;
         this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
         this.gradeType = gradeType != null ? gradeType : this.gradeType;
-        this.updatedAt = LocalDateTime.now();
     }
 }

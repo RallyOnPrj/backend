@@ -37,6 +37,29 @@ TDD is the default approach for business logic changes, bug fixes, and new behav
 - Prefer focused tests around use cases, validation rules, security behavior, and persistence boundaries.
 - Do not add shallow tests that only assert framework wiring unless the wiring itself is the change.
 
+#### Kent Beck Style TDD Policy
+
+Use Kent Beck style TDD as the default operating loop for backend behavior changes.
+
+- Always work in the `red -> green -> refactor` cycle.
+- Start with the smallest failing test that expresses one concrete behavior.
+- Make the test fail for the right reason before changing production code.
+- In the green step, do the minimum work needed to pass the current test.
+- Once green, refactor code and tests while keeping the whole suite green.
+- If a new case appears while working, add it to a test list and return to the current cycle first.
+- Prefer simple TDD moves: obvious implementation, fake it, then triangulate when needed.
+- Do not mix new behavior with refactoring while tests are red.
+- If the design feels wrong, get back to green first, then improve the design in small safe steps.
+- Keep the feedback loop short; small changes and frequent test runs are preferred over large jumps.
+
+#### TDD Execution Expectations
+
+- For each behavior change, capture at least one failing test before the production change.
+- Name tests by behavior, not implementation detail.
+- Keep one test focused on one reason to fail.
+- When a bug is fixed, first reproduce it with a failing regression test.
+- Refactoring is only complete when the relevant test set and the full backend suite stay green.
+
 ### DRY
 
 - Remove real duplication, not incidental similarity.

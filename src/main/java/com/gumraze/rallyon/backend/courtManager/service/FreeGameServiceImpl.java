@@ -18,9 +18,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class FreeGameServiceImpl implements FreeGameService {
+
+    private static final int MAX_SHARE_CODE_ATTEMPTS = 10;
 
     private final GameRepository gameRepository;
     private final GameParticipantRepository gameParticipantRepository;
@@ -28,21 +30,21 @@ public class FreeGameServiceImpl implements FreeGameService {
     private final UserRepository userRepository;
     private final FreeGameRoundRepository freeGameRoundRepository;
     private final FreeGameMatchRepository freeGameMatchRepository;
+    private final ShareCodeGenerator shareCodeGenerator;
 
     @Override
+    @Transactional
     public CreateFreeGameResponse createFreeGame(
             Long userId,
             CreateFreeGameRequest request
     ) {
 
-        // 게임 생성자 규칙
-        // 생성자는 우리 서비스의 사용자이어야함.
+        // 게임 생성자 규칙: 생성자는 우리 서비스의 사용자이어야함.
         if (!userRepository.existsById(userId)) {
             throw new IllegalArgumentException("존재하지 않는 userId입니다. :" + userId);
         }
 
-        // 게임 기록 형식 규칙
-        // matchRecordMode가 null이면, 기본값으로 설정
+        // 게임 기록 형식 규칙: matchRecordMode가 null이면, 기본값으로 설정
         MatchRecordMode matchRecordMode = request.getMatchRecordMode();
         if (matchRecordMode == null) {
             matchRecordMode = MatchRecordMode.STATUS_ONLY;
@@ -71,19 +73,14 @@ public class FreeGameServiceImpl implements FreeGameService {
         User organizerId = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId입니다. :" + userId));
 
+        String shareCode = generateUniqueShareCode();
         // 게임 정보 엔티티 생성
         FreeGame freeGame = FreeGame.builder()
                 .title(request.getTitle())
                 .organizer(organizerId)
                 .gradeType(request.getGradeType())
-                // 기본값으로 FREE로 설정
-                // TODO: 추후 tournament 등 여러 게임 생성 예정
-                .gameType(GameType.FREE)
-                // 처음 생성 이전 항상 시작 전
-                .gameStatus(GameStatus.NOT_STARTED)
+                .shareCode(shareCode)
                 .matchRecordMode(matchRecordMode)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         // 게임 기본 정보 우선 저장
@@ -532,23 +529,6 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .build();
     }
 
-    /**
-     * 자유게임 참가자 상세 정보를 조회한다.
-     *
-     * <p>처리 순서:
-     * 1) gameId 존재 여부 확인
-     * 2) 요청자 organizer 권한 확인
-     * 3) participantId 존재 여부 확인
-     * 4) participant의 game 소속 일치 여부 확인
-     * 5) 응답 DTO 매핑 반환</p>
-     *
-     * @param userId 조회 요청 사용자 ID
-     * @param gameId 자유게임 ID
-     * @param participantId 참가자 ID
-     * @return 참가자 상세 응답 DTO
-     * @throws NotFoundException game/participant가 없거나 다른 게임 소속인 경우
-     * @throws ForbiddenException 요청자가 organizer가 아닌 경우
-     */
     @Transactional(readOnly = true)
     @Override
     public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
@@ -574,6 +554,17 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .grade(participant.getGrade())
                 .ageGroup(participant.getAgeGroup())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FreeGameDetailResponse getPublicFreeGameDetail(String shareCode) {
+        FreeGame freeGame = gameRepository.findByShareCode(shareCode)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 공유 링크입니다. shareCode: " + shareCode));
+        FreeGameSetting setting = freeGameSettingRepository.findByFreeGameId(freeGame.getId())
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 게임 세팅입니다. gameId: " + freeGame.getId()));
+
+        return FreeGameDetailResponse.from(freeGame, setting);
     }
 
     // Helper Method
@@ -661,5 +652,16 @@ public class FreeGameServiceImpl implements FreeGameService {
         private int completedMatchCount;
         private int winCount;
         private int lossCount;
+    }
+
+    private String generateUniqueShareCode() {
+        for (int attempt = 0; attempt < MAX_SHARE_CODE_ATTEMPTS; attempt++) {
+            String shareCode = shareCodeGenerator.generate();
+            if (!gameRepository.existsByShareCode(shareCode)) {
+                return shareCode;
+            }
+        }
+
+        throw new IllegalStateException("고유한 shareCode 생성에 실패했습니다.");
     }
 }

@@ -2,6 +2,7 @@ package com.gumraze.rallyon.backend.api.courtManager;
 
 import com.gumraze.rallyon.backend.api.common.ApiAuthValidationResponses;
 import com.gumraze.rallyon.backend.api.common.ApiBearerAuth;
+import com.gumraze.rallyon.backend.api.common.ApiServerErrorResponse;
 import com.gumraze.rallyon.backend.courtManager.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -289,5 +290,38 @@ public interface CourtManagerApi {
             Long userId,
             Long gameId,
             Long participantId
+    );
+
+    @Operation(
+            summary = "공유 링크로 자유게임 상세 조회",
+            description = "shareCode를 사용해 로그인 없이 자유게임의 상세 정보를 조회합니다.",
+            security = {}
+    )
+    @ApiServerErrorResponse
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "공유 링크 기반 자유게임 상세 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FreeGameDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "공유 링크에 해당하는 자유게임을 찾을 수 없습니다.",
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    ResponseEntity<FreeGameDetailResponse> getPublicFreeGameDetail(
+            @Parameter(
+                    description = "자유게임 공유 링크의 공개 식별자",
+                    required = true,
+                    example = "public-share-code"
+            )
+            String shareCode
     );
 }
