@@ -6,13 +6,16 @@ import com.gumraze.rallyon.backend.auth.oauth.OAuthUserInfo;
 import com.gumraze.rallyon.backend.auth.oauth.ProviderAwareOAuthClient;
 import com.gumraze.rallyon.backend.auth.oauth.google.dto.GoogleTokenResponse;
 import com.gumraze.rallyon.backend.auth.oauth.google.dto.GoogleUserResponse;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 @Component
+@ConditionalOnProperty(prefix = "oauth.google", name = "enabled", havingValue = "true")
 public class GoogleOAuthClient implements OAuthClient, ProviderAwareOAuthClient {
 
     private final GoogleOAuthProperties properties;
@@ -21,6 +24,7 @@ public class GoogleOAuthClient implements OAuthClient, ProviderAwareOAuthClient 
     public GoogleOAuthClient(
             GoogleOAuthProperties properties,
             RestClient.Builder restClient) {
+        validateProperties(properties);
         this.properties = properties;
         this.restClient = restClient.build();
     }
@@ -96,5 +100,12 @@ public class GoogleOAuthClient implements OAuthClient, ProviderAwareOAuthClient 
     @Override
     public AuthProvider supports() {
         return AuthProvider.GOOGLE;
+    }
+
+    private static void validateProperties(GoogleOAuthProperties properties) {
+        Assert.hasText(properties.clientId(), "oauth.google.client-id must not be blank when Google OAuth is enabled.");
+        Assert.hasText(properties.clientSecret(), "oauth.google.client-secret must not be blank when Google OAuth is enabled.");
+        Assert.hasText(properties.tokenUri(), "oauth.google.token-uri must not be blank when Google OAuth is enabled.");
+        Assert.hasText(properties.userInfoUri(), "oauth.google.user-info-uri must not be blank when Google OAuth is enabled.");
     }
 }
