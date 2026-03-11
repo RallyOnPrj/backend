@@ -12,8 +12,12 @@ spring:
 server:
   forward-headers-strategy: framework
 
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://api.drive-minton.com,https://drive-minton.com}
+
 springdoc:
   api-docs:
     enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
   swagger-ui:
-    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:false}
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
