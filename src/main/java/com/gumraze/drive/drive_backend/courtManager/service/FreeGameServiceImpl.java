@@ -31,6 +31,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     private final ShareCodeGenerator shareCodeGenerator;
 
     @Override
+    @Transactional
     public CreateFreeGameResponse createFreeGame(
             Long userId,
             CreateFreeGameRequest request
@@ -76,9 +77,7 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .title(request.getTitle())
                 .organizer(organizerId)
                 .gradeType(request.getGradeType())
-                .gameType(GameType.FREE)
                 .shareCode(shareCode)
-                .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(matchRecordMode)
                 .build();
 
@@ -528,23 +527,6 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .build();
     }
 
-    /**
-     * 자유게임 참가자 상세 정보를 조회한다.
-     *
-     * <p>처리 순서:
-     * 1) gameId 존재 여부 확인
-     * 2) 요청자 organizer 권한 확인
-     * 3) participantId 존재 여부 확인
-     * 4) participant의 game 소속 일치 여부 확인
-     * 5) 응답 DTO 매핑 반환</p>
-     *
-     * @param userId 조회 요청 사용자 ID
-     * @param gameId 자유게임 ID
-     * @param participantId 참가자 ID
-     * @return 참가자 상세 응답 DTO
-     * @throws NotFoundException game/participant가 없거나 다른 게임 소속인 경우
-     * @throws ForbiddenException 요청자가 organizer가 아닌 경우
-     */
     @Transactional(readOnly = true)
     @Override
     public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
@@ -573,6 +555,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FreeGameDetailResponse getPublicFreeGameDetail(String shareCode) {
         FreeGame freeGame = gameRepository.findByShareCode(shareCode)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 공유 링크입니다. shareCode: " + shareCode));
