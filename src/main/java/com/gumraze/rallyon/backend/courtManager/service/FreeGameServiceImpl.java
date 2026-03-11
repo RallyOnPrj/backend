@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FreeGameServiceImpl implements FreeGameService {
 
+    private static final int MAX_SHARE_CODE_ATTEMPTS = 10;
+
     private final GameRepository gameRepository;
     private final GameParticipantRepository gameParticipantRepository;
     private final FreeGameSettingRepository freeGameSettingRepository;
@@ -560,20 +562,9 @@ public class FreeGameServiceImpl implements FreeGameService {
         FreeGame freeGame = gameRepository.findByShareCode(shareCode)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 공유 링크입니다. shareCode: " + shareCode));
         FreeGameSetting setting = freeGameSettingRepository.findByFreeGameId(freeGame.getId())
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 게임 세팅입니다. gameId: \" + freeGame.getId()"));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 게임 세팅입니다. gameId: " + freeGame.getId()));
 
-        return FreeGameDetailResponse.builder()
-                .gameId(freeGame.getId())
-                .title(freeGame.getTitle())
-                .gameType(freeGame.getGameType())
-                .gameStatus(freeGame.getGameStatus())
-                .matchRecordMode(freeGame.getMatchRecordMode())
-                .gradeType(freeGame.getGradeType())
-                .courtCount(setting.getCourtCount())
-                .roundCount(setting.getRoundCount())
-                .organizerId(freeGame.getOrganizer().getId())
-                .shareCode(freeGame.getShareCode())
-                .build();
+        return FreeGameDetailResponse.from(freeGame, setting);
     }
 
     // Helper Method
@@ -664,12 +655,13 @@ public class FreeGameServiceImpl implements FreeGameService {
     }
 
     private String generateUniqueShareCode() {
-        String shareCode;
+        for (int attempt = 0; attempt < MAX_SHARE_CODE_ATTEMPTS; attempt++) {
+            String shareCode = shareCodeGenerator.generate();
+            if (!gameRepository.existsByShareCode(shareCode)) {
+                return shareCode;
+            }
+        }
 
-        do {
-            shareCode = shareCodeGenerator.generate();
-        } while (gameRepository.existsByShareCode(shareCode));
-
-        return shareCode;
+        throw new IllegalStateException("고유한 shareCode 생성에 실패했습니다.");
     }
 }
