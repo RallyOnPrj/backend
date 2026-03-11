@@ -30,13 +30,15 @@ public class FreeGame {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;     // 게임을 생성한 유저(FK)
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_type", nullable = false)
-    private GradeType gradeType;        // 참가자들의 급수 형식
+    private GradeType gradeType = GradeType.NATIONAL;        // 참가자들의 급수 형식
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "game_type", nullable = false)
-    private GameType gameType;
+    private GameType gameType = GameType.FREE;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
