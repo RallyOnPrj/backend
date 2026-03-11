@@ -149,8 +149,10 @@ public class SecurityConfig {
                 "https://drive-minton.com",
                 "http://localhost:3000",
                 "http://localhost:3001",
+                "http://localhost:3433",
                 "https://localhost:3001",
-                "https://rallyon.local"
+                "https://localhost:3433",
+                "https://rallyon.test"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
