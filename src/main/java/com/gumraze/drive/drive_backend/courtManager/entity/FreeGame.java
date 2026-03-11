@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "free_games")
 public class FreeGame {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,6 +59,18 @@ public class FreeGame {
 
     protected FreeGame() {}
 
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void updateBasicInfo(
             String title,
             MatchRecordMode matchRecordMode,
@@ -66,6 +79,5 @@ public class FreeGame {
         this.title = title != null ? title : this.title;
         this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
         this.gradeType = gradeType != null ? gradeType : this.gradeType;
-        this.updatedAt = LocalDateTime.now();
     }
 }
