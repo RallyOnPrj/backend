@@ -48,6 +48,9 @@ class FreeGameServiceImplTest {
     @Mock
     FreeGameMatchRepository freeGameMatchRepository;
 
+    @Mock
+    ShareCodeGenerator shareCodeGenerator;
+
     @InjectMocks
     FreeGameServiceImpl freeGameService;
 
@@ -65,20 +68,19 @@ class FreeGameServiceImplTest {
         User organizer = mock(User.class);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
 
         // 게임 저장 결과 stub
-        FreeGame savedFreeGame = new FreeGame(
-                1L,                     // gameId 1로 stub
-                request.getTitle(),        // title 설정
-                organizer,                      // 게임 생성 유저의 id
-                GradeType.NATIONAL,
-                GameType.FREE,             // 자유게임(기본값)
-                GameStatus.NOT_STARTED,    // 시작전(기본값)
-                MatchRecordMode.STATUS_ONLY,     // STATUS_ONLY 기본값
-                null,                       // 공유 코드, 아직 없음
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+        FreeGame savedFreeGame = FreeGame.builder()
+                .id(1L)
+                .title(request.getTitle())
+                .organizer(organizer)
+                .gradeType(GradeType.NATIONAL)
+                .gameType(GameType.FREE)
+                .gameStatus(GameStatus.NOT_STARTED)
+                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
+                .shareCode("share-code-123")
+                .build();
 
         // 생성한 게임 저장
         when(gameRepository.save(any(FreeGame.class)))
@@ -112,6 +114,7 @@ class FreeGameServiceImplTest {
         User organizer = mock(User.class);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
 
         // when: createFreeGame() 호출함.
         freeGameService.createFreeGame(1L, request);
@@ -146,6 +149,7 @@ class FreeGameServiceImplTest {
         // 사용자 검증
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(mock(User.class)));
+        stubShareCode("share-code-123");
 
         // when: createFreeGame() 호출함.
         freeGameService.createFreeGame(1L, request);
@@ -180,6 +184,7 @@ class FreeGameServiceImplTest {
         // 사용자 검증
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(mock(User.class)));
+        stubShareCode("share-code-123");
 
         // when: createFreeGame 호출했을 때
         freeGameService.createFreeGame(1L, request);
@@ -265,21 +270,20 @@ class FreeGameServiceImplTest {
         User organizer = mock(User.class);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
 
         when(gameRepository.save(any(FreeGame.class)))
                 .thenReturn(
-                        new FreeGame(
-                                1L,
-                                "자유게임",
-                                organizer,
-                                GradeType.REGIONAL,
-                                GameType.FREE,
-                                GameStatus.NOT_STARTED,
-                                MatchRecordMode.STATUS_ONLY,
-                                null,
-                                LocalDateTime.now(),
-                                LocalDateTime.now()
-                        )
+                        FreeGame.builder()
+                                .id(1L)
+                                .title("자유게임")
+                                .organizer(organizer)
+                                .gradeType(GradeType.REGIONAL)
+                                .gameType(GameType.FREE)
+                                .gameStatus(GameStatus.NOT_STARTED)
+                                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
+                                .shareCode("share-code-123")
+                                .build()
                 );
         when(gameParticipantRepository.save(any(GameParticipant.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -329,20 +333,19 @@ class FreeGameServiceImplTest {
         User organizer = mock(User.class);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
         when(gameRepository.save(any(FreeGame.class)))
                 .thenReturn(
-                        new FreeGame(
-                                1L,
-                                "자유게임",
-                                organizer,
-                                GradeType.NATIONAL,
-                                GameType.FREE,
-                                GameStatus.NOT_STARTED,
-                                MatchRecordMode.STATUS_ONLY,
-                                null,
-                                LocalDateTime.now(),
-                                LocalDateTime.now()
-                        )
+                        FreeGame.builder()
+                                .id(1L)
+                                .title("자유게임")
+                                .organizer(organizer)
+                                .gradeType(GradeType.NATIONAL)
+                                .gameType(GameType.FREE)
+                                .gameStatus(GameStatus.NOT_STARTED)
+                                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
+                                .shareCode("share-code-123")
+                                .build()
                 );
         // when: 자유게임 생성이 호출되었을 때
         freeGameService.createFreeGame(1L, request);
@@ -369,6 +372,7 @@ class FreeGameServiceImplTest {
         when(organizer.getId()).thenReturn(userId);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
         when(gameRepository.save(any(FreeGame.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -399,6 +403,7 @@ class FreeGameServiceImplTest {
         User organizer = mock(User.class);
         when(userRepository.existsById(1L)).thenReturn(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(organizer));
+        stubShareCode("share-code-123");
 
         FreeGame savedFreeGame = FreeGame.builder()
                 .title("자유게임")
@@ -407,8 +412,7 @@ class FreeGameServiceImplTest {
                 .gameType(GameType.FREE)
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .shareCode("share-code-123")
                 .build();
 
         when(gameRepository.save(any(FreeGame.class))).thenReturn(savedFreeGame);
@@ -657,8 +661,6 @@ class FreeGameServiceImplTest {
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .shareCode(null)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
@@ -667,8 +669,11 @@ class FreeGameServiceImplTest {
                 .freeGame(freeGame)
                 .courtCount(courtCount)
                 .roundCount(roundCount)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    private void stubShareCode(String shareCode) {
+        when(shareCodeGenerator.generate()).thenReturn(shareCode);
+        when(gameRepository.existsByShareCode(shareCode)).thenReturn(false);
     }
 }

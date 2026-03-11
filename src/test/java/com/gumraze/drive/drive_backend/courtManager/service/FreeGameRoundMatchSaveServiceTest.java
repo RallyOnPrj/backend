@@ -1214,8 +1214,6 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .shareCode("https://newfreegame-sharecode")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
@@ -1229,8 +1227,6 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .gameStatus(gameStatus)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .shareCode("https://newfreegame-sharecode")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 

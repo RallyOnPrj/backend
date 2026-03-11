@@ -17,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,8 +52,6 @@ public class GetPublicFreeGameDetailUseCaseTest {
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .shareCode(shareCode)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         FreeGameSetting setting = FreeGameSetting.builder()
@@ -62,8 +59,6 @@ public class GetPublicFreeGameDetailUseCaseTest {
                 .freeGame(freeGame)
                 .courtCount(2)
                 .roundCount(3)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         when(gameRepository.findByShareCode(shareCode)).thenReturn(Optional.of(freeGame));
@@ -110,8 +105,6 @@ public class GetPublicFreeGameDetailUseCaseTest {
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .shareCode(shareCode)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         when(gameRepository.findByShareCode(shareCode)).thenReturn(Optional.of(freeGame));

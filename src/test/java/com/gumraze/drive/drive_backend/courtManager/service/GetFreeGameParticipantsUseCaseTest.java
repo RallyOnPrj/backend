@@ -208,8 +208,6 @@ public class GetFreeGameParticipantsUseCaseTest {
                 .gameType(GameType.FREE)
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(matchRecordMode)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
