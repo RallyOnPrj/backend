@@ -107,6 +107,7 @@ public class CourtManagerController implements CourtManagerApi {
         return ResponseEntity.ok(response);
     }
 
+    @Override
     @GetMapping("/share/{shareCode}")
     public ResponseEntity<FreeGameDetailResponse> getPublicFreeGameDetail(
             @PathVariable String shareCode
