@@ -1,11 +1,11 @@
 package com.gumraze.rallyon.backend.auth.oauth;
 
 import com.gumraze.rallyon.backend.auth.constants.AuthProvider;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"local", "test"})
+@ConditionalOnProperty(prefix = "oauth.dummy", name = "enabled", havingValue = "true")
 public class DummyOAuthClient implements OAuthClient, ProviderAwareOAuthClient {
     @Override
     public AuthProvider supports() {
