@@ -23,7 +23,7 @@ jobs:
         env:
           BRANCH_REGEX: "^(feat|fix|refactor|docs|chore|test|style)/[0-9]+-[a-z0-9-]+$"
           PR_TITLE_REGEX: "^(feat|fix|refactor|docs|chore|test|style): .+$"
-          COMMIT_TITLE_REGEX: "^((feat|fix|refactor|docs|chore|test|style): .+|merge: .+|Merge .+)$"
+          COMMIT_TITLE_REGEX: "^((feat|fix|refactor|docs|chore|test|style)(\\([a-z0-9-]+\\))?: .+|merge: .+|Merge .+)$"
         with:
           script: |
             const branchRegex = new RegExp(process.env.BRANCH_REGEX);
