@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class FreeGameServiceImpl implements FreeGameService {
 
     private final GameRepository gameRepository;
@@ -28,6 +28,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     private final UserRepository userRepository;
     private final FreeGameRoundRepository freeGameRoundRepository;
     private final FreeGameMatchRepository freeGameMatchRepository;
+    private final ShareCodeGenerator shareCodeGenerator;
 
     @Override
     public CreateFreeGameResponse createFreeGame(
@@ -35,14 +36,12 @@ public class FreeGameServiceImpl implements FreeGameService {
             CreateFreeGameRequest request
     ) {
 
-        // 게임 생성자 규칙
-        // 생성자는 우리 서비스의 사용자이어야함.
+        // 게임 생성자 규칙: 생성자는 우리 서비스의 사용자이어야함.
         if (!userRepository.existsById(userId)) {
             throw new IllegalArgumentException("존재하지 않는 userId입니다. :" + userId);
         }
 
-        // 게임 기록 형식 규칙
-        // matchRecordMode가 null이면, 기본값으로 설정
+        // 게임 기록 형식 규칙: matchRecordMode가 null이면, 기본값으로 설정
         MatchRecordMode matchRecordMode = request.getMatchRecordMode();
         if (matchRecordMode == null) {
             matchRecordMode = MatchRecordMode.STATUS_ONLY;
@@ -71,19 +70,16 @@ public class FreeGameServiceImpl implements FreeGameService {
         User organizerId = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId입니다. :" + userId));
 
+        String shareCode = generateUniqueShareCode();
         // 게임 정보 엔티티 생성
         FreeGame freeGame = FreeGame.builder()
                 .title(request.getTitle())
                 .organizer(organizerId)
                 .gradeType(request.getGradeType())
-                // 기본값으로 FREE로 설정
-                // TODO: 추후 tournament 등 여러 게임 생성 예정
                 .gameType(GameType.FREE)
-                // 처음 생성 이전 항상 시작 전
+                .shareCode(shareCode)
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(matchRecordMode)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         // 게임 기본 정보 우선 저장
@@ -682,5 +678,15 @@ public class FreeGameServiceImpl implements FreeGameService {
         private int completedMatchCount;
         private int winCount;
         private int lossCount;
+    }
+
+    private String generateUniqueShareCode() {
+        String shareCode;
+
+        do {
+            shareCode = shareCodeGenerator.generate();
+        } while (gameRepository.existsByShareCode(shareCode));
+
+        return shareCode;
     }
 }

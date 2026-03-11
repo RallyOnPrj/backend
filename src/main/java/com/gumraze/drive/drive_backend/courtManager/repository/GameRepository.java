@@ -7,5 +7,6 @@ import java.util.Optional;
 public interface GameRepository extends JpaRepository<FreeGame, Long> {
 
     Optional<FreeGame> findByShareCode(String shareCode);
+    boolean existsByShareCode(String shareCode);
 
 }
