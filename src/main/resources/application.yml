@@ -20,8 +20,9 @@ jwt:
     expiration-hours: ${JWT_REFRESH_TOKEN_EXPIRATION_HOURS}
 
 oauth:
-  allowed-providers:
-    - KAKAO
+  allowed-providers: ${OAUTH_ALLOWED_PROVIDERS:KAKAO}
+  dummy:
+    enabled: ${OAUTH_DUMMY_ENABLED:false}
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
