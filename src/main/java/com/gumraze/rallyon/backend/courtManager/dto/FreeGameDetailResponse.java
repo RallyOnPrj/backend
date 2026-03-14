@@ -26,6 +26,7 @@ public class FreeGameDetailResponse {
     private Integer roundCount;
     private Long organizerId;
     private String shareCode;
+    private String location;
 
     public static FreeGameDetailResponse from(FreeGame freeGame, FreeGameSetting setting) {
         return FreeGameDetailResponse.builder()
@@ -39,6 +40,7 @@ public class FreeGameDetailResponse {
                 .roundCount(setting.getRoundCount())
                 .organizerId(freeGame.getOrganizer().getId())
                 .shareCode(freeGame.getShareCode())
+                .location(freeGame.getLocation())
                 .build();
     }
 }

@@ -81,6 +81,7 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .gradeType(request.getGradeType())
                 .shareCode(shareCode)
                 .matchRecordMode(matchRecordMode)
+                .location(request.getLocation())
                 .build();
 
         // 게임 기본 정보 우선 저장
@@ -173,10 +174,11 @@ public class FreeGameServiceImpl implements FreeGameService {
             throw new UnsupportedOperationException("매니저 수정 기능은 현재 미개발 상태입니다.");
         }
         // update 수행
-        freeGame.updateBasicInfo(
+        freeGame.update(
                 request.getTitle(),
                 request.getMatchRecordMode(),
-                request.getGradeType()
+                request.getGradeType(),
+                request.getLocation()
         );
         gameRepository.save(freeGame);
         return UpdateFreeGameResponse.from(freeGame);

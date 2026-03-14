@@ -34,6 +34,9 @@ public class CreateFreeGameRequest {
     @NotNull @Min(1)
     private Integer roundCount;                             // 라운드 수
 
+    @Size(max = 255)
+    private String location;
+
     @Size(max = 2)
     private List<Long> managerIds;                          // 게임 공동 운영자(최대 2명, null 허용)
 

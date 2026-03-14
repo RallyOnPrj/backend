@@ -26,6 +26,19 @@ public final class FreeGameFixtures {
                 .build();
     }
 
+    public static FreeGame freeGame(Long gameId, User organizer, String location) {
+        return FreeGame.builder()
+                .id(gameId)
+                .title("자유게임")
+                .location(location)
+                .organizer(organizer)
+                .gradeType(GradeType.NATIONAL)
+                .gameType(GameType.FREE)
+                .gameStatus(GameStatus.NOT_STARTED)
+                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
+                .shareCode(null)
+                .build();
+    }
 
     public static FreeGameSetting setting(FreeGame freeGame, int courtCount, int roundCount) {
         return FreeGameSetting.builder()

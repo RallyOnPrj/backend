@@ -53,6 +53,9 @@ public class FreeGame {
     @Column(name = "share_code", length = 64)
     private String shareCode;
 
+    @Column(name = "location", length = 255)
+    private String location;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -73,13 +76,15 @@ public class FreeGame {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateBasicInfo(
+    public void update(
             String title,
             MatchRecordMode matchRecordMode,
-            GradeType gradeType
+            GradeType gradeType,
+            String location
     ) {
         this.title = title != null ? title : this.title;
         this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
         this.gradeType = gradeType != null ? gradeType : this.gradeType;
+        this.location = location != null ? location : this.location;
     }
 }

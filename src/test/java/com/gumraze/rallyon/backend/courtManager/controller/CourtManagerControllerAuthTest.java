@@ -7,11 +7,10 @@ import com.gumraze.rallyon.backend.config.SecurityConfig;
 import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
-import com.gumraze.rallyon.backend.courtManager.dto.FreeGameDetailResponse;
-import com.gumraze.rallyon.backend.courtManager.dto.MatchRequest;
-import com.gumraze.rallyon.backend.courtManager.dto.RoundRequest;
-import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.*;
 import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
+import com.gumraze.rallyon.backend.user.constants.Gender;
+import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,28 +18,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.ObjectMapper;
-
 import java.util.List;
 
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.freeGameDetailResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// 인증, 권한 관련 테스트
 @WebMvcTest(CourtManagerController.class)
 @Import(SecurityConfig.class)
-public class CourtManagerControllerAuthTest {
+class CourtManagerControllerAuthTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,14 +47,84 @@ public class CourtManagerControllerAuthTest {
     @MockitoBean
     private JwtAccessTokenValidator jwtAccessTokenValidator;
 
-    private RequestPostProcessor authenticatedUser(Long userId) {
-        return authentication(
-                new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+    @Test
+    @DisplayName("자유게임 생성 시 토큰이 없으면 401")
+    void createFreeGame_without_token() throws Exception {
+        // given: 정상 payload지만 인증 정보가 없는 생성 요청을 준비한다.
+        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
+                .title("자유게임 1")
+                .gradeType(GradeType.NATIONAL)
+                .courtCount(2)
+                .roundCount(3)
+                .participants(
+                        List.of(
+                                ParticipantCreateRequest.builder()
+                                        .originalName("참가자 1")
+                                        .gender(Gender.MALE)
+                                        .grade(Grade.ROOKIE)
+                                        .ageGroup(20)
+                                        .build()
+                        )
                 )
-        );
+                .build();
+
+        String body = objectMapper.writeValueAsString(request);
+
+        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
+        mockMvc.perform(post("/free-games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
+                        .content(body))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
+    }
+
+    @Test
+    @DisplayName("자유게임 상세 조회 시 토큰이 없으면 401")
+    void getFreeGameDetail_without_token() throws Exception {
+        // given: 인증되지 않은 요청으로 상세 조회를 호출한다.
+        Long userId = 99L;
+        Long gameId = 1L;
+        FreeGameDetailResponse response = freeGameDetailResponse(gameId, userId);
+
+        when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
+
+        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
+        mockMvc.perform(get("/free-games/{gameId}", gameId)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
+    }
+
+    @Test
+    @DisplayName("자유게임 기본 정보 수정 시 토큰이 없으면 401")
+    void updateFreeGameInfo_without_token() throws Exception {
+        // given: 정상 payload지만 인증 정보가 없는 수정 요청을 준비한다.
+        Long gameId = 80L;
+        UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
+                .title("수정된 자유게임")
+                .matchRecordMode(MatchRecordMode.RESULT)
+                .gradeType(GradeType.REGIONAL)
+                .build();
+
+        String body = objectMapper.writeValueAsString(request);
+
+        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
+        mockMvc.perform(patch("/free-games/{gameId}", gameId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
+                        .content(body))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").exists())
+                .andExpect(jsonPath("$.title").exists());
     }
 
     @Test
@@ -93,8 +156,7 @@ public class CourtManagerControllerAuthTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
+                .andExpect(jsonPath("$.title").exists());
     }
 
     @Test
@@ -102,7 +164,7 @@ public class CourtManagerControllerAuthTest {
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
         // given
         Long gameId = 1L;
-        Long userId = 2L;       // organizer 아님
+        Long userId = 2L;
 
         when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
@@ -132,8 +194,7 @@ public class CourtManagerControllerAuthTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
+                .andExpect(jsonPath("$.title").exists());
     }
 
     @Test
@@ -155,7 +216,7 @@ public class CourtManagerControllerAuthTest {
         // given
         Long gameId = 1L;
         Long participantId = 10L;
-        Long userId = 2L; // organizer 아님
+        Long userId = 2L;
 
         when(freeGameService.getFreeGameParticipantDetail(eq(userId), eq(gameId), eq(participantId)))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
@@ -172,7 +233,7 @@ public class CourtManagerControllerAuthTest {
     }
 
     @Test
-    @DisplayName("shareCode로 공개 게임 조회 시, 토큰 없이 요청 가능")
+    @DisplayName("shareCode로 공개 게임 조회 시 토큰 없이 요청 가능")
     void getPublicFreeGameDetail_without_token_then_ok() throws Exception {
         // given
         String shareCode = "public-share-code";
@@ -184,6 +245,7 @@ public class CourtManagerControllerAuthTest {
                 .gameStatus(GameStatus.NOT_STARTED)
                 .matchRecordMode(MatchRecordMode.STATUS_ONLY)
                 .gradeType(GradeType.NATIONAL)
+                .location("잠실 배드민턴장")
                 .courtCount(2)
                 .roundCount(3)
                 .organizerId(10L)
@@ -203,7 +265,7 @@ public class CourtManagerControllerAuthTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 공유 링크면 404를 반환한다.")
+    @DisplayName("존재하지 않는 공유 링크면 404를 반환한다")
     void getPublicFreeGameDetail_when_shareCode_not_found_then_not_found() throws Exception {
         // given
         String shareCode = "missing-share-code";
@@ -216,4 +278,5 @@ public class CourtManagerControllerAuthTest {
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isNotFound());
     }
+
 }
