@@ -21,3 +21,11 @@ springdoc:
     enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
   swagger-ui:
     enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
+
+naver:
+  search:
+    local:
+      enabled: ${NAVER_SEARCH_LOCAL_ENABLED:false}
+      client-id: ${NAVER_SEARCH_CLIENT_ID:}
+      client-secret: ${NAVER_SEARCH_CLIENT_SECRET:}
+      base-url: ${NAVER_SEARCH_BASE_URL:https://openapi.naver.com}
