@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,8 +58,8 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 기본 정보 수정 성공 시 title, gradeType, matchRecordMode를 반영한다")
     void updateFreeGameInfo_success() {
         // given: 수정할 자유게임과 기본 정보 수정 요청을 준비한다.
-        Long gameId = 1L;
         Long userId = 1L;
+        UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
         UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
@@ -92,7 +93,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     void updateFreeGameInfo_updatesLocation() {
         // given: 기존 location이 있는 자유게임과 새로운 location 수정 요청을 준비한다.
         Long userId = 1L;
-        Long gameId = 10L;
+        UUID gameId = UUID.randomUUID();
 
         User organizer = organizer(userId);
 
@@ -124,7 +125,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     void updateFreeGameInfo_withoutPermission_throwsForbidden() {
         // given: 요청자와 organizer가 다른 자유게임과 수정 요청을 준비한다.
         Long userId = 1L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
                 .title("수정된 게임 제목")
                 .matchRecordMode(MatchRecordMode.RESULT)

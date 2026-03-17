@@ -1,6 +1,7 @@
 package com.gumraze.rallyon.backend.courtManager.service;
 
 import com.gumraze.rallyon.backend.courtManager.dto.*;
+import java.util.UUID;
 
 /**
  * 자유게임 관련 주요 유스케이스를 제공한다.
@@ -29,7 +30,7 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.NotFoundException 게임 또는 게임 설정이 없는 경우
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 게임 생성자가 아닌 경우
      */
-    FreeGameDetailResponse getFreeGameDetail(Long userId, Long gameId);
+    FreeGameDetailResponse getFreeGameDetail(Long userId, UUID gameId);
 
     /**
      * 자유게임의 기본 정보를 수정한다.
@@ -41,7 +42,7 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.NotFoundException 게임이 존재하지 않는 경우
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 게임 생성자가 아닌 경우
      */
-    UpdateFreeGameResponse updateFreeGameInfo(Long userId, Long gameId, UpdateFreeGameRequest request);
+    UpdateFreeGameResponse updateFreeGameInfo(Long userId, UUID gameId, UpdateFreeGameRequest request);
 
     /**
      * 자유게임의 라운드 및 매치 정보를 조회한다.
@@ -52,7 +53,7 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.NotFoundException 게임이 존재하지 않는 경우
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 게임 생성자가 아닌 경우
      */
-    FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(Long userId, Long gameId);
+    FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(Long userId, UUID gameId);
 
     /**
      * 자유게임의 라운드 및 매치 정보를 수정한다.
@@ -65,7 +66,7 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.NotFoundException 게임이 존재하지 않는 경우
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 게임 생성자가 아닌 경우
      */
-    UpdateFreeGameRoundMatchResponse updateFreeGameRoundMatch(Long userId, Long gameId, UpdateFreeGameRoundMatchRequest request);
+    UpdateFreeGameRoundMatchResponse updateFreeGameRoundMatch(Long userId, UUID gameId, UpdateFreeGameRoundMatchRequest request);
 
     /**
      * 자유게임 참가자 목록을 조회한다.
@@ -77,7 +78,7 @@ public interface FreeGameService {
      * @throws com.gumraze.drive.drive_backend.common.exception.NotFoundException 게임이 존재하지 않는 경우
      * @throws com.gumraze.drive.drive_backend.common.exception.ForbiddenException 요청자가 게임 생성자가 아닌 경우
      */
-    FreeGameParticipantsResponse getFreeGameParticipants(Long userId, Long gameId, boolean includeStats);
+    FreeGameParticipantsResponse getFreeGameParticipants(Long userId, UUID gameId, boolean includeStats);
 
     /**
      * 자유게임 참가자 상세 정보를 조회한다.
@@ -92,7 +93,7 @@ public interface FreeGameService {
      * @throws com.gumraze.rallyon.backend.common.exception.NotFoundException game/participant가 없거나 다른 게임 소속인 경우
      * @throws com.gumraze.rallyon.backend.common.exception.ForbiddenException 요청자가 organizer가 아닌 경우
      */
-    FreeGameParticipantDetailResponse getFreeGameParticipantDetail(Long userId, Long gameId, Long participantId);
+    FreeGameParticipantDetailResponse getFreeGameParticipantDetail(Long userId, UUID gameId, UUID participantId);
 
     /**
      * shareCode로 공개 가능한 자유게임 상세 정보를 조회한다.

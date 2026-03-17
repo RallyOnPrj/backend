@@ -11,8 +11,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.UUID;
 
 @Tag(name = "CourtManager", description = "코트 매니저 API")
 @ApiBearerAuth
@@ -86,7 +92,7 @@ public interface CourtManagerApi {
     })
     ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
             Long userId,
-            Long gameId
+            UUID gameId
     );
 
     @Operation(
@@ -120,10 +126,11 @@ public interface CourtManagerApi {
                     )
             )
     })
+    @PatchMapping("/{gameId}")
     ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
-            Long userId,
-            Long gameId,
-            UpdateFreeGameRequest request
+            @AuthenticationPrincipal Long userId,
+            @PathVariable UUID gameId,
+            @RequestBody @Valid UpdateFreeGameRequest request
     );
 
     @Operation(
@@ -166,7 +173,7 @@ public interface CourtManagerApi {
     })
     ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
             Long userId,
-            Long gameId
+            UUID gameId
     );
 
     @Operation(
@@ -197,10 +204,12 @@ public interface CourtManagerApi {
                     )
             )
     })
+
+    @PatchMapping("/{gameId}/rounds-and-matches")
     ResponseEntity<Void> updateFreeGameRoundMatch(
-            Long userId,
-            Long gameId,
-            UpdateFreeGameRoundMatchRequest request
+            @AuthenticationPrincipal Long userId,
+            @PathVariable UUID gameId,
+            @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     );
 
     @Operation(
@@ -243,7 +252,7 @@ public interface CourtManagerApi {
     })
     ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
             Long userId,
-            Long gameId,
+            UUID gameId,
             @Parameter(description = "include=stats인 경우 매치 집계 정보를 포함합니다.")
             String include
     );
@@ -288,8 +297,8 @@ public interface CourtManagerApi {
     })
     ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
             Long userId,
-            Long gameId,
-            Long participantId
+            UUID gameId,
+            UUID participantId
     );
 
     @Operation(

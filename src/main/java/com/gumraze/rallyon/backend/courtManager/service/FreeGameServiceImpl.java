@@ -144,7 +144,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public FreeGameDetailResponse getFreeGameDetail(Long userId, Long gameId) {
+    public FreeGameDetailResponse getFreeGameDetail(Long userId, UUID gameId) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 
@@ -161,7 +161,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional
-    public UpdateFreeGameResponse updateFreeGameInfo(Long userId, Long gameId, UpdateFreeGameRequest request) {
+    public UpdateFreeGameResponse updateFreeGameInfo(Long userId, UUID gameId, UpdateFreeGameRequest request) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 
@@ -186,7 +186,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(Long userId, Long gameId) {
+    public FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(Long userId, UUID gameId) {
         // gameId로 Game 조회
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
@@ -253,7 +253,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     @Transactional
     public UpdateFreeGameRoundMatchResponse updateFreeGameRoundMatch(
             Long userId,
-            Long gameId,
+            UUID gameId,
             UpdateFreeGameRoundMatchRequest request
     ) {
 
@@ -281,7 +281,7 @@ public class FreeGameServiceImpl implements FreeGameService {
         }
 
         // 게임 참가자 조회
-        Set<Long> participantIdsInGame = gameParticipantRepository.findByFreeGameId(gameId).stream()
+        Set<UUID> participantIdsInGame = gameParticipantRepository.findByFreeGameId(gameId).stream()
                 .map(GameParticipant::getId)
                 .collect(Collectors.toSet());
 
@@ -424,7 +424,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     @Transactional(readOnly = true)
     public FreeGameParticipantsResponse getFreeGameParticipants(
             Long userId,
-            Long gameId,
+            UUID gameId,
             boolean includeStats
     ) {
         // organizer 권한 검증 및 게임 조회
@@ -458,7 +458,7 @@ public class FreeGameServiceImpl implements FreeGameService {
         }
 
         // 참가자별 통계 초기화
-        Map<Long, ParticipantStats> statsByParticipantId = new HashMap<>();
+        Map<UUID, ParticipantStats> statsByParticipantId = new HashMap<>();
         for (GameParticipant participant : participants) {
             statsByParticipantId.put(participant.getId(), new ParticipantStats());
         }
@@ -472,14 +472,14 @@ public class FreeGameServiceImpl implements FreeGameService {
 
             for (FreeGameMatch match : matches) {
                 // 매치에 배정된 참가자 ID 수집
-                Set<Long> matchParticipantIds = new HashSet<>();
+                Set<UUID> matchParticipantIds = new HashSet<>();
                 addParticipantId(matchParticipantIds, match.getTeamAPlayer1());
                 addParticipantId(matchParticipantIds, match.getTeamAPlayer2());
                 addParticipantId(matchParticipantIds, match.getTeamBPlayer1());
                 addParticipantId(matchParticipantIds, match.getTeamBPlayer2());
 
                 // 배정된 매치 수 카운트
-                for (Long participantId : matchParticipantIds) {
+                for (UUID participantId : matchParticipantIds) {
                     ParticipantStats stats = statsByParticipantId.get(participantId);
                     if (stats != null) {
                         stats.assignedMatchCount++;
@@ -488,7 +488,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
                 // 완료된 매치 수 카운트
                 if (match.getMatchStatus() == MatchStatus.COMPLETED) {
-                    for (Long participantId : matchParticipantIds) {
+                    for (UUID participantId : matchParticipantIds) {
                         ParticipantStats stats = statsByParticipantId.get(participantId);
                         if (stats != null) {
                             stats.completedMatchCount++;
@@ -531,10 +531,12 @@ public class FreeGameServiceImpl implements FreeGameService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
-            Long userId, Long gameId, Long participantId
+            Long userId,
+            UUID gameId,
+            UUID participantId
     ) {
         // 게임 존재 및 권한 체크 수행
         validateGameAndOrganizer(gameId, userId);
@@ -582,7 +584,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     ) {
     }
 
-    private FreeGame validateGameAndOrganizer(Long gameId, Long userId) {
+    private FreeGame validateGameAndOrganizer(UUID gameId, Long userId) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 
@@ -593,7 +595,7 @@ public class FreeGameServiceImpl implements FreeGameService {
         return freeGame;
     }
 
-    private void addParticipantId(Set<Long> target, GameParticipant participant) {
+    private void addParticipantId(Set<UUID> target, GameParticipant participant) {
         // null 참가자는 무시
         if (participant != null) {
             target.add(participant.getId());
@@ -602,7 +604,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     private void applyWinLossCounts(
             FreeGameMatch match,
-            Map<Long, ParticipantStats> statsByParticipantId
+            Map<UUID, ParticipantStats> statsByParticipantId
     ) {
         // 승/패가 확정된 매치만 집계
         MatchResult result = match.getMatchResult();
@@ -611,22 +613,22 @@ public class FreeGameServiceImpl implements FreeGameService {
         }
 
         // 팀별 참가자 ID 구성
-        Set<Long> teamAIds = new HashSet<>();
+        Set<UUID> teamAIds = new HashSet<>();
         addParticipantId(teamAIds, match.getTeamAPlayer1());
         addParticipantId(teamAIds, match.getTeamAPlayer2());
 
-        Set<Long> teamBIds = new HashSet<>();
+        Set<UUID> teamBIds = new HashSet<>();
         addParticipantId(teamBIds, match.getTeamBPlayer1());
         addParticipantId(teamBIds, match.getTeamBPlayer2());
 
         if (result == MatchResult.TEAM_A_WIN) {
-            for (Long participantId : teamAIds) {
+            for (UUID participantId : teamAIds) {
                 ParticipantStats stats = statsByParticipantId.get(participantId);
                 if (stats != null) {
                     stats.winCount++;
                 }
             }
-            for (Long participantId : teamBIds) {
+            for (UUID participantId : teamBIds) {
                 ParticipantStats stats = statsByParticipantId.get(participantId);
                 if (stats != null) {
                     stats.lossCount++;
@@ -635,13 +637,13 @@ public class FreeGameServiceImpl implements FreeGameService {
             return;
         }
 
-        for (Long participantId : teamBIds) {
+        for (UUID participantId : teamBIds) {
             ParticipantStats stats = statsByParticipantId.get(participantId);
             if (stats != null) {
                 stats.winCount++;
             }
         }
-        for (Long participantId : teamAIds) {
+        for (UUID participantId : teamAIds) {
             ParticipantStats stats = statsByParticipantId.get(participantId);
             if (stats != null) {
                 stats.lossCount++;

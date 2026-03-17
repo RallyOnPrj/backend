@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +41,7 @@ public class GetPublicFreeGameDetailUseCaseTest {
     void getPublicFreeGameDetail_when_shareCode_exists_then_success() {
         // given: 생성된 게임이 존재하는 경우
         String shareCode = "public-share-code";
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 10L;
 
         FreeGame freeGame = FreeGame.builder()
@@ -93,7 +94,7 @@ public class GetPublicFreeGameDetailUseCaseTest {
     void getPublicFreeGameDetail_when_setting_not_found_then_throw_not_found() {
         // given
         String shareCode = "public-share-code";
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 10L;
 
         FreeGame freeGame = FreeGame.builder()

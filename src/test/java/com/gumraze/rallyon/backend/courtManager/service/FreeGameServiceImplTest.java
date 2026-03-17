@@ -21,10 +21,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,7 +59,7 @@ class FreeGameServiceImplTest {
     @DisplayName("자유게임 라운드/매치 조회 성공 테스트")
     void getFreeGameRoundMatchResponse_success() {
         // given
-        Long gameId = 10L;
+        UUID gameId = UUID.randomUUID();
         Long userId = 1L;
 
         User organizer = mock(User.class);
@@ -78,10 +80,10 @@ class FreeGameServiceImplTest {
         GameParticipant a2 = mock(GameParticipant.class);
         GameParticipant b1 = mock(GameParticipant.class);
         GameParticipant b2 = mock(GameParticipant.class);
-        when(a1.getId()).thenReturn(1L);
-        when(a2.getId()).thenReturn(2L);
-        when(b1.getId()).thenReturn(3L);
-        when(b2.getId()).thenReturn(4L);
+        when(a1.getId()).thenReturn(UUID.randomUUID());
+        when(a2.getId()).thenReturn(UUID.randomUUID());
+        when(b1.getId()).thenReturn(UUID.randomUUID());
+        when(b2.getId()).thenReturn(UUID.randomUUID());
 
         FreeGameMatch m1 = mock(FreeGameMatch.class);
         when(m1.getRound()).thenReturn(round1);
@@ -116,7 +118,7 @@ class FreeGameServiceImplTest {
     @DisplayName("자유게임 라운드/매치 조회 시 organizer가 아니면 403 테스트")
     void getFreeGameRoundMatchResponse_withNotOrganizer_throwsForbidden() {
         // given
-        Long gameId = 10L;
+        UUID gameId = UUID.randomUUID();
         Long userId = 1L;
 
         User organizer = mock(User.class);
@@ -129,7 +131,7 @@ class FreeGameServiceImplTest {
         assertThatThrownBy(() -> freeGameService.getFreeGameRoundMatchResponse(userId, gameId))
                 .isInstanceOf(ForbiddenException.class);
         verify(gameRepository).findById(gameId);
-        verify(freeGameRoundRepository, never()).findByFreeGameIdOrderByRoundNumber(anyLong());
+        verify(freeGameRoundRepository, never()).findByFreeGameIdOrderByRoundNumber(any(UUID.class));
         verify(freeGameMatchRepository, never()).findByRoundIdInOrderByCourtNumber(anyList());
     }
 }

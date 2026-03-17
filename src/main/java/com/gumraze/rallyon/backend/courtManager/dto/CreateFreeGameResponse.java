@@ -4,12 +4,13 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Builder
 public class CreateFreeGameResponse {
-    private Long gameId;
+    private UUID gameId;
 
     public static CreateFreeGameResponse from(FreeGame freeGame) {
         return CreateFreeGameResponse.builder()

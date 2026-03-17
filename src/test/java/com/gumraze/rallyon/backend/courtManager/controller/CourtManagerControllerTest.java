@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.freeGameDetailResponse;
@@ -28,6 +29,7 @@ import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtM
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.participantsResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -54,7 +56,7 @@ class CourtManagerControllerTest {
     void createFreeGame_success() throws Exception {
         // given: 최소 필수값만 포함된 생성 요청을 준비함.
         CreateFreeGameResponse response = CreateFreeGameResponse.builder()
-                .gameId(101L).build();
+                .gameId(UUID.randomUUID()).build();
 
         // 서비스 응답을 stub
         when(freeGameService.createFreeGame(anyLong(), any()))
@@ -80,7 +82,7 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(1L))
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.gameId").value(101));
+                .andExpect(jsonPath("$.gameId").value(response.getGameId().toString()));
     }
 
     @Test
@@ -106,7 +108,7 @@ class CourtManagerControllerTest {
                 .build();
 
         CreateFreeGameResponse response = CreateFreeGameResponse.builder()
-                .gameId(101L).build();
+                .gameId(UUID.randomUUID()).build();
         when(freeGameService.createFreeGame(anyLong(), any()))
                 .thenReturn(response);
 
@@ -126,7 +128,7 @@ class CourtManagerControllerTest {
     void getFreeGameDetail_success() throws Exception {
         // given
         Long userId = 99L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         FreeGameDetailResponse response = freeGameDetailResponse(userId, gameId);
 
         when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
@@ -135,7 +137,7 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(1))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
                 .andExpect(jsonPath("$.title").value("자유게임"))
                 .andExpect(jsonPath("$.gameType").value("FREE"))
                 .andExpect(jsonPath("$.gameStatus").value("NOT_STARTED"))
@@ -153,7 +155,7 @@ class CourtManagerControllerTest {
     void getFreeGameDetail_withUnknownGameId_returnError() throws Exception {
         // given
         Long userId = 99L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         when(freeGameService.getFreeGameDetail(userId, gameId))
                 .thenThrow(new NotFoundException("게임이 존재하지 않습니다."));
 
@@ -173,8 +175,8 @@ class CourtManagerControllerTest {
     @DisplayName("자유게임 기본 정보 수정 성공 테스트")
     void updateFreeGameInfo_success() throws Exception {
         // given: 정상적인 요청 입력
-        Long gameId = 80L;
         Long userId = 1L;
+        UUID gameId = UUID.randomUUID();
 
         UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
                 .title("수정된 자유게임")
@@ -187,7 +189,7 @@ class CourtManagerControllerTest {
                 .build();
 
         // stub
-        when(freeGameService.updateFreeGameInfo(anyLong(), anyLong(), any(UpdateFreeGameRequest.class)))
+        when(freeGameService.updateFreeGameInfo(anyLong(), eq(gameId), any(UpdateFreeGameRequest.class)))
                 .thenReturn(response);
 
         mockMvc.perform(patch("/free-games/{gameId}", gameId)
@@ -197,7 +199,7 @@ class CourtManagerControllerTest {
                         .content(body))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(80))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
         ;
     }
 
@@ -207,13 +209,17 @@ class CourtManagerControllerTest {
     void getFreeGameRoundMatch_success() throws Exception {
         // given
         Long userId = 1L;
-        Long gameId = 2L;
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
 
         FreeGameMatchResponse match =
                 FreeGameMatchResponse.builder()
                         .courtNumber(1L)
-                        .teamAIds(List.of(201L, 202L))
-                        .teamBIds(List.of(203L, 204L))
+                        .teamAIds(List.of(teamA1, teamA2))
+                        .teamBIds(List.of(teamB1, teamB2))
                         .matchStatus(MatchStatus.NOT_STARTED)
                         .matchResult(MatchResult.NULL)
                         .isActive(true)
@@ -240,13 +246,13 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(2L))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
                 .andExpect(jsonPath("$.rounds[0].roundNumber").value(1L))
                 .andExpect(jsonPath("$.rounds[0].matches[0].courtNumber").value(1L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[0]").value(201L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[1]").value(202L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[0]").value(203L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[1]").value(204L))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[0]").value(teamA1.toString()))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[1]").value(teamA2.toString()))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[0]").value(teamB1.toString()))
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[1]").value(teamB2.toString()))
                 .andExpect(jsonPath("$.rounds[0].matches[0].matchStatus").value("NOT_STARTED"))
                 .andExpect(jsonPath("$.rounds[0].matches[0].matchResult").value("NULL"))
                 .andExpect(jsonPath("$.rounds[0].matches[0].isActive").value(true))
@@ -258,9 +264,9 @@ class CourtManagerControllerTest {
     void updateRoundsAndMatches_patch_success() throws Exception {
         // given
         Long userId = 1L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
 
-        when(freeGameService.updateFreeGameRoundMatch(anyLong(), anyLong(), any()))
+        when(freeGameService.updateFreeGameRoundMatch(anyLong(), eq(gameId), any()))
                 .thenReturn(new UpdateFreeGameRoundMatchResponse(gameId));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -291,8 +297,8 @@ class CourtManagerControllerTest {
     @DisplayName("자유게임 참가자 목록 조회 성공 (include=stats)")
     void get_free_game_participants_with_stats_success() throws Exception {
         // given
-        Long gameId = 101L;
-        FreeGameParticipantResponse participant = participantResponse(201L, 10L, "KimA");
+        UUID gameId = UUID.randomUUID();
+        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), 10L, "KimA");
         FreeGameParticipantsResponse response =
                 participantsResponse(gameId, List.of(participantResponseWithStats(participant, 3, 2, 1, 1)));
 
@@ -305,7 +311,7 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
                 .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3))
                 .andExpect(jsonPath("$.participants[0].completedMatchCount").value(2))
                 .andExpect(jsonPath("$.participants[0].winCount").value(1))
@@ -316,8 +322,8 @@ class CourtManagerControllerTest {
     @DisplayName("자유게임 참가자 목록 조회 성공 (include 없음)")
     void get_free_game_participants_without_stats_success() throws Exception {
         // given
-        Long gameId = 101L;
-        FreeGameParticipantResponse participant = participantResponse(201L, 10L, "KimA");
+        UUID gameId = UUID.randomUUID();
+        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), 10L, "KimA");
         FreeGameParticipantsResponse response = participantsResponse(gameId, List.of(participant));
 
         when(freeGameService.getFreeGameParticipants(1L, gameId, false))
@@ -328,7 +334,7 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(1L))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
                 .andExpect(jsonPath("$.participants[0].assignedMatchCount").doesNotExist())
                 .andExpect(jsonPath("$.participants[0].completedMatchCount").doesNotExist())
                 .andExpect(jsonPath("$.participants[0].winCount").doesNotExist())
@@ -340,8 +346,8 @@ class CourtManagerControllerTest {
     void get_free_game_participant_detail_success() throws Exception {
         // given
         Long userId = 1L;
-        Long gameId = 101L;
-        Long participantId = 201L;
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
 
         FreeGameParticipantDetailResponse response =
                 participantDetailResponse(gameId, participantId, 10L, "KimA");
@@ -354,8 +360,8 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
-                .andExpect(jsonPath("$.participantId").value(201))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
+                .andExpect(jsonPath("$.participantId").value(participantId.toString()))
                 .andExpect(jsonPath("$.userId").value(10))
                 .andExpect(jsonPath("$.displayName").value("KimA"))
                 .andExpect(jsonPath("$.gender").value("MALE"))
@@ -368,8 +374,8 @@ class CourtManagerControllerTest {
     void get_free_game_participant_detail_with_unknown_participant_then_not_found() throws Exception {
         // given
         Long userId = 1L;
-        Long gameId = 101L;
-        Long participantId = 999L;
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
 
         when(freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId))
                 .thenThrow(new NotFoundException("존재하지 않는 참가자입니다. participantId: " + participantId));

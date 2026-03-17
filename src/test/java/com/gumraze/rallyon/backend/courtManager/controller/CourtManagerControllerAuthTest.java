@@ -22,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.freeGameDetailResponse;
@@ -87,8 +88,8 @@ class CourtManagerControllerAuthTest {
     void getFreeGameDetail_without_token() throws Exception {
         // given: 인증되지 않은 요청으로 상세 조회를 호출한다.
         Long userId = 99L;
-        Long gameId = 1L;
-        FreeGameDetailResponse response = freeGameDetailResponse(gameId, userId);
+        UUID gameId = UUID.randomUUID();
+        FreeGameDetailResponse response = freeGameDetailResponse(userId, gameId);
 
         when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
 
@@ -163,7 +164,7 @@ class CourtManagerControllerAuthTest {
     @DisplayName("라운드/매치 부분 수정 - organizer 아니면 403")
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long userId = 2L;
 
         when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
@@ -214,8 +215,8 @@ class CourtManagerControllerAuthTest {
     @DisplayName("참가자 상세 조회 - organizer 아니면 403")
     void getParticipantDetail_when_not_organizer_then_forbidden() throws Exception {
         // given
-        Long gameId = 1L;
-        Long participantId = 10L;
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
         Long userId = 2L;
 
         when(freeGameService.getFreeGameParticipantDetail(eq(userId), eq(gameId), eq(participantId)))
@@ -239,7 +240,7 @@ class CourtManagerControllerAuthTest {
         String shareCode = "public-share-code";
 
         FreeGameDetailResponse response = FreeGameDetailResponse.builder()
-                .gameId(1L)
+                .gameId(UUID.randomUUID())
                 .title("공개 게임")
                 .gameType(GameType.FREE)
                 .gameStatus(GameStatus.NOT_STARTED)
@@ -259,7 +260,7 @@ class CourtManagerControllerAuthTest {
         mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(1L))
+                .andExpect(jsonPath("$.gameId").value(response.getGameId().toString()))
                 .andExpect(jsonPath("$.shareCode").value(shareCode))
                 .andExpect(jsonPath("$.title").value("공개 게임"));
     }

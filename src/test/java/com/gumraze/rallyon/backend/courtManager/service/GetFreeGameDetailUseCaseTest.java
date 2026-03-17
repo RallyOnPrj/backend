@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,7 +58,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     void getFreeGameDetail_success() {
         // given: 생성된 게임과 설정 정보가 존재한다.
         Long userId = 99L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer);
@@ -86,7 +87,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     void getFreeGameDetail_success_includesLocation() {
         // given: location이 저장된 자유게임과 설정 정보가 존재한다.
         Long userId = 99L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer, "잠실 배드민턴장");
@@ -107,7 +108,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     void getFreeGameDetail_withUnknownGameId_throwsException() {
         // given: 존재하지 않는 gameId를 준비한다.
         Long userId = 1L;
-        Long gameId = 99999L;
+        UUID gameId = UUID.randomUUID();
 
         when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
 
@@ -121,7 +122,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     void getFreeGameDetail_withNotOrganizer_throwsForbidden() {
         // given: 요청자와 organizer가 다른 자유게임이 존재한다.
         Long userId = 1L;
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
 
         User organizer = organizer(99L);
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer);

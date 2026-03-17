@@ -7,13 +7,14 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameSetting;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import com.gumraze.rallyon.backend.user.entity.User;
+import java.util.UUID;
 
 public final class FreeGameFixtures {
 
     private FreeGameFixtures() {
     }
 
-    public static FreeGame freeGame(Long gameId, User organizer) {
+    public static FreeGame freeGame(UUID gameId, User organizer) {
         return FreeGame.builder()
                 .id(gameId)
                 .title("자유게임")
@@ -26,7 +27,7 @@ public final class FreeGameFixtures {
                 .build();
     }
 
-    public static FreeGame freeGame(Long gameId, User organizer, String location) {
+    public static FreeGame freeGame(UUID gameId, User organizer, String location) {
         return FreeGame.builder()
                 .id(gameId)
                 .title("자유게임")

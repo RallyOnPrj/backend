@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,7 +58,7 @@ public class GetFreeGameParticipantsUseCaseTest {
     @DisplayName("Organizer가 아니면 참가자 목록을 조회할 수 없다")
     void get_participants_when_not_organizer_then_throw_forbidden() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
         Long requesterId = 2L;
 
@@ -74,14 +75,14 @@ public class GetFreeGameParticipantsUseCaseTest {
     @DisplayName("includeStats=false면 stats 필드는 포함되지 않는다")
     void get_participants_without_stats() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
-        GameParticipant p1 = buildParticipant(2L, freeGame, "KimB", null);
-        GameParticipant p2 = buildParticipant(1L, freeGame, "KimA", buildUser(10L));
+        GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "KimB", null);
+        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "KimA", buildUser(10L));
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2));
 
@@ -106,16 +107,16 @@ public class GetFreeGameParticipantsUseCaseTest {
     @DisplayName("includeStats=true & RESULT면 승패/완료/배정 집계가 포함된다")
     void get_participants_with_stats_when_result_mode() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
-        GameParticipant p1 = buildParticipant(1L, freeGame, "A", null);
-        GameParticipant p2 = buildParticipant(2L, freeGame, "B", null);
-        GameParticipant p3 = buildParticipant(3L, freeGame, "C", null);
-        GameParticipant p4 = buildParticipant(4L, freeGame, "D", null);
+        GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "A", null);
+        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "B", null);
+        GameParticipant p3 = buildParticipant(UUID.randomUUID(), freeGame, "C", null);
+        GameParticipant p4 = buildParticipant(UUID.randomUUID(), freeGame, "D", null);
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2, p3, p4));
 
@@ -159,14 +160,14 @@ public class GetFreeGameParticipantsUseCaseTest {
     @DisplayName("includeStats=true & STATUS_ONLY면 승패는 제외하고 집계한다")
     void get_participants_with_stats_when_status_only_mode() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
-        GameParticipant p1 = buildParticipant(1L, freeGame, "A", null);
-        GameParticipant p2 = buildParticipant(2L, freeGame, "B", null);
+        GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "A", null);
+        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "B", null);
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2));
 
@@ -199,7 +200,7 @@ public class GetFreeGameParticipantsUseCaseTest {
 
     // Helper 메서드
 
-    private FreeGame buildFreeGame(Long gameId, Long organizerId, MatchRecordMode matchRecordMode) {
+    private FreeGame buildFreeGame(UUID gameId, Long organizerId, MatchRecordMode matchRecordMode) {
         return FreeGame.builder()
                 .id(gameId)
                 .title("테스트 게임")
@@ -211,7 +212,7 @@ public class GetFreeGameParticipantsUseCaseTest {
                 .build();
     }
 
-    private GameParticipant buildParticipant(Long id, FreeGame freeGame, String displayName, User user) {
+    private GameParticipant buildParticipant(UUID id, FreeGame freeGame, String displayName, User user) {
         return GameParticipant.builder()
                 .id(id)
                 .freeGame(freeGame)

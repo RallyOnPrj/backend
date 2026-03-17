@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -77,7 +78,7 @@ class CreateFreeGameUseCaseTest implements FreeGameServiceTestSupport {
         stubShareCode("share-code-123");
 
         FreeGame savedFreeGame = FreeGame.builder()
-                .id(1L)
+                .id(UUID.randomUUID())
                 .title(request.getTitle())
                 .organizer(organizer)
                 .gradeType(GradeType.NATIONAL)
@@ -354,7 +355,7 @@ class CreateFreeGameUseCaseTest implements FreeGameServiceTestSupport {
         when(gameRepository.save(any(FreeGame.class)))
                 .thenReturn(
                         FreeGame.builder()
-                                .id(1L)
+                                .id(UUID.randomUUID())
                                 .title("자유게임")
                                 .organizer(organizer)
                                 .gradeType(GradeType.REGIONAL)
@@ -413,7 +414,7 @@ class CreateFreeGameUseCaseTest implements FreeGameServiceTestSupport {
         when(gameRepository.save(any(FreeGame.class)))
                 .thenReturn(
                         FreeGame.builder()
-                                .id(1L)
+                                .id(UUID.randomUUID())
                                 .title("자유게임")
                                 .organizer(organizer)
                                 .gradeType(GradeType.NATIONAL)

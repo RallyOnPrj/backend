@@ -5,11 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class FreeGameParticipantsResponse {
-    private Long gameId;
+    private UUID gameId;
     private MatchRecordMode matchRecordMode;
     private List<FreeGameParticipantResponse> participants;
 }

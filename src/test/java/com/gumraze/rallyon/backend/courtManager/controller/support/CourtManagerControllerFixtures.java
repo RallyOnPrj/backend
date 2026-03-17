@@ -15,6 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
@@ -33,7 +34,7 @@ public final class CourtManagerControllerFixtures {
         );
     }
 
-    public static FreeGameDetailResponse freeGameDetailResponse(Long organizerId, Long gameId) {
+    public static FreeGameDetailResponse freeGameDetailResponse(Long organizerId, UUID gameId) {
         return FreeGameDetailResponse.builder()
                 .gameId(gameId)
                 .title("자유게임")
@@ -48,7 +49,7 @@ public final class CourtManagerControllerFixtures {
                 .build();
     }
 
-    public static FreeGameParticipantResponse participantResponse(Long participantId, Long userId, String displayName) {
+    public static FreeGameParticipantResponse participantResponse(UUID participantId, Long userId, String displayName) {
         return FreeGameParticipantResponse.builder()
                 .participantId(participantId)
                 .userId(userId)
@@ -81,7 +82,7 @@ public final class CourtManagerControllerFixtures {
     }
 
     public static FreeGameParticipantsResponse participantsResponse(
-            Long gameId,
+            UUID gameId,
             List<FreeGameParticipantResponse> participants
     ) {
         return FreeGameParticipantsResponse.builder()
@@ -92,8 +93,8 @@ public final class CourtManagerControllerFixtures {
     }
 
     public static FreeGameParticipantDetailResponse participantDetailResponse(
-            Long gameId,
-            Long participantId,
+            UUID gameId,
+            UUID participantId,
             Long userId,
             String displayName
     ) {

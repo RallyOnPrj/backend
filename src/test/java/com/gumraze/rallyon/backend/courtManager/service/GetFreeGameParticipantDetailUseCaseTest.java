@@ -22,11 +22,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @ExtendWith(MockitoExtension.class)
 public class GetFreeGameParticipantDetailUseCaseTest {
@@ -46,8 +48,8 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     void getFreeGameParticipantDetail_when_game_not_exist_then_throw_exception() {
         // given
         Long userId = 1L;
-        Long gameId = 1L;
-        Long participantId = 100L;
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
 
         when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
 
@@ -65,8 +67,8 @@ public class GetFreeGameParticipantDetailUseCaseTest {
         // given
         Long organizerId = 1L;
         Long requesterId = 2L;  // organizer가 아님
-        Long gameId = 1L;
-        Long participantId = 100L;
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
 
         stubFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
 
@@ -82,9 +84,9 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     @DisplayName("participant가 없으면 참가자 상세 조회 실패")
     void getFreeGameParticipantDetail_when_participant_not_found_then_throw_not_found() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
-        Long participantId = 100L;
+        UUID participantId = UUID.randomUUID();
 
         stubFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
         when(gameParticipantRepository.findById(participantId)).thenReturn(Optional.empty());
@@ -99,10 +101,10 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     @DisplayName("참가자가 다른 게임 소속이면 참가자 상세 조회 실패함.")
     void getFreeGameParticipantDetail_when_participant_not_belong_to_game_then_throw_not_found() {
         // given
-        Long gameId = 1L;
-        Long otherGameId = 2L;
+        UUID gameId = UUID.randomUUID();
+        UUID otherGameId = UUID.randomUUID();
         Long organizerId = 1L;
-        Long participantId = 100L;
+        UUID participantId = UUID.randomUUID();
 
         FreeGame targetGame = stubFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
         FreeGame otherGame = buildFreeGame(otherGameId, organizerId, MatchRecordMode.STATUS_ONLY);
@@ -133,9 +135,9 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     @DisplayName("회원 참가자 상세 조회 성공")
     void getFreeGameParticipantDetail_when_member_participant_then_success() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
-        Long participantId = 10L;
+        UUID participantId = UUID.randomUUID();
         Long participantUserId = 100L;
 
         FreeGame freeGame = stubFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
@@ -168,9 +170,9 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     @DisplayName("비회원 참가자 상세 조회 성공")
     void getFreeGameParticipantDetail_when_guest_participant_then_success() {
         // given
-        Long gameId = 1L;
+        UUID gameId = UUID.randomUUID();
         Long organizerId = 1L;
-        Long participantId = 20L;
+        UUID participantId = UUID.randomUUID();
 
         FreeGame freeGame = stubFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
         GameParticipant participant = buildParticipant(participantId, freeGame, "GuestA", null);
@@ -194,13 +196,13 @@ public class GetFreeGameParticipantDetailUseCaseTest {
     }
 
     // helper method
-    private FreeGame stubFreeGame(Long gameId, Long organizerId, MatchRecordMode matchRecordMode) {
+    private FreeGame stubFreeGame(UUID gameId, Long organizerId, MatchRecordMode matchRecordMode) {
         FreeGame freeGame = buildFreeGame(gameId, organizerId, matchRecordMode);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
         return freeGame;
     }
 
-    private FreeGame buildFreeGame(Long gameId, Long organizerId, MatchRecordMode matchRecordMode) {
+    private FreeGame buildFreeGame(UUID gameId, Long organizerId, MatchRecordMode matchRecordMode) {
         return FreeGame.builder()
                 .id(gameId)
                 .title("테스트 게임")
@@ -212,7 +214,7 @@ public class GetFreeGameParticipantDetailUseCaseTest {
                 .build();
     }
 
-    private GameParticipant buildParticipant(Long participantId, FreeGame freeGame, String displayName, User user) {
+    private GameParticipant buildParticipant(UUID participantId, FreeGame freeGame, String displayName, User user) {
         return GameParticipant.builder()
                 .id(participantId)
                 .freeGame(freeGame)

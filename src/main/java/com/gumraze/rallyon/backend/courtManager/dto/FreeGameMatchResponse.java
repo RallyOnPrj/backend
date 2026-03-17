@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Getter
 public class FreeGameMatchResponse {
     Long courtNumber;
-    List<Long> teamAIds;
-    List<Long> teamBIds;
+    List<UUID> teamAIds;
+    List<UUID> teamBIds;
     MatchStatus matchStatus;
     MatchResult matchResult;
     Boolean isActive;

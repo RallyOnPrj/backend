@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/free-games")
@@ -38,7 +39,7 @@ public class CourtManagerController implements CourtManagerApi {
     @GetMapping("/{gameId}")
     public ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId
+            @PathVariable UUID gameId
     ) {
         FreeGameDetailResponse response = freeGameService.getFreeGameDetail(userId, gameId);
 
@@ -49,7 +50,7 @@ public class CourtManagerController implements CourtManagerApi {
     @PatchMapping("/{gameId}")
     public ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId,
+            @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRequest request
     ) {
         UpdateFreeGameResponse response = freeGameService.updateFreeGameInfo(userId, gameId, request);
@@ -61,7 +62,7 @@ public class CourtManagerController implements CourtManagerApi {
     @GetMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId
+            @PathVariable UUID gameId
     ) {
         FreeGameRoundMatchResponse response = freeGameService.getFreeGameRoundMatchResponse(userId, gameId);
 
@@ -72,7 +73,7 @@ public class CourtManagerController implements CourtManagerApi {
     @PatchMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<Void> updateFreeGameRoundMatch(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId,
+            @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     ) {
         freeGameService.updateFreeGameRoundMatch(userId, gameId, request);
@@ -84,7 +85,7 @@ public class CourtManagerController implements CourtManagerApi {
     @GetMapping("/{gameId}/participants")
     public ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId,
+            @PathVariable UUID gameId,
             @RequestParam(name = "include", required = false) String include
     ) {
         boolean includeStats = "stats".equalsIgnoreCase(include);
@@ -98,8 +99,8 @@ public class CourtManagerController implements CourtManagerApi {
     @GetMapping("/{gameId}/participants/{participantId}")
     public ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long gameId,
-            @PathVariable Long participantId
+            @PathVariable UUID gameId,
+            @PathVariable UUID participantId
     ) {
         FreeGameParticipantDetailResponse response =
                 freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId);
