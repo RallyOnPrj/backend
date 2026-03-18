@@ -132,6 +132,11 @@ class CourtManagerControllerAuthTest {
     @DisplayName("라운드/매치 부분 수정 PATCH - 토큰 없음이면 401")
     void updateRoundMatch_without_token_then_unauthorized() throws Exception {
         // given
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -140,8 +145,8 @@ class CourtManagerControllerAuthTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(teamA1, teamA2))
+                                                        .teamBIds(List.of(teamB1, teamB2))
                                                         .build()
                                         ))
                                         .build()
@@ -149,7 +154,7 @@ class CourtManagerControllerAuthTest {
                         .build();
 
         // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -170,6 +175,10 @@ class CourtManagerControllerAuthTest {
         when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
 
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -178,8 +187,8 @@ class CourtManagerControllerAuthTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(teamA1, teamA2))
+                                                        .teamBIds(List.of(teamB1, teamB2))
                                                         .build()
                                         ))
                                         .build()))

@@ -265,6 +265,10 @@ class CourtManagerControllerTest {
         // given
         Long userId = 1L;
         UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
 
         when(freeGameService.updateFreeGameRoundMatch(anyLong(), eq(gameId), any()))
                 .thenReturn(new UpdateFreeGameRoundMatchResponse(gameId));
@@ -277,8 +281,8 @@ class CourtManagerControllerTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(101L, 102L))
-                                                        .teamBIds(List.of(103L, 104L))
+                                                        .teamAIds(List.of(teamA1, teamA2))
+                                                        .teamBIds(List.of(teamB1, teamB2))
                                                         .build()
                                         ))
                                         .build()

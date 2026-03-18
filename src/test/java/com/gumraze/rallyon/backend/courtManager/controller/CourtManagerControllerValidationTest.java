@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
 import static org.mockito.Mockito.when;
@@ -178,9 +179,10 @@ class CourtManagerControllerValidationTest {
     void updateRoundMatch_without_rounds_then_bad_request() throws Exception {
         // given: rounds가 누락된 요청을 준비한다.
         String body = "{}";
+        UUID gameId = UUID.randomUUID();
 
         // when & then: validation 실패로 400을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
@@ -196,6 +198,11 @@ class CourtManagerControllerValidationTest {
     @DisplayName("라운드/매치 부분 수정 - roundNumber 누락이면 400")
     void updateRoundMatch_without_roundNumber_then_bad_request() throws Exception {
         // given: roundNumber가 누락된 요청을 준비한다.
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -204,8 +211,8 @@ class CourtManagerControllerValidationTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(teamA1, teamA2))
+                                                        .teamBIds(List.of(teamB1, teamB2))
                                                         .build()
                                         ))
                                         .build()
@@ -215,7 +222,7 @@ class CourtManagerControllerValidationTest {
         String body = objectMapper.writeValueAsString(request);
 
         // when & then: validation 실패로 400을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
@@ -231,6 +238,7 @@ class CourtManagerControllerValidationTest {
     @DisplayName("라운드/매치 부분 수정 - matches 누락이면 400")
     void updateRoundMatch_without_matches_then_bad_request() throws Exception {
         // given: matches가 누락된 요청을 준비한다.
+        UUID gameId = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -244,7 +252,7 @@ class CourtManagerControllerValidationTest {
         String body = objectMapper.writeValueAsString(request);
 
         // when & then: validation 실패로 400을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
@@ -260,6 +268,9 @@ class CourtManagerControllerValidationTest {
     @DisplayName("라운드/매치 부분 수정 - teamAIds 누락이면 400")
     void updateRoundMatch_without_teamAIds_then_bad_request() throws Exception {
         // given: teamAIds가 누락된 요청을 준비한다.
+        UUID gameId = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -269,7 +280,7 @@ class CourtManagerControllerValidationTest {
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
                                                         .teamAIds(null)
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamBIds(List.of(teamB1, teamB2))
                                                         .build()
                                         ))
                                         .build()
@@ -279,7 +290,7 @@ class CourtManagerControllerValidationTest {
         String body = objectMapper.writeValueAsString(request);
 
         // when & then: validation 실패로 400을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))
@@ -295,6 +306,9 @@ class CourtManagerControllerValidationTest {
     @DisplayName("라운드/매치 부분 수정 - teamBIds 누락이면 400")
     void updateRoundMatch_without_teamBIds_then_bad_request() throws Exception {
         // given: teamBIds가 누락된 요청을 준비한다.
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
                         .rounds(List.of(
@@ -303,7 +317,7 @@ class CourtManagerControllerValidationTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
+                                                        .teamAIds(List.of(teamA1, teamA2))
                                                         .teamBIds(null)
                                                         .build()
                                         ))
@@ -314,7 +328,7 @@ class CourtManagerControllerValidationTest {
         String body = objectMapper.writeValueAsString(request);
 
         // when & then: validation 실패로 400을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(1L))

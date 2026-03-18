@@ -23,8 +23,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -91,10 +94,13 @@ public class GetFreeGameParticipantsUseCaseTest {
 
         // then
         assertThat(response.getParticipants()).hasSize(2);
-        assertThat(response.getParticipants().get(0).getParticipantId()).isEqualTo(1L);
-        assertThat(response.getParticipants().get(1).getParticipantId()).isEqualTo(2L);
+        Map<String, FreeGameParticipantResponse> participantsByName = response.getParticipants().stream()
+                .collect(Collectors.toMap(FreeGameParticipantResponse::getDisplayName, Function.identity()));
 
-        FreeGameParticipantResponse first = response.getParticipants().get(0);
+        assertThat(participantsByName.get("KimA").getParticipantId()).isEqualTo(p2.getId());
+        assertThat(participantsByName.get("KimB").getParticipantId()).isEqualTo(p1.getId());
+
+        FreeGameParticipantResponse first = participantsByName.get("KimA");
         assertThat(first.getAssignedMatchCount()).isNull();
         assertThat(first.getCompletedMatchCount()).isNull();
         assertThat(first.getWinCount()).isNull();
@@ -143,13 +149,16 @@ public class GetFreeGameParticipantsUseCaseTest {
         List<FreeGameParticipantResponse> participants = response.getParticipants();
         assertThat(participants).hasSize(4);
 
-        FreeGameParticipantResponse teamA1 = participants.get(0);
+        Map<String, FreeGameParticipantResponse> participantsByName = participants.stream()
+                .collect(Collectors.toMap(FreeGameParticipantResponse::getDisplayName, Function.identity()));
+
+        FreeGameParticipantResponse teamA1 = participantsByName.get("A");
         assertThat(teamA1.getAssignedMatchCount()).isEqualTo(1);
         assertThat(teamA1.getCompletedMatchCount()).isEqualTo(1);
         assertThat(teamA1.getWinCount()).isEqualTo(1);
         assertThat(teamA1.getLossCount()).isEqualTo(0);
 
-        FreeGameParticipantResponse teamB1 = participants.get(2);
+        FreeGameParticipantResponse teamB1 = participantsByName.get("C");
         assertThat(teamB1.getAssignedMatchCount()).isEqualTo(1);
         assertThat(teamB1.getCompletedMatchCount()).isEqualTo(1);
         assertThat(teamB1.getWinCount()).isEqualTo(0);

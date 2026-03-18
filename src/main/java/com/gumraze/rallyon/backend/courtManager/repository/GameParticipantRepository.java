@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface GameParticipantRepository extends JpaRepository<GameParticipant, Long> {
+public interface GameParticipantRepository extends JpaRepository<GameParticipant, UUID> {
     List<GameParticipant> findByFreeGameId(UUID freeGameId);
 
     Optional<GameParticipant> findById(UUID id);

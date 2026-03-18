@@ -281,9 +281,9 @@ public class FreeGameServiceImpl implements FreeGameService {
         }
 
         // 게임 참가자 조회
-        Set<UUID> participantIdsInGame = gameParticipantRepository.findByFreeGameId(gameId).stream()
-                .map(GameParticipant::getId)
-                .collect(Collectors.toSet());
+        Map<UUID, GameParticipant> participantsById = gameParticipantRepository.findByFreeGameId(gameId).stream()
+                .collect(Collectors.toMap(GameParticipant::getId, participant -> participant));
+        Set<UUID> participantIdsInGame = participantsById.keySet();
 
         // 요청 라운드 처리
         for (RoundRequest roundRequest : request.getRounds()) {
@@ -302,12 +302,12 @@ public class FreeGameServiceImpl implements FreeGameService {
             }
 
             // round 내 중복 참가자 검증용
-            Set<Long> usedParticipantIds = new HashSet<>();
+            Set<UUID> usedParticipantIds = new HashSet<>();
 
             // teamAIds, teamBIds 검증
             for (MatchRequest matchRequest : roundRequest.getMatches()) {
-                List<Long> teamAIds = matchRequest.getTeamAIds();
-                List<Long> teamBIds = matchRequest.getTeamBIds();
+                List<UUID> teamAIds = matchRequest.getTeamAIds();
+                List<UUID> teamBIds = matchRequest.getTeamBIds();
 
                 if (teamAIds == null || teamBIds == null) {
                     throw new IllegalArgumentException("teamAIds와 teamBIds는 모두 필수입니다.");
@@ -317,9 +317,9 @@ public class FreeGameServiceImpl implements FreeGameService {
                 }
 
                 // 매치 내 중복 participantId 검증
-                Set<Long> matchParticipantIds = new HashSet<>();
+                Set<UUID> matchParticipantIds = new HashSet<>();
 
-                for (Long id : teamAIds) {
+                for (UUID id : teamAIds) {
                     if (id == null) {
                         continue;
                     }
@@ -334,7 +334,7 @@ public class FreeGameServiceImpl implements FreeGameService {
                     }
                 }
 
-                for (Long id : teamBIds) {
+                for (UUID id : teamBIds) {
                     if (id == null) {
                         continue;
                     }
@@ -396,21 +396,16 @@ public class FreeGameServiceImpl implements FreeGameService {
             final FreeGameRound targetRound = resolvedRound;
             List<FreeGameMatch> newMatches = roundRequest.getMatches().stream()
                     .map(matchRequest -> {
-                        List<Long> teamAIds = matchRequest.getTeamAIds();
-                        List<Long> teamBIds = matchRequest.getTeamBIds();
-
-                        GameParticipant teamAPlayer1 = teamAIds.getFirst() == null ? null : gameParticipantRepository.findById(teamAIds.getFirst()).orElse(null);
-                        GameParticipant teamAPlayer2 = teamAIds.get(1) == null ? null : gameParticipantRepository.findById(teamAIds.get(1)).orElse(null);
-                        GameParticipant teamBPlayer1 = teamBIds.getFirst() == null ? null : gameParticipantRepository.findById(teamBIds.getFirst()).orElse(null);
-                        GameParticipant teamBPlayer2 = teamBIds.get(1) == null ? null : gameParticipantRepository.findById(teamBIds.get(1)).orElse(null);
+                        List<UUID> teamAIds = matchRequest.getTeamAIds();
+                        List<UUID> teamBIds = matchRequest.getTeamBIds();
 
                         return FreeGameMatch.builder()
                                 .round(targetRound)
                                 .courtNumber(matchRequest.getCourtNumber())
-                                .teamAPlayer1(teamAPlayer1)
-                                .teamAPlayer2(teamAPlayer2)
-                                .teamBPlayer1(teamBPlayer1)
-                                .teamBPlayer2(teamBPlayer2)
+                                .teamAPlayer1(resolveParticipant(participantsById, teamAIds.get(0)))
+                                .teamAPlayer2(resolveParticipant(participantsById, teamAIds.get(1)))
+                                .teamBPlayer1(resolveParticipant(participantsById, teamBIds.get(0)))
+                                .teamBPlayer2(resolveParticipant(participantsById, teamBIds.get(1)))
                                 .build();
                     })
                     .toList();
@@ -418,6 +413,13 @@ public class FreeGameServiceImpl implements FreeGameService {
             freeGameMatchRepository.saveAll(newMatches);
         }
         return UpdateFreeGameRoundMatchResponse.from(gameId);
+    }
+
+    private GameParticipant resolveParticipant(Map<UUID, GameParticipant> participantsById, UUID participantId) {
+        if (participantId == null) {
+            return null;
+        }
+        return participantsById.get(participantId);
     }
 
     @Override

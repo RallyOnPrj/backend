@@ -36,6 +36,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -94,10 +95,10 @@ public class FreeGameRoundMatchSaveServiceTest {
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .thenReturn(savedRound);
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -112,8 +113,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build()
                                         )).build()
                         )).build();
@@ -140,10 +141,10 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(savedRound);
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -157,8 +158,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -212,10 +213,10 @@ public class FreeGameRoundMatchSaveServiceTest {
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -230,8 +231,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -264,10 +265,10 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(existingRound);
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -282,8 +283,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -313,8 +314,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(List.of(freeGameRound));
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(5));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(6));
 
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -328,7 +329,7 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(5L, 6L))
+                                                        .teamAIds(Arrays.asList(p1.getId(), p2.getId()))
                                                         .teamBIds(Arrays.asList(null, null))
                                                         .build()
                                         ))
@@ -361,8 +362,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(savedRound);
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(5));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(6));
 
 
         when(gameParticipantRepository.findByFreeGameId(gameId))
@@ -376,7 +377,7 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(5L, 6L))
+                                                        .teamAIds(Arrays.asList(p1.getId(), p2.getId()))
                                                         .teamBIds(Arrays.asList(null, null))
                                                         .build()
                                         ))
@@ -416,14 +417,14 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(savedRound);
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p5 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p6 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p7 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p8 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
+        GameParticipant p5 = mockGameParticipantWithId(participantId(5));
+        GameParticipant p6 = mockGameParticipantWithId(participantId(6));
+        GameParticipant p7 = mockGameParticipantWithId(participantId(7));
+        GameParticipant p8 = mockGameParticipantWithId(participantId(8));
 
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
@@ -438,13 +439,13 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build(),
                                                 MatchRequest.builder()
                                                         .courtNumber(2)
-                                                        .teamAIds(List.of(5L, 6L))
-                                                        .teamBIds(List.of(7L, 8L))
+                                                        .teamAIds(List.of(p5.getId(), p6.getId()))
+                                                        .teamBIds(List.of(p7.getId(), p8.getId()))
                                                         .build()
                                         )).build()
                         ))
@@ -478,10 +479,10 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(List.of(existingRound));
 
         // 참가자 stub
-        GameParticipant p5 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p6 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p7 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p8 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p5 = mockGameParticipantWithId(participantId(5));
+        GameParticipant p6 = mockGameParticipantWithId(participantId(6));
+        GameParticipant p7 = mockGameParticipantWithId(participantId(7));
+        GameParticipant p8 = mockGameParticipantWithId(participantId(8));
 
 
 
@@ -496,8 +497,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(5L, 6L))
-                                                        .teamBIds(List.of(7L, 8L))
+                                                        .teamAIds(List.of(p5.getId(), p6.getId()))
+                                                        .teamBIds(List.of(p7.getId(), p8.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -529,10 +530,10 @@ public class FreeGameRoundMatchSaveServiceTest {
 
         // 참가자 stub
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
 
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
 
@@ -547,8 +548,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(p1.getId(), p2.getId()))
+                                                        .teamBIds(List.of(p3.getId(), p4.getId()))
                                                         .build(),
                                                 MatchRequest.builder()
                                                         .courtNumber(2)
@@ -835,8 +836,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(1L)) // 길이가 1이므로 예외 발생
-                                                        .teamBIds(List.of(2L, 3L))
+                                                        .teamAIds(List.of(participantId(1))) // 길이가 1이므로 예외 발생
+                                                        .teamBIds(List.of(participantId(2), participantId(3)))
                                                         .build()
                                         ))
                                         .build()
@@ -854,7 +855,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         // given
         UUID gameId = UUID.randomUUID();
         Long userId = 1L;
-        Long invalidParticipantId = 100L;
+        UUID invalidParticipantId = participantId(100);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -871,8 +872,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(List.of(invalidParticipantId, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
+                                                        .teamAIds(List.of(invalidParticipantId, participantId(2)))
+                                                        .teamBIds(List.of(participantId(3), participantId(4)))
                                                         .build()
                                         ))
                                         .build()
@@ -899,8 +900,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .thenReturn(List.of(existingRound));
 
         // 참가자 stub
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
 
 
 
@@ -915,8 +916,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(null, 1L))
-                                                        .teamBIds(Arrays.asList(null, 2L))
+                                                        .teamAIds(Arrays.asList(null, p1.getId()))
+                                                        .teamBIds(Arrays.asList(null, p2.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -936,7 +937,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         // given
         UUID gameId = UUID.randomUUID();
         Long userId = 1L;
-        Long duplicatedId = 1L;
+        UUID duplicatedId = participantId(1);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -953,13 +954,13 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(duplicatedId, 2L))
-                                                        .teamBIds(Arrays.asList(3L, 4L))
+                                                        .teamAIds(Arrays.asList(duplicatedId, participantId(2)))
+                                                        .teamBIds(Arrays.asList(participantId(3), participantId(4)))
                                                         .build(),
                                                 MatchRequest.builder()
                                                         .courtNumber(2)
-                                                        .teamAIds(Arrays.asList(duplicatedId, 6L))      // 같은 라운드 내 중복
-                                                        .teamBIds(Arrays.asList(7L, 8L))
+                                                        .teamAIds(Arrays.asList(duplicatedId, participantId(6)))      // 같은 라운드 내 중복
+                                                        .teamBIds(Arrays.asList(participantId(7), participantId(8)))
                                                         .build()
                                         ))
                                         .build()
@@ -977,7 +978,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         // given
         UUID gameId = UUID.randomUUID();
         Long userId = 1L;
-        Long duplicatedId = 1L;
+        UUID duplicatedId = participantId(1);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -1012,7 +1013,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         // given
         UUID gameId = UUID.randomUUID();
         Long userId = 1L;
-        Long notInGameId = 100L;
+        UUID notInGameId = participantId(100);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
@@ -1031,7 +1032,7 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(notInGameId, 2L))   // 게임 소속이 아님
+                                                        .teamAIds(Arrays.asList(notInGameId, participantId(2)))   // 게임 소속이 아님
                                                         .teamBIds(Arrays.asList(null, null))
                                                         .build()
                                         ))
@@ -1057,15 +1058,12 @@ public class FreeGameRoundMatchSaveServiceTest {
         existingRound.setId(10L);
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
 
-        when(gameParticipantRepository.findById(1L)).thenReturn(Optional.of(p1));
-        when(gameParticipantRepository.findById(2L)).thenReturn(Optional.of(p2));
-        when(gameParticipantRepository.findById(3L)).thenReturn(Optional.of(p3));
-        when(gameParticipantRepository.findById(4L)).thenReturn(Optional.of(p4));
+        stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2, p3, p4));
 
@@ -1077,8 +1075,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList())
-                                                        .teamBIds(Arrays.asList())
+                                                        .teamAIds(Arrays.asList(p1.getId(), p2.getId()))
+                                                        .teamBIds(Arrays.asList(p3.getId(), p4.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -1121,10 +1119,10 @@ public class FreeGameRoundMatchSaveServiceTest {
         existingRound.setId(10L);
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
-        GameParticipant p1 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p2 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p3 = mockGameParticipantWithId(UUID.randomUUID());
-        GameParticipant p4 = mockGameParticipantWithId(UUID.randomUUID());
+        GameParticipant p1 = mockGameParticipantWithId(participantId(1));
+        GameParticipant p2 = mockGameParticipantWithId(participantId(2));
+        GameParticipant p3 = mockGameParticipantWithId(participantId(3));
+        GameParticipant p4 = mockGameParticipantWithId(participantId(4));
 
         stubParticipantsExist(p1.getId(), p2.getId(), p3.getId(), p4.getId());
         when(gameParticipantRepository.findByFreeGameId(gameId)).thenReturn(List.of(p1, p2, p3, p4));
@@ -1137,8 +1135,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(1L, 2L))
-                                                        .teamBIds(Arrays.asList(3L, 4L))
+                                                        .teamAIds(Arrays.asList(p1.getId(), p2.getId()))
+                                                        .teamBIds(Arrays.asList(p3.getId(), p4.getId()))
                                                         .build()
                                         ))
                                         .build()
@@ -1170,8 +1168,8 @@ public class FreeGameRoundMatchSaveServiceTest {
                                         .matches(List.of(
                                                 MatchRequest.builder()
                                                         .courtNumber(1)
-                                                        .teamAIds(Arrays.asList(1L, 2L))
-                                                        .teamBIds(Arrays.asList(3L, 4L))
+                                                        .teamAIds(Arrays.asList(participantId(1), participantId(2)))
+                                                        .teamBIds(Arrays.asList(participantId(3), participantId(4)))
                                                         .build()
                                         ))
                                         .build()
@@ -1241,11 +1239,15 @@ public class FreeGameRoundMatchSaveServiceTest {
                 .build();
     }
 
-    private void stubParticipantsExist(UUID p1Id, UUID uuid, UUID p3Id, UUID p4Id, UUID ...ids) {
+    private void stubParticipantsExist(UUID ...ids) {
         for (UUID id : ids) {
-            when(gameParticipantRepository.findById(id))
+            lenient().when(gameParticipantRepository.findById(id))
                 .thenReturn(Optional.of(mock(GameParticipant.class)));
         }
+    }
+
+    private UUID participantId(int index) {
+        return UUID.fromString(String.format("018f1a1e-2b2f-7c11-9a55-%012d", index));
     }
 
     private FreeGame stubGameWithOrganizer(UUID gameId, Long userId) {
