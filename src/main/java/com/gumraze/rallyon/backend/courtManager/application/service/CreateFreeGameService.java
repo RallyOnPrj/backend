@@ -1,9 +1,11 @@
 package com.gumraze.rallyon.backend.courtManager.application.service;
 
-import com.gumraze.rallyon.backend.courtManager.application.CreateFreeGameUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.IssueShareCodePort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadUserPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameSettingPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameRoundPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveGameParticipantPort;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
@@ -23,7 +25,9 @@ import java.util.List;
 public class CreateFreeGameService implements CreateFreeGameUseCase {
 
     private final LoadUserPort loadUserPort;
+    private final IssueShareCodePort issueShareCodePort;
     private final SaveFreeGamePort saveFreeGamePort;
+    private final SaveFreeGameSettingPort saveFreeGameSettingPort;
     private final SaveGameParticipantPort saveGameParticipantPort;
     private final SaveFreeGameRoundPort saveFreeGameRoundPort;
 
@@ -36,15 +40,20 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
                 ? MatchRecordMode.STATUS_ONLY
                 : command.matchRecordMode();
 
+        validateManagerIds(organizerId, command.managerIds());
+        String shareCode = issueShareCodePort.issue();
+
         FreeGame freeGame = FreeGame.builder()
                 .title(command.title())
                 .organizer(organizer)
                 .gradeType(command.gradeType())
                 .matchRecordMode(matchRecordMode)
+                .shareCode(shareCode)
                 .location(command.location())
                 .build();
 
         FreeGame savedGame = saveFreeGamePort.save(freeGame);
+        saveFreeGameSettingPort.save(savedGame, command.courtCount(), command.roundCount());
 
         Map<String, GameParticipant> participantsByClientId =
                 saveGameParticipantPort.saveAll(savedGame, command.participants());
@@ -57,6 +66,26 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
         saveFreeGameRoundPort.saveAll(savedGame, roundAssignments);
 
         return savedGame.getId();
+    }
+
+    private void validateManagerIds(Long organizerId, List<Long> managerIds) {
+        if (managerIds == null) {
+            return;
+        }
+
+        if (managerIds.size() > 2) {
+            throw new IllegalArgumentException("managerIds는 최대 2명까지 가능합니다.");
+        }
+
+        if (managerIds.contains(organizerId)) {
+            throw new IllegalArgumentException("게임 생성자는 managerIds에 포함될 수 없습니다.");
+        }
+
+        for (Long managerId : managerIds) {
+            if (loadUserPort.loadById(managerId).isEmpty()) {
+                throw new IllegalArgumentException("존재하지 않는 managerId입니다. :" + managerId);
+            }
+        }
     }
 
     private List<RoundAssignment> toRoundAssignments(
@@ -87,6 +116,10 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
             Map<String, GameParticipant> participantsByClientId,
             String clientId
     ) {
+        if (clientId == null) {
+            return null;
+        }
+
         GameParticipant participant = participantsByClientId.get(clientId);
         if (participant == null) {
             throw new IllegalArgumentException("참가자 매핑에 실패했습니다. clientId: " + clientId);

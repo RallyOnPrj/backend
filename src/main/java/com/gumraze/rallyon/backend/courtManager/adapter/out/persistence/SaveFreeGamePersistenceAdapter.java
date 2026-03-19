@@ -1,4 +1,4 @@
-package com.gumraze.rallyon.backend.courtManager.application.service;
+package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;

@@ -16,6 +16,7 @@ import com.gumraze.rallyon.backend.courtManager.repository.GameParticipantReposi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,12 +76,15 @@ public class SaveFreeGameRoundPersistenceAdapter implements SaveFreeGameRoundPor
         for (CourtAssignment courtAssignment : roundAssignment.courts()) {
             validateCourtAssignment(courtAssignment);
 
-            for (UUID participantId : List.of(
+            for (UUID participantId : Arrays.asList(
                     courtAssignment.slot1ParticipantId(),
                     courtAssignment.slot2ParticipantId(),
                     courtAssignment.slot3ParticipantId(),
                     courtAssignment.slot4ParticipantId()
             )) {
+                if (participantId == null) {
+                    continue;
+                }
                 if (!assignedParticipantsInRound.add(participantId)) {
                     throw new IllegalArgumentException("같은 라운드에는 동일한 참가자를 중복 배정할 수 없습니다.");
                 }
@@ -91,12 +95,15 @@ public class SaveFreeGameRoundPersistenceAdapter implements SaveFreeGameRoundPor
     private void validateCourtAssignment(CourtAssignment courtAssignment) {
         Set<UUID> assignedParticipantsInCourt = new HashSet<>();
 
-        for (UUID participantId : List.of(
+        for (UUID participantId : Arrays.asList(
                 courtAssignment.slot1ParticipantId(),
                 courtAssignment.slot2ParticipantId(),
                 courtAssignment.slot3ParticipantId(),
                 courtAssignment.slot4ParticipantId()
         )) {
+            if (participantId == null) {
+                continue;
+            }
             if (!assignedParticipantsInCourt.add(participantId)) {
                 throw new IllegalArgumentException("같은 코트에는 동일한 참가자를 중복 배정할 수 없습니다.");
             }
@@ -104,6 +111,10 @@ public class SaveFreeGameRoundPersistenceAdapter implements SaveFreeGameRoundPor
     }
 
     private GameParticipant loadParticipant(UUID participantId) {
+        if (participantId == null) {
+            return null;
+        }
+
         return gameParticipantRepository.findById(participantId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 participantId입니다. participantId: " + participantId));

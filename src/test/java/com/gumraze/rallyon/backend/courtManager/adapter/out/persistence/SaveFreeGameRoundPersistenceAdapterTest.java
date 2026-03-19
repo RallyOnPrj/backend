@@ -224,6 +224,56 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
                 .hasMessage("같은 라운드에는 동일한 참가자를 중복 배정할 수 없습니다.");
     }
 
+    @Test
+    @DisplayName("null 슬롯은 허용하고 null player로 저장한다")
+    void saveAll_withNullSlots_savesMatchWithNullPlayers() {
+        // given
+        UUID gameId = UUID.randomUUID();
+        UUID p1Id = UUID.randomUUID();
+        UUID p3Id = UUID.randomUUID();
+
+        FreeGame freeGame = FreeGame.builder()
+                .id(gameId)
+                .title("수요 자유게임")
+                .build();
+
+        GameParticipant p1 = participant(p1Id, "서승재");
+        GameParticipant p3 = participant(p3Id, "안세영");
+
+        given(gameParticipantRepository.findById(p1Id)).willReturn(Optional.of(p1));
+        given(gameParticipantRepository.findById(p3Id)).willReturn(Optional.of(p3));
+        given(freeGameRoundRepository.save(any(FreeGameRound.class)))
+                .willAnswer(invocation -> {
+                    FreeGameRound round = invocation.getArgument(0);
+                    ReflectionTestUtils.setField(round, "id", 10L);
+                    return round;
+                });
+        given(freeGameMatchRepository.save(any(FreeGameMatch.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        List<RoundAssignment> roundAssignments = List.of(
+                new RoundAssignment(
+                        1,
+                        List.of(
+                                new CourtAssignment(1, p1Id, null, p3Id, null)
+                        )
+                )
+        );
+
+        // when
+        adapter.saveAll(freeGame, roundAssignments);
+
+        // then
+        ArgumentCaptor<FreeGameMatch> matchCaptor = ArgumentCaptor.forClass(FreeGameMatch.class);
+        verify(freeGameMatchRepository).save(matchCaptor.capture());
+        FreeGameMatch savedMatch = matchCaptor.getValue();
+
+        assertThat(savedMatch.getTeamAPlayer1()).isEqualTo(p1);
+        assertThat(savedMatch.getTeamAPlayer2()).isEqualTo(p3);
+        assertThat(savedMatch.getTeamBPlayer1()).isNull();
+        assertThat(savedMatch.getTeamBPlayer2()).isNull();
+    }
+
     private GameParticipant participant(UUID participantId, String originalName) {
         GameParticipant participant = GameParticipant.builder()
                 .originalName(originalName)
