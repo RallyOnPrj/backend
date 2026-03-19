@@ -48,7 +48,7 @@ public interface CourtManagerApi {
             )
     })
     ResponseEntity<CreateFreeGameResponse> createFreeGame(
-            Long userId,
+            UUID userId,
             CreateFreeGameRequest request
     );
 
@@ -91,7 +91,7 @@ public interface CourtManagerApi {
             )
     })
     ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
-            Long userId,
+            UUID userId,
             UUID gameId
     );
 
@@ -128,7 +128,7 @@ public interface CourtManagerApi {
     })
     @PatchMapping("/{gameId}")
     ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRequest request
     );
@@ -172,7 +172,7 @@ public interface CourtManagerApi {
             )
     })
     ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
-            Long userId,
+            UUID userId,
             UUID gameId
     );
 
@@ -207,7 +207,7 @@ public interface CourtManagerApi {
 
     @PatchMapping("/{gameId}/rounds-and-matches")
     ResponseEntity<Void> updateFreeGameRoundMatch(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     );
@@ -251,7 +251,7 @@ public interface CourtManagerApi {
             )
     })
     ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
-            Long userId,
+            UUID userId,
             UUID gameId,
             @Parameter(description = "include=stats인 경우 매치 집계 정보를 포함합니다.")
             String include
@@ -296,7 +296,7 @@ public interface CourtManagerApi {
             )
     })
     ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
-            Long userId,
+            UUID userId,
             UUID gameId,
             UUID participantId
     );

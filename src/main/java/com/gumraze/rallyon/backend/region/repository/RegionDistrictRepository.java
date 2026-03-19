@@ -5,9 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface RegionDistrictRepository extends JpaRepository<RegionDistrict, Long> {
+public interface RegionDistrictRepository extends JpaRepository<RegionDistrict, UUID> {
     // province Id로 district 조회
-    List<RegionDistrict> findAllByProvinceId(Long province_id);
+    List<RegionDistrict> findAllByProvinceId(UUID province_id);
 }

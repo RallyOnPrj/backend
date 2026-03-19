@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -45,7 +46,7 @@ public class UserProfileServiceImpl implements UserProfileService{
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public void createProfile(Long userId, UserProfileCreateRequest request) {
+    public void createProfile(UUID userId, UserProfileCreateRequest request) {
         if (userProfileRepository.existsById(userId)) {
             throw new IllegalArgumentException("이미 프로필이 존재합니다.");
         }
@@ -112,18 +113,18 @@ public class UserProfileServiceImpl implements UserProfileService{
     }
 
     @Override
-    public void updateProfile(Long userId, UserProfileCreateRequest request) {
+    public void updateProfile(UUID userId, UserProfileCreateRequest request) {
 
     }
 
     @Override
-    public UserProfilePrefillResponseDto getProfilePrefill(Long userId) {
+    public UserProfilePrefillResponseDto getProfilePrefill(UUID userId) {
         Optional<String> nickname = userNicknameProvider.findNicknameByUserId(userId);
         return new UserProfilePrefillResponseDto(nickname.orElse(null), nickname.isPresent());
     }
 
     @Override
-    public UserProfileResponseDto getMyProfile(Long userId) {
+    public UserProfileResponseDto getMyProfile(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("사용자를 찾을 수 없습니다.")
         );
@@ -152,7 +153,7 @@ public class UserProfileServiceImpl implements UserProfileService{
 
     @Override
     @Transactional
-    public void updateMyProfile(Long userId, UserProfileUpdateRequest request) {
+    public void updateMyProfile(UUID userId, UserProfileUpdateRequest request) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
 
@@ -198,7 +199,7 @@ public class UserProfileServiceImpl implements UserProfileService{
 
     @Override
     @Transactional
-    public void updateNicknameAndTags(Long userId, UserProfileIdentityUpdateRequest request) {
+    public void updateNicknameAndTags(UUID userId, UserProfileIdentityUpdateRequest request) {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
 

@@ -97,7 +97,7 @@ class CourtManagerControllerAuthTest {
     @DisplayName("자유게임 상세 조회 시 토큰이 없으면 401")
     void getFreeGameDetail_without_token() throws Exception {
         // given: 인증되지 않은 요청으로 상세 조회를 호출한다.
-        Long userId = 99L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         FreeGameDetailResponse response = freeGameDetailResponse(userId, gameId);
 
@@ -117,7 +117,7 @@ class CourtManagerControllerAuthTest {
     @DisplayName("자유게임 기본 정보 수정 시 토큰이 없으면 401")
     void updateFreeGameInfo_without_token() throws Exception {
         // given: 정상 payload지만 인증 정보가 없는 수정 요청을 준비한다.
-        Long gameId = 80L;
+        UUID gameId = UUID.randomUUID();
         UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
                 .title("수정된 자유게임")
                 .matchRecordMode(MatchRecordMode.RESULT)
@@ -180,7 +180,7 @@ class CourtManagerControllerAuthTest {
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 2L;
+        UUID userId = UUID.randomUUID();
 
         when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
@@ -220,8 +220,11 @@ class CourtManagerControllerAuthTest {
     @Test
     @DisplayName("참가자 상세 조회 GET - 토큰 없음이면 401")
     void getParticipantDetail_without_token_then_unauthorized() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+
         // when & then
-        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", 1L, 10L)
+        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -236,7 +239,7 @@ class CourtManagerControllerAuthTest {
         // given
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
-        Long userId = 2L;
+        UUID userId = UUID.randomUUID();
 
         when(freeGameService.getFreeGameParticipantDetail(eq(userId), eq(gameId), eq(participantId)))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
@@ -268,7 +271,7 @@ class CourtManagerControllerAuthTest {
                 .location("잠실 배드민턴장")
                 .courtCount(2)
                 .roundCount(3)
-                .organizerId(10L)
+                .organizerId(UUID.randomUUID())
                 .shareCode(shareCode)
                 .build();
 

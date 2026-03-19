@@ -11,7 +11,7 @@ import java.util.UUID;
 @Builder
 public class FreeGameParticipantResponse {
     private UUID participantId;
-    private Long userId;
+    private UUID userId;
     private String displayName;
     private Gender gender;
     private Grade grade;

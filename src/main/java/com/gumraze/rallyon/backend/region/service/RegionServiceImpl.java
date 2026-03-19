@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class RegionServiceImpl implements RegionService {
     private final RegionProvinceRepository regionProvinceRepository;
 
     @Override
-    public boolean existsByDistrictId(Long district_id) {
+    public boolean existsByDistrictId(UUID district_id) {
         return regionDistrictRepository.existsById(district_id);
     }
 
@@ -31,14 +32,14 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public List<RegionDistrict> getDistricts(Long province_id) {
+    public List<RegionDistrict> getDistricts(UUID province_id) {
         return regionDistrictRepository.findAllByProvinceId(province_id).stream()
                 .sorted(Comparator.comparing(RegionDistrict::getId))
                 .toList();
     }
 
     @Override
-    public Optional<RegionDistrict> findDistrictsById(Long district_id) {
+    public Optional<RegionDistrict> findDistrictsById(UUID district_id) {
         return regionDistrictRepository.findById(district_id);
     }
 }

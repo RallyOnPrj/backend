@@ -13,10 +13,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
@@ -145,7 +146,7 @@ class AuthServiceTest {
         OAuthLoginResult result = authService.login(request);
 
         // then
-        assertThat(result.userId()).isEqualTo(10L);
+        assertThat(result.userId()).isEqualTo(uuid(10));
     }
 
     @Test
@@ -224,7 +225,8 @@ class AuthServiceTest {
         FakeUserAuthRepository localUserIdentityPort = new FakeUserAuthRepository();
         seedExistingUser(localUserIdentityPort, AuthProvider.DUMMY, "oauth-user-123", 10L);
         RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
-        when(localRefreshTokenService.rotate(10L)).thenReturn("refresh-10");
+        UUID userId = uuid(10);
+        when(localRefreshTokenService.rotate(userId)).thenReturn("refresh-10");
 
         AuthService localAuthService = newAuthService(
                 localUserIdentityPort,
@@ -239,7 +241,7 @@ class AuthServiceTest {
 
         // then
         assertThat(result.refreshToken()).isEqualTo("refresh-10");
-        verify(localRefreshTokenService).rotate(10L);
+        verify(localRefreshTokenService).rotate(userId);
     }
 
     @Test
@@ -290,8 +292,9 @@ class AuthServiceTest {
     void refresh_reissues_tokens_with_validated_user_id() {
         // given
         RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
-        when(localRefreshTokenService.validateAndGetUserId("old-refresh")).thenReturn(2L);
-        when(localRefreshTokenService.rotate(2L)).thenReturn("new-refresh");
+        UUID userId = uuid(2);
+        when(localRefreshTokenService.validateAndGetUserId("old-refresh")).thenReturn(userId);
+        when(localRefreshTokenService.rotate(userId)).thenReturn("new-refresh");
         AuthService localAuthService = newAuthService(
                 userAuthRepository,
                 localRefreshTokenService,
@@ -303,11 +306,11 @@ class AuthServiceTest {
         OAuthLoginResult result = localAuthService.refresh("old-refresh");
 
         // then
-        assertThat(result.userId()).isEqualTo(2L);
-        assertAccessTokenContainsUserId(result, 2L);
+        assertThat(result.userId()).isEqualTo(userId);
+        assertAccessTokenContainsUserId(result, userId);
         assertThat(result.refreshToken()).isEqualTo("new-refresh");
         verify(localRefreshTokenService).validateAndGetUserId("old-refresh");
-        verify(localRefreshTokenService).rotate(2L);
+        verify(localRefreshTokenService).rotate(userId);
     }
 
     @Test
@@ -329,7 +332,7 @@ class AuthServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("invalid refresh token");
         verify(localRefreshTokenService).validateAndGetUserId("bad-refresh");
-        verify(localRefreshTokenService, never()).rotate(anyLong());
+        verify(localRefreshTokenService, never()).rotate(any(UUID.class));
     }
 
     @Test
@@ -447,15 +450,19 @@ class AuthServiceTest {
             String providerUserId,
             Long userId
     ) {
-        userIdentityPort.saveOAuthLink(provider, defaultOAuthUserInfo(providerUserId), userId);
+        userIdentityPort.saveOAuthLink(provider, defaultOAuthUserInfo(providerUserId), uuid(userId));
     }
 
     /**
      * 발급된 Access Token의 subject(sub)가 기대 사용자 식별자와 일치하는지 검증한다.
      */
-    private void assertAccessTokenContainsUserId(OAuthLoginResult result, Long expectedUserId) {
+    private void assertAccessTokenContainsUserId(OAuthLoginResult result, UUID expectedUserId) {
         JwtAccessTokenValidator validator = new JwtAccessTokenValidator(properties);
-        Long userIdFromToken = validator.validateAndGetUserId(result.accessToken()).orElseThrow();
+        UUID userIdFromToken = validator.validateAndGetUserId(result.accessToken()).orElseThrow();
         assertThat(userIdFromToken).isEqualTo(expectedUserId);
+    }
+
+    private UUID uuid(long value) {
+        return UUID.fromString(String.format("00000000-0000-0000-0000-%012d", value));
     }
 }

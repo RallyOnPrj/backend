@@ -8,6 +8,7 @@ import com.gumraze.rallyon.backend.user.repository.UserRepository;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -22,19 +23,19 @@ public interface FreeGameServiceTestSupport {
 
     ShareCodeGenerator shareCodeGenerator();
 
-    default User organizer(Long userId) {
+    default User organizer(UUID userId) {
         User organizer = mock(User.class);
         lenient().when(organizer.getId()).thenReturn(userId);
         return organizer;
     }
 
-    default void stubUserExists(Long... userIds) {
-        for (Long userId : userIds) {
+    default void stubUserExists(UUID... userIds) {
+        for (UUID userId : userIds) {
             when(userRepository().existsById(userId)).thenReturn(true);
         }
     }
 
-    default void stubOrganizer(Long userId, User organizer) {
+    default void stubOrganizer(UUID userId, User organizer) {
         stubUserExists(userId);
         when(userRepository().findById(userId)).thenReturn(Optional.of(organizer));
     }

@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,7 +60,7 @@ class AuthControllerTest {
                 .build();
 
         when(authService.login(any(OAuthLoginRequestDto.class)))
-                .thenReturn(new OAuthLoginResult(1L, "access-token", "refresh-token"));
+                .thenReturn(new OAuthLoginResult(UUID.randomUUID(), "access-token", "refresh-token"));
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +75,7 @@ class AuthControllerTest {
     @DisplayName("리프레시 성공 시 access/refresh 쿠키를 재발급한다")
     void refresh_success_returns_tokens_and_cookie() throws Exception {
         when(authService.refresh("old-refresh"))
-                .thenReturn(new OAuthLoginResult(2L, "new-access", "new-refresh"));
+                .thenReturn(new OAuthLoginResult(UUID.randomUUID(), "new-access", "new-refresh"));
 
         mockMvc.perform(post("/auth/refresh")
                         .cookie(new Cookie("refresh_token", "old-refresh"))

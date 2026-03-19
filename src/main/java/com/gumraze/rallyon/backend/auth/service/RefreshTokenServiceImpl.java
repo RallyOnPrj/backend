@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
      * @throws NoSuchElementException if no user exists with the given id
      */
     @Override
-    public String rotate(Long userId) {
+    public String rotate(UUID userId) {
         // 사용자 id 조회
         User user = userRepository.findById(userId).orElseThrow();
 
@@ -53,7 +54,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public Long validateAndGetUserId(String token) {
+    public UUID validateAndGetUserId(String token) {
         String tokenHash = refreshTokenGenerator.hash(token);
 
         // Refresh Token 조회

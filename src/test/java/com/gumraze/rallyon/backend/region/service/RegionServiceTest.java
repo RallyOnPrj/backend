@@ -12,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.UUID;
 
+import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,11 +38,14 @@ class RegionServiceTest {
         RegionProvince p1 = mock(RegionProvince.class);
         RegionProvince p2 = mock(RegionProvince.class);
         RegionProvince p3 = mock(RegionProvince.class);
+        UUID provinceId1 = uuid(1);
+        UUID provinceId2 = uuid(2);
+        UUID provinceId3 = uuid(3);
 
         // 가짜 객체의 동작을 미리 설정
-        when(p1.getId()).thenReturn(1L);
-        when(p2.getId()).thenReturn(2L);
-        when(p3.getId()).thenReturn(3L);
+        when(p1.getId()).thenReturn(provinceId1);
+        when(p2.getId()).thenReturn(provinceId2);
+        when(p3.getId()).thenReturn(provinceId3);
 
         // repo는 정렬되지 않은 리스트를 반환한다고 가정함.
         when(regionProvinceRepository.findAll())
@@ -50,9 +55,9 @@ class RegionServiceTest {
         List<RegionProvince> result = regionService.getProvinces();
 
         // then: 반환된 리스트가 id 오름차순으로 정렬되어 있음.
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(2L, result.get(1).getId());
-        assertEquals(3L, result.get(2).getId());
+        assertEquals(provinceId1, result.get(0).getId());
+        assertEquals(provinceId2, result.get(1).getId());
+        assertEquals(provinceId3, result.get(2).getId());
     }
 
     @Test
@@ -62,21 +67,25 @@ class RegionServiceTest {
         RegionDistrict d1 = mock(RegionDistrict.class);
         RegionDistrict d2 = mock(RegionDistrict.class);
         RegionDistrict d3 = mock(RegionDistrict.class);
+        UUID provinceId = uuid(1);
+        UUID districtId1 = uuid(1);
+        UUID districtId2 = uuid(2);
+        UUID districtId3 = uuid(3);
 
-        when(d1.getId()).thenReturn(1L);
-        when(d2.getId()).thenReturn(2L);
-        when(d3.getId()).thenReturn(3L);
+        when(d1.getId()).thenReturn(districtId1);
+        when(d2.getId()).thenReturn(districtId2);
+        when(d3.getId()).thenReturn(districtId3);
 
         // jpa repo에서 정렬되지 않은 리스트를 반환한다고 가정함.
-        when(regionDistrictRepository.findAllByProvinceId(1L))
+        when(regionDistrictRepository.findAllByProvinceId(provinceId))
                 .thenReturn(List.of(d3, d1, d2));
 
         // when: provinceId를 받아서 district 목록을 id 오름차순으로 조회함.
-        List<RegionDistrict> result = regionService.getDistricts(1L);
+        List<RegionDistrict> result = regionService.getDistricts(provinceId);
 
         // then: 정렬된 데이터가 내려옴.
-        assertEquals(1L, result.get(0).getId());
-        assertEquals(2L, result.get(1).getId());
-        assertEquals(3L, result.get(2).getId());
+        assertEquals(districtId1, result.get(0).getId());
+        assertEquals(districtId2, result.get(1).getId());
+        assertEquals(districtId3, result.get(2).getId());
     }
 }

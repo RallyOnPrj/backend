@@ -4,6 +4,7 @@ import com.gumraze.rallyon.backend.auth.constants.AuthProvider;
 import com.gumraze.rallyon.backend.auth.oauth.OAuthUserInfo;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Auth 도메인이 사용자 식별/연동 정보를 조회·갱신하기 위해 사용하는 Outbound Port.
@@ -19,14 +20,14 @@ public interface UserIdentityPort {
      * @param providerUserId 공급자에서 발급한 사용자 식별자
      * @return 매핑된 내부 사용자 식별자(Optional)
      */
-    Optional<Long> findUserId(AuthProvider provider, String providerUserId);
+    Optional<UUID> findUserId(AuthProvider provider, String providerUserId);
 
     /**
      * 신규 사용자를 PENDING 상태로 생성하고 식별자를 반환한다.
      *
      * @return 생성된 내부 사용자 식별자
      */
-    Long createPendingUser();
+    UUID createPendingUser();
 
     /**
      * OAuth 계정과 내부 사용자를 연결하고 초기 프로필 정보를 저장한다.
@@ -35,7 +36,7 @@ public interface UserIdentityPort {
      * @param userInfo OAuth 사용자 정보
      * @param userId 내부 사용자 식별자
      */
-    void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, Long userId);
+    void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, UUID userId);
 
     /**
      * 기존 OAuth 연동 정보의 프로필 필드를 최신 값으로 갱신한다.

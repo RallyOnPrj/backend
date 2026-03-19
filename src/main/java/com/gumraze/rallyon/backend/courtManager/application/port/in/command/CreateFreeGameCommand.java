@@ -5,6 +5,7 @@ import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import java.util.List;
+import java.util.UUID;
 
 public record CreateFreeGameCommand (
     String title,
@@ -13,13 +14,13 @@ public record CreateFreeGameCommand (
     Integer courtCount,
     Integer roundCount,
     String location,
-    List<Long> managerIds,
+    List<UUID> managerIds,
     List<Participant> participants,
     List<Round> rounds
 ) {
     public record Participant (
         String clientId,
-        Long userId,
+        UUID userId,
         String originalName,
         Gender gender,
         Grade grade,

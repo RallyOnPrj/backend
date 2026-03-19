@@ -21,7 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -41,7 +43,7 @@ public class GetMyProfileDetailUseCaseTest {
     @DisplayName("내 프로필 상세 조회 성공 테스트")
     void get_my_profile_detail_success() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         User user = User.builder()
                 .id(userId)
                 .status(UserStatus.ACTIVE)
@@ -54,7 +56,7 @@ public class GetMyProfileDetailUseCaseTest {
 
 
         UserProfile profile = UserProfile.builder()
-                .id(1L)
+                .id(uuid(1))
                 .user(user)
                 .nickname("테스트 닉네임")
                 .profileImageUrl("http://profile-image.com")
@@ -95,7 +97,7 @@ public class GetMyProfileDetailUseCaseTest {
     @DisplayName("프로필이 없으면 NotFoundException 발생")
     void get_my_profile_throws_when_profile_missing() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder()
                 .id(userId)
@@ -118,7 +120,7 @@ public class GetMyProfileDetailUseCaseTest {
     @DisplayName("사용자가 없으면 NotFoundException 발생")
     void get_my_profile_throws_when_user_missing() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 

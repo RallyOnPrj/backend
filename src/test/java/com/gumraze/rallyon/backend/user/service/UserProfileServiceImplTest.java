@@ -19,8 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.Optional.empty;
+import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -61,10 +63,10 @@ class UserProfileServiceImplTest {
     @DisplayName("사용자 프로필이 이미 있으면, 새로운 프로필 생성은 실패함.")
     void create_profile_throws_when_profile_already_exists() {
         // given: userId에 해당하는 사용자가 이미 UserProfile을 가지고 있음.
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -89,10 +91,10 @@ class UserProfileServiceImplTest {
         // user는 제3자 로그인 시 생성됨.
     void create_profile_throws_when_user_does_not_exist() {
         // given: 사용자
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -118,10 +120,10 @@ class UserProfileServiceImplTest {
     @DisplayName("regionId가 있는데 해당 지역이 없으면 프로필 생성은 실패함.")
     void create_profile_throws_when_region_does_not_exist() {
         // given: regionId가 false, userRepository. findById = user 리턴
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -150,10 +152,10 @@ class UserProfileServiceImplTest {
     @DisplayName("정상 요청이면 프로필이 저장됨")
     void create_and_save_user_profile_if_request_is_ok() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -173,7 +175,7 @@ class UserProfileServiceImplTest {
 
         // mock 지역 객체 생성
         RegionDistrict district = mock(RegionDistrict.class);
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when
@@ -187,10 +189,10 @@ class UserProfileServiceImplTest {
     @DisplayName("정상 요청이면 사용자 상태가 ACTIVE로 전환됨")
     void create_profile_activates_user_when_request_is_ok() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -208,7 +210,7 @@ class UserProfileServiceImplTest {
 
         // Mockito로 RegionDistrict 객체 생성
         RegionDistrict district = mock(RegionDistrict.class);       // .class는 타입 자체를 가리키는 Class 객체임
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when
@@ -224,10 +226,10 @@ class UserProfileServiceImplTest {
     @DisplayName("Grade가 있으면 등급 히스토리가 저장됨")
     void create_profile_saves_grade_history_when_grade_is_given() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 null,
                 "19980925",
@@ -243,7 +245,7 @@ class UserProfileServiceImplTest {
                 .thenReturn(Optional.of(user));
 
         RegionDistrict district = mock(RegionDistrict.class);
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when
@@ -257,10 +259,10 @@ class UserProfileServiceImplTest {
     @DisplayName("grade가 null이면 등급 히스토리를 저장하지 않음")
     void create_profile_does_not_save_grade_history_when_grade_is_null() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 null,
                 null,
                 "19980925",
@@ -276,7 +278,7 @@ class UserProfileServiceImplTest {
                 .thenReturn(Optional.of(user));
 
         RegionDistrict district = mock(RegionDistrict.class);
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when
@@ -290,10 +292,10 @@ class UserProfileServiceImplTest {
     @DisplayName("정상 요청이면 birth/gender가 프로필에 세팅되어 저장됨")
     void create_profile_sets_birth_and_gender_before_save() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "kim",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -309,7 +311,7 @@ class UserProfileServiceImplTest {
                 .thenReturn(Optional.of(user));
 
         RegionDistrict district = mock(RegionDistrict.class);
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when
@@ -327,10 +329,10 @@ class UserProfileServiceImplTest {
     @DisplayName("요청 nickname이 있으면 DB nickname이 있어도 요청 nickname을 우선한다.")
     void create_profile_uses_request_nickname_when_request_nickname_is_present() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileCreateRequest request = new UserProfileCreateRequest(
                 "requestNick",
-                2L,
+                uuid(2),
                 Grade.A,
                 Grade.A,
                 "19980925",
@@ -346,7 +348,7 @@ class UserProfileServiceImplTest {
                 .thenReturn(Optional.of(user));
 
         RegionDistrict district = mock(RegionDistrict.class);
-        when(regionService.findDistrictsById(2L))
+        when(regionService.findDistrictsById(uuid(2)))
                 .thenReturn(Optional.of(district));
 
         // when

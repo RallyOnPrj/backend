@@ -57,7 +57,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 상세 조회 성공 시 기본 정보와 설정을 매핑하여 반환한다")
     void getFreeGameDetail_success() {
         // given: 생성된 게임과 설정 정보가 존재한다.
-        Long userId = 99L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
@@ -86,7 +86,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 상세 조회 성공 시 location을 포함한다")
     void getFreeGameDetail_success_includesLocation() {
         // given: location이 저장된 자유게임과 설정 정보가 존재한다.
-        Long userId = 99L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
@@ -107,7 +107,7 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 상세 조회 시 존재하지 않는 gameId면 예외가 발생한다")
     void getFreeGameDetail_withUnknownGameId_throwsException() {
         // given: 존재하지 않는 gameId를 준비한다.
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
@@ -121,10 +121,10 @@ class GetFreeGameDetailUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 상세 조회 시 요청자가 생성자가 아니면 예외가 발생한다")
     void getFreeGameDetail_withNotOrganizer_throwsForbidden() {
         // given: 요청자와 organizer가 다른 자유게임이 존재한다.
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
-        User organizer = organizer(99L);
+        User organizer = organizer(UUID.randomUUID());
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer);
 
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));

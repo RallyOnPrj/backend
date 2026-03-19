@@ -42,7 +42,7 @@ public class GetPublicFreeGameDetailUseCaseTest {
         // given: 생성된 게임이 존재하는 경우
         String shareCode = "public-share-code";
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 10L;
+        UUID organizerId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.builder()
                 .id(gameId)
@@ -56,7 +56,7 @@ public class GetPublicFreeGameDetailUseCaseTest {
                 .build();
 
         FreeGameSetting setting = FreeGameSetting.builder()
-                .id(1L)
+                .id(UUID.randomUUID())
                 .freeGame(freeGame)
                 .courtCount(2)
                 .roundCount(3)
@@ -95,7 +95,7 @@ public class GetPublicFreeGameDetailUseCaseTest {
         // given
         String shareCode = "public-share-code";
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 10L;
+        UUID organizerId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.builder()
                 .id(gameId)

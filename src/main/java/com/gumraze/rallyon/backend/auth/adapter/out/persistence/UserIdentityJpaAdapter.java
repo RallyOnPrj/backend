@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * {@link UserIdentityPort}의 JPA 기반 Adapter 구현체.
@@ -33,7 +34,7 @@ public class UserIdentityJpaAdapter implements UserIdentityPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<Long> findUserId(AuthProvider provider, String providerUserId) {
+    public Optional<UUID> findUserId(AuthProvider provider, String providerUserId) {
         return userAuthRepository.findByProviderAndProviderUserId(provider, providerUserId)
                 .map(userAuth -> userAuth.getUser().getId());
     }
@@ -42,7 +43,7 @@ public class UserIdentityJpaAdapter implements UserIdentityPort {
      * PENDING 상태의 신규 사용자를 생성하고 식별자를 반환한다.
      */
     @Override
-    public Long createPendingUser() {
+    public UUID createPendingUser() {
         User user = userRepository.save(
                 User.builder()
                         .status(UserStatus.PENDING)
@@ -55,7 +56,7 @@ public class UserIdentityJpaAdapter implements UserIdentityPort {
      * OAuth 계정 연동 정보를 최초 생성하고, 프로필 필드를 함께 저장한다.
      */
     @Override
-    public void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, Long userId) {
+    public void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, UUID userId) {
         User user = userRepository.findById(userId).orElseThrow();
 
         UserAuth userAuth = UserAuth.builder()

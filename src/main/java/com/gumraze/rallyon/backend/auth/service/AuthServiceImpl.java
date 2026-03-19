@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 /**
  * OAuth 로그인/리프레시/로그아웃에 대한 Auth 도메인 서비스 구현체.
  *
@@ -43,10 +45,10 @@ public class AuthServiceImpl implements AuthService {
                 .resolve(request.getProvider())
                 .getOAuthUserInfo(request.getAuthorizationCode(), request.getRedirectUri());
 
-        Long userId = userIdentityPort
+        UUID userId = userIdentityPort
                 .findUserId(request.getProvider(), userInfo.getProviderUserId())
                 .orElseGet(() -> {
-                    Long newUserId = userIdentityPort.createPendingUser();
+                    UUID newUserId = userIdentityPort.createPendingUser();
                     userIdentityPort.saveOAuthLink(request.getProvider(), userInfo, newUserId);
                     return newUserId;
                 });
@@ -67,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public OAuthLoginResult refresh(String refreshToken) {
-        Long userId = refreshTokenService.validateAndGetUserId(refreshToken);
+        UUID userId = refreshTokenService.validateAndGetUserId(refreshToken);
         String newAccessToken = jwtAccessTokenGenerator.generateAccessToken(userId);
         String newRefreshToken = refreshTokenService.rotate(userId);
 

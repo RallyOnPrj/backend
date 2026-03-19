@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/regions")
@@ -38,7 +39,7 @@ public class RegionController implements RegionApi {
     @Override
     @GetMapping(value = "/{provinceId}/districts")
     public ResponseEntity<List<RegionDistrictResponseDto>> getDistricts(
-            @PathVariable Long provinceId
+            @PathVariable UUID provinceId
     ) {
         List<RegionDistrictResponseDto> body = regionService.getDistricts(provinceId).stream()
                 .map(d -> new RegionDistrictResponseDto(

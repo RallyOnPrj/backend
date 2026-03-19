@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -32,7 +33,7 @@ public class OauthUserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<OauthUser> findById(Long id) {
+    public Optional<OauthUser> findById(UUID id) {
         return oauthUserRepository.findById(id);
     }
 }

@@ -4,9 +4,10 @@ import com.gumraze.rallyon.backend.user.dto.UserMeResponse;
 import com.gumraze.rallyon.backend.user.entity.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserService {
-    Optional<User> findById(Long id);
+    Optional<User> findById(UUID id);
 
-    UserMeResponse getUserMe(Long userId);
+    UserMeResponse getUserMe(UUID userId);
 }

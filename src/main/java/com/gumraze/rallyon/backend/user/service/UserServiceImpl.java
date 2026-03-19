@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +20,12 @@ public class UserServiceImpl implements UserService {
     private final UserProfileRepository userProfileRepository;
 
     @Override
-    public Optional<User> findById(Long userId) {
+    public Optional<User> findById(UUID userId) {
         return userRepository.findById(userId);
     }
 
     @Override
-    public UserMeResponse getUserMe(Long userId) {
+    public UserMeResponse getUserMe(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 

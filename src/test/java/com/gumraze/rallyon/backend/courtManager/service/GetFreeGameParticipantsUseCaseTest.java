@@ -62,8 +62,8 @@ public class GetFreeGameParticipantsUseCaseTest {
     void get_participants_when_not_organizer_then_throw_forbidden() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 1L;
-        Long requesterId = 2L;
+        UUID organizerId = UUID.randomUUID();
+        UUID requesterId = UUID.randomUUID();
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
@@ -79,13 +79,13 @@ public class GetFreeGameParticipantsUseCaseTest {
     void get_participants_without_stats() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
         GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "KimB", null);
-        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "KimA", buildUser(10L));
+        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "KimA", buildUser(UUID.randomUUID()));
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2));
 
@@ -114,7 +114,7 @@ public class GetFreeGameParticipantsUseCaseTest {
     void get_participants_with_stats_when_result_mode() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
@@ -126,7 +126,8 @@ public class GetFreeGameParticipantsUseCaseTest {
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2, p3, p4));
 
-        FreeGameRound round = buildRound(10L, freeGame, 1);
+        UUID roundId = UUID.randomUUID();
+        FreeGameRound round = buildRound(roundId, freeGame, 1);
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(round));
 
@@ -139,7 +140,7 @@ public class GetFreeGameParticipantsUseCaseTest {
                 MatchStatus.COMPLETED,
                 MatchResult.TEAM_A_WIN
         );
-        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(10L)))
+        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(roundId)))
                 .thenReturn(List.of(match));
 
         // when
@@ -170,7 +171,7 @@ public class GetFreeGameParticipantsUseCaseTest {
     void get_participants_with_stats_when_status_only_mode() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.STATUS_ONLY);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
@@ -180,7 +181,8 @@ public class GetFreeGameParticipantsUseCaseTest {
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2));
 
-        FreeGameRound round = buildRound(10L, freeGame, 1);
+        UUID roundId = UUID.randomUUID();
+        FreeGameRound round = buildRound(roundId, freeGame, 1);
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(round));
 
@@ -193,7 +195,7 @@ public class GetFreeGameParticipantsUseCaseTest {
                 MatchStatus.COMPLETED,
                 MatchResult.TEAM_A_WIN
         );
-        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(10L)))
+        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(roundId)))
                 .thenReturn(List.of(match));
 
         // when
@@ -209,7 +211,7 @@ public class GetFreeGameParticipantsUseCaseTest {
 
     // Helper 메서드
 
-    private FreeGame buildFreeGame(UUID gameId, Long organizerId, MatchRecordMode matchRecordMode) {
+    private FreeGame buildFreeGame(UUID gameId, UUID organizerId, MatchRecordMode matchRecordMode) {
         return FreeGame.builder()
                 .id(gameId)
                 .title("테스트 게임")
@@ -236,13 +238,13 @@ public class GetFreeGameParticipantsUseCaseTest {
                 .build();
     }
 
-    private User buildUser(Long id) {
+    private User buildUser(UUID id) {
         return User.builder()
                 .id(id)
                 .build();
     }
 
-    private FreeGameRound buildRound(Long roundId, FreeGame freeGame, int roundNumber) {
+    private FreeGameRound buildRound(UUID roundId, FreeGame freeGame, int roundNumber) {
         return FreeGameRound.builder()
                 .id(roundId)
                 .freeGame(freeGame)

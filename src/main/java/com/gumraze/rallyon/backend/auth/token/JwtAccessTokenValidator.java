@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class JwtAccessTokenValidator {
@@ -25,13 +26,13 @@ public class JwtAccessTokenValidator {
     /**
      * Validate a JWT access token and extract the user ID from its subject.
      *
-     * If the token is valid and its subject can be parsed as a `Long`, the returned
+     * If the token is valid and its subject can be parsed as a UUID, the returned
      * Optional contains that user ID; otherwise the returned Optional is empty.
      *
      * @param accessToken the JWT access token string to validate
      * @return the user ID parsed from the token's subject if validation succeeds, `Optional.empty()` otherwise
      */
-    public Optional<Long> validateAndGetUserId(String accessToken) {
+    public Optional<UUID> validateAndGetUserId(String accessToken) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
@@ -39,7 +40,7 @@ public class JwtAccessTokenValidator {
                     .parseClaimsJws(accessToken)
                     .getBody();
 
-            return Optional.of(Long.parseLong(claims.getSubject()));
+            return Optional.of(UUID.fromString(claims.getSubject()));
 
         } catch (Exception e) {
             // 만료(exp), 서명 오류, 위변조, 형식 오류 등

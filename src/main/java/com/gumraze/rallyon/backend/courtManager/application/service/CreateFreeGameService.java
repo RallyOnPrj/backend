@@ -32,7 +32,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
     private final SaveFreeGameRoundPort saveFreeGameRoundPort;
 
     @Override
-    public UUID create(Long organizerId, CreateFreeGameCommand command) {
+    public UUID create(UUID organizerId, CreateFreeGameCommand command) {
         User organizer = loadUserPort.loadById(organizerId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 organizer 입니다."));
 
@@ -68,7 +68,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
         return savedGame.getId();
     }
 
-    private void validateManagerIds(Long organizerId, List<Long> managerIds) {
+    private void validateManagerIds(UUID organizerId, List<UUID> managerIds) {
         if (managerIds == null) {
             return;
         }
@@ -81,7 +81,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
             throw new IllegalArgumentException("게임 생성자는 managerIds에 포함될 수 없습니다.");
         }
 
-        for (Long managerId : managerIds) {
+        for (UUID managerId : managerIds) {
             if (loadUserPort.loadById(managerId).isEmpty()) {
                 throw new IllegalArgumentException("존재하지 않는 managerId입니다. :" + managerId);
             }

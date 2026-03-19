@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public interface CreateFreeGameUseCase {
 
-    UUID create(Long organizerId, CreateFreeGameCommand command);
+    UUID create(UUID organizerId, CreateFreeGameCommand command);
 
 }

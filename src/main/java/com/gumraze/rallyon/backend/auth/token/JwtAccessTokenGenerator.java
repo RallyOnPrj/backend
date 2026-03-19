@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtAccessTokenGenerator implements TokenProvider {
@@ -36,7 +37,7 @@ public class JwtAccessTokenGenerator implements TokenProvider {
      * @return the signed JWT access token as a compact string containing `sub`, `iat`, and `exp` claims
      */
     @Override
-    public String generateAccessToken(Long userId) {
+    public String generateAccessToken(UUID userId) {
         Instant now = Instant.now();
 
         return Jwts.builder()

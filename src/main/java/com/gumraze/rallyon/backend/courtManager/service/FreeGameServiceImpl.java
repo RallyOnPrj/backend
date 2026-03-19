@@ -26,7 +26,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public FreeGameDetailResponse getFreeGameDetail(Long userId, UUID gameId) {
+    public FreeGameDetailResponse getFreeGameDetail(UUID userId, UUID gameId) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 
@@ -43,7 +43,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional
-    public UpdateFreeGameResponse updateFreeGameInfo(Long userId, UUID gameId, UpdateFreeGameRequest request) {
+    public UpdateFreeGameResponse updateFreeGameInfo(UUID userId, UUID gameId, UpdateFreeGameRequest request) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 
@@ -68,7 +68,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(Long userId, UUID gameId) {
+    public FreeGameRoundMatchResponse getFreeGameRoundMatchResponse(UUID userId, UUID gameId) {
         // gameId로 Game 조회
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
@@ -89,13 +89,13 @@ public class FreeGameServiceImpl implements FreeGameService {
         }
 
         // match 조회
-        List<Long> roundIds = rounds.stream()
+        List<UUID> roundIds = rounds.stream()
                 .map(FreeGameRound::getId)
                 .toList();
         List<FreeGameMatch> matches = freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(roundIds);
 
         // match를 roundID 기준으로 그룹화
-        Map<Long, List<FreeGameMatch>> matchesByRoundId = matches.stream()
+        Map<UUID, List<FreeGameMatch>> matchesByRoundId = matches.stream()
                 .collect(Collectors.groupingBy(m -> m.getRound().getId()));
 
         // DTO
@@ -134,7 +134,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     @Override
     @Transactional
     public UpdateFreeGameRoundMatchResponse updateFreeGameRoundMatch(
-            Long userId,
+            UUID userId,
             UUID gameId,
             UpdateFreeGameRoundMatchRequest request
     ) {
@@ -307,7 +307,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     @Override
     @Transactional(readOnly = true)
     public FreeGameParticipantsResponse getFreeGameParticipants(
-            Long userId,
+            UUID userId,
             UUID gameId,
             boolean includeStats
     ) {
@@ -349,7 +349,7 @@ public class FreeGameServiceImpl implements FreeGameService {
 
         List<FreeGameRound> rounds = freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId);
         if (!rounds.isEmpty()) {
-            List<Long> roundIds = rounds.stream()
+            List<UUID> roundIds = rounds.stream()
                     .map(FreeGameRound::getId)
                     .toList();
             List<FreeGameMatch> matches = freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(roundIds);
@@ -418,7 +418,7 @@ public class FreeGameServiceImpl implements FreeGameService {
     @Override
     @Transactional(readOnly = true)
     public FreeGameParticipantDetailResponse getFreeGameParticipantDetail(
-            Long userId,
+            UUID userId,
             UUID gameId,
             UUID participantId
     ) {
@@ -455,7 +455,7 @@ public class FreeGameServiceImpl implements FreeGameService {
         return FreeGameDetailResponse.from(freeGame, setting);
     }
 
-    private FreeGame validateGameAndOrganizer(UUID gameId, Long userId) {
+    private FreeGame validateGameAndOrganizer(UUID gameId, UUID userId) {
         FreeGame freeGame = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 게임입니다. gameId: " + gameId));
 

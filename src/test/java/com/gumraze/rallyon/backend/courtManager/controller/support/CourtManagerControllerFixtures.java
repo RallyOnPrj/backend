@@ -24,7 +24,7 @@ public final class CourtManagerControllerFixtures {
     private CourtManagerControllerFixtures() {
     }
 
-    public static RequestPostProcessor authenticatedUser(Long userId) {
+    public static RequestPostProcessor authenticatedUser(UUID userId) {
         return authentication(
                 new UsernamePasswordAuthenticationToken(
                         userId,
@@ -34,7 +34,7 @@ public final class CourtManagerControllerFixtures {
         );
     }
 
-    public static FreeGameDetailResponse freeGameDetailResponse(Long organizerId, UUID gameId) {
+    public static FreeGameDetailResponse freeGameDetailResponse(UUID organizerId, UUID gameId) {
         return FreeGameDetailResponse.builder()
                 .gameId(gameId)
                 .title("자유게임")
@@ -49,7 +49,7 @@ public final class CourtManagerControllerFixtures {
                 .build();
     }
 
-    public static FreeGameParticipantResponse participantResponse(UUID participantId, Long userId, String displayName) {
+    public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID userId, String displayName) {
         return FreeGameParticipantResponse.builder()
                 .participantId(participantId)
                 .userId(userId)
@@ -95,7 +95,7 @@ public final class CourtManagerControllerFixtures {
     public static FreeGameParticipantDetailResponse participantDetailResponse(
             UUID gameId,
             UUID participantId,
-            Long userId,
+            UUID userId,
             String displayName
     ) {
         return FreeGameParticipantDetailResponse.builder()

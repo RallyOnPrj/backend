@@ -7,6 +7,7 @@ import com.gumraze.rallyon.backend.auth.port.out.UserIdentityPort;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * {@link UserIdentityPort}의 테스트용 인메모리 구현체.
@@ -16,16 +17,15 @@ import java.util.Optional;
  */
 public class FakeUserAuthRepository implements UserIdentityPort {
 
-    private final Map<String, Long> userIdByKey = new HashMap<>();
+    private final Map<String, UUID> userIdByKey = new HashMap<>();
     private final Map<String, OAuthUserInfo> infoByKey = new HashMap<>();
-    private long nextUserId = 1L;
     private int createPendingUserCallCount = 0;
 
     /**
      * provider + providerUserId 매핑으로 내부 userId를 조회한다.
      */
     @Override
-    public Optional<Long> findUserId(AuthProvider provider, String providerUserId) {
+    public Optional<UUID> findUserId(AuthProvider provider, String providerUserId) {
         return Optional.ofNullable(
                 userIdByKey.get(provider + ":" + providerUserId)
         );
@@ -36,16 +36,16 @@ public class FakeUserAuthRepository implements UserIdentityPort {
      * 테스트 검증을 위해 호출 횟수를 함께 누적한다.
      */
     @Override
-    public Long createPendingUser() {
+    public UUID createPendingUser() {
         createPendingUserCallCount++;
-        return nextUserId++;
+        return UUID.randomUUID();
     }
 
     /**
      * OAuth 계정 연동 정보를 새로 저장한다.
      */
     @Override
-    public void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, Long userId) {
+    public void saveOAuthLink(AuthProvider provider, OAuthUserInfo userInfo, UUID userId) {
         String key = provider + ":" + userInfo.getProviderUserId();
         userIdByKey.put(key, userId);
         infoByKey.put(key, userInfo);

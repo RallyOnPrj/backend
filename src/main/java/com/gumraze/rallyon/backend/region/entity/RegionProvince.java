@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -13,8 +14,8 @@ import java.time.LocalDateTime;
 @Table(name = "region_province")
 public class RegionProvince {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;        // 지역 기본 키
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;        // 지역 기본 키
 
     @Column(nullable = false, length = 50)
     private String name;    // 표시용 지역명

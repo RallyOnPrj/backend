@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -14,7 +16,7 @@ public class UserProfileUpdateRequest {
     private Grade nationalGrade;
     private String birth;
     private Boolean birthVisible;
-    private Long districtId;
+    private UUID districtId;
     private String profileImageUrl;
     private Gender gender;
 }

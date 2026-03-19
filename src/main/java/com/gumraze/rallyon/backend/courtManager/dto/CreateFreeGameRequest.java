@@ -7,6 +7,7 @@ import com.gumraze.rallyon.backend.user.constants.GradeType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;
+import java.util.UUID;
 
 public record CreateFreeGameRequest(
         @NotBlank
@@ -29,7 +30,7 @@ public record CreateFreeGameRequest(
         String location,
 
         @Size(max = 2)
-        List<Long> managerIds,
+        List<UUID> managerIds,
 
         @Valid
         List<ParticipantRequest> participants,
@@ -41,7 +42,7 @@ public record CreateFreeGameRequest(
             @NotBlank
             String clientId,
 
-            Long userId,
+            UUID userId,
 
             @NotBlank
             String originalName,

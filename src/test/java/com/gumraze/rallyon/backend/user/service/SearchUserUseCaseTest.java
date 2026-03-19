@@ -17,7 +17,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,7 +40,7 @@ public class SearchUserUseCaseTest {
         String nickname = "김대환";
         Pageable pageable = PageRequest.of(0, 20);
 
-        User user = User.builder().id(1L).build();
+        User user = User.builder().id(uuid(1)).build();
         UserProfile profile = UserProfile.builder()
                 .user(user)
                 .nickname(nickname)
@@ -57,7 +59,7 @@ public class SearchUserUseCaseTest {
         verify(userProfileRepository).findByNicknameContaining(nickname, pageable);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getNickname()).isEqualTo(nickname);
-        assertThat(result.getContent().getFirst().getUserId()).isEqualTo(1L);
+        assertThat(result.getContent().getFirst().getUserId()).isEqualTo(uuid(1));
         assertThat(result.getContent().getFirst().getTag()).isEqualTo("AB12");
     }
 
@@ -68,7 +70,7 @@ public class SearchUserUseCaseTest {
         String nickname = "김대환";
         String tagInput = "ab12";
         String normalizedTag = "AB12";
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder()
                 .id(userId)

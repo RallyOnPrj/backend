@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -27,7 +28,7 @@ public class LoadUserPersistenceAdapterTest {
     @DisplayName("userId로 사용자를 조회한다.")
     void loadBy_returnsUser() {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         User user = User.builder().id(userId).build();
 
         given(userRepository.findById(userId)).willReturn(java.util.Optional.of(user));

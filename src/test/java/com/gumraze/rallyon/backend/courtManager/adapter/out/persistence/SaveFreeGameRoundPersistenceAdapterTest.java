@@ -78,7 +78,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         given(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .willAnswer(invocation -> {
                     FreeGameRound round = invocation.getArgument(0);
-                    ReflectionTestUtils.setField(round, "id", 10L);
+                    ReflectionTestUtils.setField(round, "id", UUID.randomUUID());
                     return round;
                 });
 
@@ -245,7 +245,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         given(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .willAnswer(invocation -> {
                     FreeGameRound round = invocation.getArgument(0);
-                    ReflectionTestUtils.setField(round, "id", 10L);
+                    ReflectionTestUtils.setField(round, "id", UUID.randomUUID());
                     return round;
                 });
         given(freeGameMatchRepository.save(any(FreeGameMatch.class)))

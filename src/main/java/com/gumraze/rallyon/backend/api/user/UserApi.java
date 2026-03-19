@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 @Tag(name = "Users", description = "사용자 API")
 @ApiBearerAuth
 public interface UserApi {
@@ -76,7 +78,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserMeResponse> me (
-            Long userId
+            UUID userId
     );
 
     @Operation(
@@ -96,7 +98,7 @@ public interface UserApi {
     })
     ResponseEntity<UserProfileCreateResponseDto>
     createProfile(
-            Long userId,
+            UUID userId,
             UserProfileCreateRequest request
     );
 
@@ -123,7 +125,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(
-            Long userId
+            UUID userId
     );
 
     @Operation(
@@ -157,7 +159,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserProfileResponseDto> getMyProfile(
-            Long userId
+            UUID userId
     );
 
     @Operation(
@@ -181,7 +183,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<Void> updateMyProfile(
-            Long userId,
+            UUID userId,
             UserProfileUpdateRequest request
     );
 
@@ -222,7 +224,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<Void> updateIdentity(
-            Long userId,
+            UUID userId,
             UserProfileIdentityUpdateRequest request
     );
 }

@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Builder
 @AllArgsConstructor
 @Getter
 public class UserProfileCreateResponseDto {
-        Long userId;
+        UUID userId;
 }

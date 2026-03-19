@@ -60,7 +60,8 @@ class FreeGameServiceImplTest {
     void getFreeGameRoundMatchResponse_success() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
+        UUID roundId = UUID.randomUUID();
 
         User organizer = mock(User.class);
         when(organizer.getId()).thenReturn(userId);
@@ -69,7 +70,7 @@ class FreeGameServiceImplTest {
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
         FreeGameRound round1 = mock(FreeGameRound.class);
-        when(round1.getId()).thenReturn(1L);
+        when(round1.getId()).thenReturn(roundId);
         when(round1.getRoundNumber()).thenReturn(1);
         when(round1.getRoundStatus()).thenReturn(RoundStatus.NOT_STARTED);
 
@@ -95,7 +96,7 @@ class FreeGameServiceImplTest {
         when(m1.getMatchStatus()).thenReturn(MatchStatus.NOT_STARTED);
         when(m1.getMatchResult()).thenReturn(null);
         when(m1.getIsActive()).thenReturn(true);
-        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(1L)))
+        when(freeGameMatchRepository.findByRoundIdInOrderByCourtNumber(List.of(roundId)))
                 .thenReturn(List.of(m1));
 
         // when
@@ -111,7 +112,7 @@ class FreeGameServiceImplTest {
 
         verify(gameRepository).findById(gameId);
         verify(freeGameRoundRepository).findByFreeGameIdOrderByRoundNumber(gameId);
-        verify(freeGameMatchRepository).findByRoundIdInOrderByCourtNumber(List.of(1L));
+        verify(freeGameMatchRepository).findByRoundIdInOrderByCourtNumber(List.of(roundId));
     }
 
     @Test
@@ -119,10 +120,11 @@ class FreeGameServiceImplTest {
     void getFreeGameRoundMatchResponse_withNotOrganizer_throwsForbidden() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
+        UUID organizerId = UUID.randomUUID();
 
         User organizer = mock(User.class);
-        when(organizer.getId()).thenReturn(2L);
+        when(organizer.getId()).thenReturn(organizerId);
 
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));

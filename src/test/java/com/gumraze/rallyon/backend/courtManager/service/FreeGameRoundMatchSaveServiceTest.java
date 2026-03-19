@@ -61,14 +61,15 @@ public class FreeGameRoundMatchSaveServiceTest {
     void updateFreeGameRoundMatch_when_not_organizer_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 2L; // organizer가 아님
+        UUID userId = UUID.randomUUID(); // organizer가 아님
 
         User organizer = mock(User.class);
+        UUID organizerId = UUID.randomUUID();
 
         // 게임 존재
         FreeGame freeGame = buildNewFreeGame(gameId, organizer);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
-        when(organizer.getId()).thenReturn(1L); // 실제 organizer의 id
+        when(organizer.getId()).thenReturn(organizerId); // 실제 organizer의 id
 
         // request는 비어있어도 관계 없음
         UpdateFreeGameRoundMatchRequest request = UpdateFreeGameRoundMatchRequest.builder().build();
@@ -84,14 +85,14 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveRound_when_request_has_round_and_match_then_save_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of());
 
         FreeGameRound savedRound = buildFreeGameRound(freeGame, 1);
-        savedRound.setId(10L);
+        savedRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .thenReturn(savedRound);
         // 참가자 stub
@@ -132,11 +133,11 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_round_has_matches_then_save_match() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
         FreeGameRound savedRound = buildFreeGameRound(freeGame, 1);
-        savedRound.setId(10L);
+        savedRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .thenReturn(savedRound);
 
@@ -179,7 +180,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveRound_when_round_has_no_matches_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         stubGameWithOrganizer(gameId, userId);
 
@@ -204,7 +205,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void updateFreeGameRoundMatch_when_roundNumber_is_existing_then_not_create_new_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -252,13 +253,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void addRound_when_roundNumber_is_new_then_create_new_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         // 기존 라운드
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
@@ -304,7 +305,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void replaceMatches_when_round_exists_then_replace_all_matches() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -349,7 +350,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_new_round_then_match_belongs_to_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -357,7 +358,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of());
         FreeGameRound savedRound = buildFreeGameRound(freeGame, 1);
-        savedRound.setId(10L);
+        savedRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .thenReturn(savedRound);
 
@@ -404,7 +405,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_multiple_matches_then_save_all() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
@@ -412,7 +413,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of());
         FreeGameRound savedRound = buildFreeGameRound(freeGame, 1);
-        savedRound.setId(10L);
+        savedRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.save(any(FreeGameRound.class)))
                 .thenReturn(savedRound);
 
@@ -468,13 +469,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void replaceMatches_when_round_exists_then_delete_and_save() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         // 기존 round와 match가 존재함.
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L); // deleteByRoundId 검증용
+        existingRound.setId(UUID.randomUUID()); // deleteByRoundId 검증용
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -519,12 +520,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatches_when_round_exists_then_match_count_equals_request() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -583,13 +584,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_round_exists_then_match_references_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         // 기존 round
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -635,12 +636,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void throwException_when_duplicate_courtNumber_in_same_round() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(100L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -675,13 +676,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_courtNumber_less_then_one_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         // 기존 라운드 사용
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(100L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -711,12 +712,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_courtNumber_is_not_sequential_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(100L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -751,12 +752,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_teamAIds_is_null_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(100L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -786,12 +787,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_teamBIds_is_null_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(100L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -821,12 +822,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_teamIds_size_is_not_2_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound savedRound = buildFreeGameRound(freeGame, 1);
-        savedRound.setId(10L);
+        savedRound.setId(UUID.randomUUID());
 
         UpdateFreeGameRoundMatchRequest request =
                 UpdateFreeGameRoundMatchRequest.builder()
@@ -854,13 +855,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_participantId_not_found_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID invalidParticipantId = participantId(100);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -890,12 +891,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_teamIds_contains_null_then_allow() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -936,13 +937,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_participant_duplicated_in_round_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID duplicatedId = participantId(1);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId))
                 .thenReturn(List.of(existingRound));
 
@@ -977,13 +978,13 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_participant_duplicated_in_match_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID duplicatedId = participantId(1);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         UpdateFreeGameRoundMatchRequest request =
@@ -1012,7 +1013,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_participant_not_in_game_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID notInGameId = participantId(100);
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
@@ -1050,12 +1051,12 @@ public class FreeGameRoundMatchSaveServiceTest {
     void saveMatch_when_teamIds_then_match_players_are_set() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         FreeGame freeGame = stubGameWithOrganizer(gameId, userId);
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         GameParticipant p1 = mockGameParticipantWithId(participantId(1));
@@ -1109,14 +1110,14 @@ public class FreeGameRoundMatchSaveServiceTest {
     void updateRoundMatch_when_game_status_allowed_then_save(GameStatus status) {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         User organizer = mockUserWithId(userId);
         FreeGame freeGame = buildNewFreeGameWithStatus(gameId, organizer, status);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
         FreeGameRound existingRound = buildFreeGameRound(freeGame, 1);
-        existingRound.setId(10L);
+        existingRound.setId(UUID.randomUUID());
         when(freeGameRoundRepository.findByFreeGameIdOrderByRoundNumber(gameId)).thenReturn(List.of(existingRound));
 
         GameParticipant p1 = mockGameParticipantWithId(participantId(1));
@@ -1154,7 +1155,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     void updateRoundMatch_when_game_status_completed_then_throw_exception() {
         // given
         UUID gameId = UUID.randomUUID();
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         User organizer = mockUserWithId(userId);
         FreeGame freeGame = buildNewFreeGameWithStatus(gameId, organizer, GameStatus.COMPLETED);
@@ -1190,7 +1191,7 @@ public class FreeGameRoundMatchSaveServiceTest {
     빌더 메서드
      */
 
-    private User mockUserWithId(Long id) {
+    private User mockUserWithId(UUID id) {
         User user = mock(User.class);
         when(user.getId()).thenReturn(id);
         return user;
@@ -1250,7 +1251,7 @@ public class FreeGameRoundMatchSaveServiceTest {
         return UUID.fromString(String.format("018f1a1e-2b2f-7c11-9a55-%012d", index));
     }
 
-    private FreeGame stubGameWithOrganizer(UUID gameId, Long userId) {
+    private FreeGame stubGameWithOrganizer(UUID gameId, UUID userId) {
         User organizer = mockUserWithId(userId);
         FreeGame freeGame = buildNewFreeGame(gameId, organizer);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));

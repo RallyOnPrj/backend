@@ -80,7 +80,7 @@ class SaveGameParticipantPersistenceAdapterTest {
     @DisplayName("userId가 있으면 회원 참가자로 저장한다")
     void saveAll_withUserId_loadsAndAssignsUser() {
         // given
-        Long userId = 100L;
+        UUID userId = UUID.randomUUID();
         User user = User.builder().id(userId).build();
         FreeGame freeGame = FreeGame.builder().id(UUID.randomUUID()).title("자유게임").build();
         List<CreateFreeGameCommand.Participant> participants = List.of(
@@ -104,7 +104,7 @@ class SaveGameParticipantPersistenceAdapterTest {
     @DisplayName("존재하지 않는 userId면 예외가 발생한다")
     void saveAll_withUnknownUserId_throws() {
         // given
-        Long userId = 100L;
+        UUID userId = UUID.randomUUID();
         FreeGame freeGame = FreeGame.builder().id(UUID.randomUUID()).title("자유게임").build();
         List<CreateFreeGameCommand.Participant> participants = List.of(
                 new CreateFreeGameCommand.Participant("p1", userId, "서승재", Gender.MALE, Grade.A, 20)

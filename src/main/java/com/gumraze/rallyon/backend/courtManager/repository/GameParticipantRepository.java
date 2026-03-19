@@ -9,6 +9,4 @@ import java.util.UUID;
 
 public interface GameParticipantRepository extends JpaRepository<GameParticipant, UUID> {
     List<GameParticipant> findByFreeGameId(UUID freeGameId);
-
-    Optional<GameParticipant> findById(UUID id);
 }

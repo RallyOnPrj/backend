@@ -31,7 +31,7 @@ public class SaveFreeGamePersistenceAdapterTest {
     @DisplayName("자유게임을 저장한다.")
     void save_returnsSavedFreeGame() {
         // given
-        User organizer = User.builder().id(1L).build();
+        User organizer = User.builder().id(UUID.randomUUID()).build();
         UUID gameId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.builder()

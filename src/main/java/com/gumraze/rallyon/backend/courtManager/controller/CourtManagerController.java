@@ -26,7 +26,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @PostMapping()
     public ResponseEntity<CreateFreeGameResponse> createFreeGame(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @RequestBody @Valid CreateFreeGameRequest request
     ) {
         CreateFreeGameCommand command = createFreeGameCommandMapper.toCommand(request);
@@ -44,7 +44,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @GetMapping("/{gameId}")
     public ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId
     ) {
         FreeGameDetailResponse response = freeGameService.getFreeGameDetail(userId, gameId);
@@ -55,7 +55,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @PatchMapping("/{gameId}")
     public ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRequest request
     ) {
@@ -67,7 +67,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @GetMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId
     ) {
         FreeGameRoundMatchResponse response = freeGameService.getFreeGameRoundMatchResponse(userId, gameId);
@@ -78,7 +78,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @PatchMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<Void> updateFreeGameRoundMatch(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     ) {
@@ -90,7 +90,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @GetMapping("/{gameId}/participants")
     public ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @RequestParam(name = "include", required = false) String include
     ) {
@@ -104,7 +104,7 @@ public class CourtManagerController implements CourtManagerApi {
     @Override
     @GetMapping("/{gameId}/participants/{participantId}")
     public ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID gameId,
             @PathVariable UUID participantId
     ) {

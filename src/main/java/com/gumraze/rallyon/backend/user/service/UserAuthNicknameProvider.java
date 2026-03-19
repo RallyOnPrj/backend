@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -13,7 +14,7 @@ public class UserAuthNicknameProvider implements UserNicknameProvider {
     private final JpaUserAuthRepository userAuthRepository;
 
     @Override
-    public Optional<String> findNicknameByUserId(Long userId) {
+    public Optional<String> findNicknameByUserId(UUID userId) {
         return userAuthRepository
                 .findFirstByUser_IdOrderByUpdatedAtDesc(userId)
                 .map(userAuth -> userAuth.getNickname())

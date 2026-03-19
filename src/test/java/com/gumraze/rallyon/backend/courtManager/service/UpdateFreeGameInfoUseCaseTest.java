@@ -58,7 +58,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 기본 정보 수정 성공 시 title, gradeType, matchRecordMode를 반영한다")
     void updateFreeGameInfo_success() {
         // given: 수정할 자유게임과 기본 정보 수정 요청을 준비한다.
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         User organizer = organizer(userId);
 
@@ -92,7 +92,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 기본 정보 수정 시 location을 변경한다")
     void updateFreeGameInfo_updatesLocation() {
         // given: 기존 location이 있는 자유게임과 새로운 location 수정 요청을 준비한다.
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         User organizer = organizer(userId);
@@ -124,7 +124,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
     @DisplayName("자유게임 기본 정보 수정 시 요청자가 생성자가 아니면 예외가 발생한다")
     void updateFreeGameInfo_withoutPermission_throwsForbidden() {
         // given: 요청자와 organizer가 다른 자유게임과 수정 요청을 준비한다.
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
                 .title("수정된 게임 제목")
@@ -132,7 +132,7 @@ class UpdateFreeGameInfoUseCaseTest implements FreeGameServiceTestSupport {
                 .gradeType(GradeType.REGIONAL)
                 .build();
 
-        User organizer = organizer(3L);
+        User organizer = organizer(UUID.randomUUID());
 
         FreeGame freeGame = FreeGameFixtures.freeGame(gameId, organizer);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));

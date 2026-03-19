@@ -4,6 +4,8 @@ import com.gumraze.rallyon.backend.auth.constants.AuthProvider;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -15,8 +17,8 @@ import lombok.*;
 public class OauthUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "oauth_provider", nullable = false, length = 20)

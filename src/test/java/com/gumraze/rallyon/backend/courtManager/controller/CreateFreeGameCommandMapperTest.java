@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,6 +23,9 @@ class CreateFreeGameCommandMapperTest {
     @DisplayName("create request를 create command로 변환한다")
     void toCommand_mapsRequestToCommand() {
         // given
+        UUID managerId1 = UUID.randomUUID();
+        UUID managerId2 = UUID.randomUUID();
+        UUID participantUserId = UUID.randomUUID();
         CreateFreeGameRequest request = new CreateFreeGameRequest(
                 "수요 자유게임",
                 MatchRecordMode.STATUS_ONLY,
@@ -29,11 +33,11 @@ class CreateFreeGameCommandMapperTest {
                 2,
                 1,
                 "잠실 배드민턴장",
-                List.of(10L, 11L),
+                List.of(managerId1, managerId2),
                 List.of(
                         new CreateFreeGameRequest.ParticipantRequest(
                                 "p1",
-                                100L,
+                                participantUserId,
                                 "김대환",
                                 Gender.MALE,
                                 Grade.C,
@@ -63,11 +67,11 @@ class CreateFreeGameCommandMapperTest {
         assertThat(command.courtCount()).isEqualTo(2);
         assertThat(command.roundCount()).isEqualTo(1);
         assertThat(command.location()).isEqualTo("잠실 배드민턴장");
-        assertThat(command.managerIds()).containsExactly(10L, 11L);
+        assertThat(command.managerIds()).containsExactly(managerId1, managerId2);
 
         assertThat(command.participants()).hasSize(1);
         assertThat(command.participants().getFirst().clientId()).isEqualTo("p1");
-        assertThat(command.participants().getFirst().userId()).isEqualTo(100L);
+        assertThat(command.participants().getFirst().userId()).isEqualTo(participantUserId);
         assertThat(command.participants().getFirst().originalName()).isEqualTo("김대환");
 
         assertThat(command.rounds()).hasSize(1);

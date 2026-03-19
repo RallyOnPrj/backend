@@ -25,7 +25,7 @@ public class FreeGameDetailResponse {
     private GradeType gradeType;
     private Integer courtCount;
     private Integer roundCount;
-    private Long organizerId;
+    private UUID organizerId;
     private String shareCode;
     private String location;
 
@@ -45,5 +45,4 @@ public class FreeGameDetailResponse {
                 .build();
     }
 }
-
 

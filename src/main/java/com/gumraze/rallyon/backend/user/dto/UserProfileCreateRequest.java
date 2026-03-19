@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Schema(description = "사용자 프로필 생성 요청 DTO")
 @Getter
 @Builder
@@ -18,7 +20,7 @@ public class UserProfileCreateRequest {
         private String nickname;
 
         @Schema(description = "지역 ID", example = "1")
-        private Long districtId;
+        private UUID districtId;
 
         @Schema(description = "지역 급수", example = "ROOKIE")
         private Grade regionalGrade;

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -47,7 +48,7 @@ public class UserController implements UserApi {
 
     @GetMapping("/me")
     public ResponseEntity<UserMeResponse> me(
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal UUID userId
     ) {
         UserMeResponse body = userService.getUserMe(userId);
         return ResponseEntity.ok(body);
@@ -55,7 +56,7 @@ public class UserController implements UserApi {
 
     @PostMapping("/me/profile")
     public ResponseEntity<UserProfileCreateResponseDto> createProfile(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @RequestBody UserProfileCreateRequest request
     ) {
         userProfileService.createProfile(userId, request);
@@ -66,7 +67,7 @@ public class UserController implements UserApi {
 
     @GetMapping("/me/profile/prefill")
     public ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal UUID userId
     ) {
         UserProfilePrefillResponseDto body = userProfileService.getProfilePrefill(userId);
 
@@ -75,7 +76,7 @@ public class UserController implements UserApi {
 
     @GetMapping("/me/profile")
     public ResponseEntity<UserProfileResponseDto> getMyProfile(
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal UUID userId
     ) {
         UserProfileResponseDto body = userProfileService.getMyProfile(userId);
 
@@ -84,7 +85,7 @@ public class UserController implements UserApi {
 
     @PatchMapping("/me/profile")
     public ResponseEntity<Void> updateMyProfile(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @RequestBody UserProfileUpdateRequest request
     ) {
         userProfileService.updateMyProfile(userId, request);
@@ -94,7 +95,7 @@ public class UserController implements UserApi {
 
     @PatchMapping("/me/profile/identity")
     public ResponseEntity<Void> updateIdentity(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UUID userId,
             @RequestBody UserProfileIdentityUpdateRequest request
     ) {
         userProfileService.updateNicknameAndTags(userId, request);

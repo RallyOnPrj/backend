@@ -65,7 +65,7 @@ class CreateFreeGameServiceTest {
     @DisplayName("자유게임 생성 시 shareCode, setting, 참가자, 코트 배정을 함께 처리한다")
     void createFreeGame_savesShareCodeSettingParticipantsAndRoundAssignments() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         String shareCode = "share-code-123";
         UUID gameId = UUID.randomUUID();
@@ -132,7 +132,7 @@ class CreateFreeGameServiceTest {
     @DisplayName("자유게임 생성 시 matchRecordMode가 null이면 STATUS_ONLY를 사용한다")
     void createFreeGame_withNullMatchRecordMode_defaultsToStatusOnly() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         given(loadUserPort.loadById(organizerId)).willReturn(Optional.of(organizer));
         given(issueShareCodePort.issue()).willReturn("share-code");
@@ -152,13 +152,16 @@ class CreateFreeGameServiceTest {
     @DisplayName("managerIds가 2명을 초과하면 예외가 발생한다")
     void createFreeGame_withTooManyManagers_throws() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
+        UUID managerId1 = UUID.randomUUID();
+        UUID managerId2 = UUID.randomUUID();
+        UUID managerId3 = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         given(loadUserPort.loadById(organizerId)).willReturn(Optional.of(organizer));
 
         CreateFreeGameCommand command = createCommand(
                 MatchRecordMode.STATUS_ONLY,
-                List.of(2L, 3L, 4L),
+                List.of(managerId1, managerId2, managerId3),
                 List.of("p1", "p2", "p3", "p4"),
                 null
         );
@@ -175,7 +178,7 @@ class CreateFreeGameServiceTest {
     @DisplayName("organizer가 managerIds에 포함되면 예외가 발생한다")
     void createFreeGame_withOrganizerInManagerIds_throws() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         given(loadUserPort.loadById(organizerId)).willReturn(Optional.of(organizer));
 
@@ -198,14 +201,15 @@ class CreateFreeGameServiceTest {
     @DisplayName("존재하지 않는 managerId가 있으면 예외가 발생한다")
     void createFreeGame_withUnknownManager_throws() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
+        UUID unknownManagerId = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         given(loadUserPort.loadById(organizerId)).willReturn(Optional.of(organizer));
-        given(loadUserPort.loadById(2L)).willReturn(Optional.empty());
+        given(loadUserPort.loadById(unknownManagerId)).willReturn(Optional.empty());
 
         CreateFreeGameCommand command = createCommand(
                 MatchRecordMode.STATUS_ONLY,
-                List.of(2L),
+                List.of(unknownManagerId),
                 List.of("p1", "p2", "p3", "p4"),
                 null
         );
@@ -222,7 +226,7 @@ class CreateFreeGameServiceTest {
     @DisplayName("slot에 null이 있어도 라운드 배정을 생성할 수 있다")
     void createFreeGame_withNullSlots_allowsSparseRoundAssignment() {
         // given
-        Long organizerId = 1L;
+        UUID organizerId = UUID.randomUUID();
         User organizer = User.builder().id(organizerId).build();
         String shareCode = "share-code-123";
         UUID gameId = UUID.randomUUID();
@@ -268,9 +272,9 @@ class CreateFreeGameServiceTest {
 
     private CreateFreeGameCommand createCommand(
             MatchRecordMode matchRecordMode,
-            List<Long> managerIds,
+            List<UUID> managerIds,
             List<String> slots,
-            Long participantUserId
+            UUID participantUserId
     ) {
         return new CreateFreeGameCommand(
                 "수요 자유게임",

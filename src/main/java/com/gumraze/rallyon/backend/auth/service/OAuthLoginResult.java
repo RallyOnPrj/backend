@@ -1,7 +1,9 @@
 package com.gumraze.rallyon.backend.auth.service;
 
+import java.util.UUID;
+
 public record OAuthLoginResult(
-        Long userId,
+        UUID userId,
         String accessToken,
         String refreshToken
 ) { }

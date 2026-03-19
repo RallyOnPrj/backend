@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -38,7 +39,7 @@ public class UserServiceImplTest {
     @DisplayName("사용자가 없으면 예외가 발생한다.")
     void get_user_me_throws_when_user_not_found() {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId))
                 .thenReturn(Optional.empty());
 
@@ -51,7 +52,7 @@ public class UserServiceImplTest {
     @DisplayName("PENDING이면 프로필 없이 응답한다.")
     void get_user_me_returns_status_only_when_not_active() {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         User user = User.builder()
                 .id(userId)
                 .status(UserStatus.PENDING)
@@ -72,7 +73,7 @@ public class UserServiceImplTest {
     @DisplayName("ACTIVE이면 프로필 정보를 포함한다.")
     void get_user_me_returns_profile_when_active() {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         User user = User.builder()
                 .id(userId)
                 .status(UserStatus.ACTIVE)

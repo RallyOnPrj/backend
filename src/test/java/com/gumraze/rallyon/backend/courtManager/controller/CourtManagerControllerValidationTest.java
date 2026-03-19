@@ -52,7 +52,7 @@ class CourtManagerControllerValidationTest {
 
     @BeforeEach
     void setUp() {
-        when(jwtAccessTokenValidator.validateAndGetUserId("token")).thenReturn(Optional.of(1L));
+        when(jwtAccessTokenValidator.validateAndGetUserId("token")).thenReturn(Optional.of(UUID.randomUUID()));
     }
 
     @Test
@@ -195,7 +195,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -235,7 +235,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -265,7 +265,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -303,7 +303,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -341,7 +341,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -358,7 +358,7 @@ class CourtManagerControllerValidationTest {
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(UUID.randomUUID()))
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))

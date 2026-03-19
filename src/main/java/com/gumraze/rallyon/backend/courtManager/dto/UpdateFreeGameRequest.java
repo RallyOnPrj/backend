@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Getter
@@ -19,5 +20,5 @@ public class UpdateFreeGameRequest {
 
     @Size(max = 255)
     private String location;
-    private List<Long> managerIds;
+    private List<UUID> managerIds;
 }

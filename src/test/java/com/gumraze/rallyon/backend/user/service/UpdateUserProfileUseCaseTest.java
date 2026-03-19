@@ -26,7 +26,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -49,7 +51,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("프로필 기본 정보 부분 수정 성공")
     void update_profile_updates_only_requested_fields() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         UserProfileUpdateRequest request =
                 UserProfileUpdateRequest.builder()
                         .regionalGrade(Grade.B)
@@ -57,7 +59,7 @@ public class UpdateUserProfileUseCaseTest {
                         .birth("19980925")
                         .gender(Gender.MALE)
                         .profileImageUrl("http://localhost:8080/profile.jpg")
-                        .districtId(2L)
+                        .districtId(uuid(2))
                         .build();
 
         User user = User.builder()
@@ -82,7 +84,7 @@ public class UpdateUserProfileUseCaseTest {
                 .build();
 
         when(userProfileRepository.findByUserId(userId)).thenReturn(Optional.of(profile));
-        when(regionService.findDistrictsById(2L)).thenReturn(Optional.of(newDistrict));
+        when(regionService.findDistrictsById(uuid(2))).thenReturn(Optional.of(newDistrict));
 
         // when
         userProfileService.updateMyProfile(userId, request);
@@ -105,7 +107,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("birth 형식 오류 테스트")
     void update_profile_throws_when_birth_format_invalid() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder().id(userId).build();
         UserProfile profile = UserProfile.builder().user(user).build();
@@ -125,7 +127,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("사용자 닉네임 수정 성공 테스트")
     void update_nickname_success_test() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder().id(userId).build();
         UserProfile profile = UserProfile.builder()
@@ -153,7 +155,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("사용자 태그 수정 성공 테스트")
     void update_tag_success_test() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder().id(userId).build();
         UserProfile profile = UserProfile.builder()
@@ -183,7 +185,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("사용자 닉네임 + 태그 수정 성공 테스트")
     void update_nickname_and_tag_success_test() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
 
         User user = User.builder().id(userId).build();
         UserProfile profile = UserProfile.builder()
@@ -216,7 +218,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("사용자 닉네임 + 태그 중복 실패 테스트")
     void update_nickname_and_tag_duplicate_fail_test() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         User user = User.builder().id(userId).build();
         UserProfile profile = UserProfile.builder()
                 .user(user)
@@ -226,7 +228,7 @@ public class UpdateUserProfileUseCaseTest {
                 .build();
 
         UserProfile otherProfile = UserProfile.builder()
-                .user(User.builder().id(2L).build())
+                .user(User.builder().id(uuid(2)).build())
                 .nickname("otherNickname")
                 .tag("SON7")
                 .build();
@@ -249,7 +251,7 @@ public class UpdateUserProfileUseCaseTest {
     @DisplayName("태그 변경 90일 미경과 시, 태그 변경 실패 테스트")
     void update_tag_fail_test() {
         // given
-        Long userId = 1L;
+        UUID userId = uuid(1);
         User user = User.builder().id(userId).build();
         LocalDateTime lastChangedAt = LocalDateTime.now().minusDays(30);
 

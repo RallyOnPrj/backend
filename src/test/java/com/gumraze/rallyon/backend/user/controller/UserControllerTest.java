@@ -33,6 +33,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,17 +68,18 @@ public class UserControllerTest {
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
     void get_me_returns_pending_user_status() throws Exception {
         // given: 사용자는 현재 PENDING 상태임.
+        UUID userId = UUID.randomUUID();
         UserMeResponse response = UserMeResponse.builder()
                 .status(UserStatus.PENDING)
                 .build();
 
         // stub
-        when(userService.getUserMe(1L))
+        when(userService.getUserMe(userId))
                 .thenReturn(response);
 
         // when & then: /users/me로 GET 요청을 보내며, 응답은 status를 제외하고 null 값임.
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -91,16 +93,17 @@ public class UserControllerTest {
     @DisplayName("ACTIVE 사용자가 /users/me 조회 시 프로필 정보를 반환한다.")
     void get_user_me_return_profile_when_active() throws Exception {
         // given
+        UUID userId = UUID.randomUUID();
         UserMeResponse response = UserMeResponse.builder()
                 .status(UserStatus.ACTIVE)
                 .nickname("테스트 닉네임")
                 .profileImageUrl("http://profile-image.com")
                 .build();
 
-        when(userService.getUserMe(1L)).thenReturn(response);
+        when(userService.getUserMe(userId)).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -128,7 +131,7 @@ public class UserControllerTest {
         String nickname = "kim";
 
         UserSearchResponse response = UserSearchResponse.builder()
-                .userId(1L)
+                .userId(UUID.randomUUID())
                 .nickname(nickname)
                 .tag("AB12")
                 .profileImageUrl(null)
@@ -142,14 +145,15 @@ public class UserControllerTest {
                 .thenReturn(page);
 
         // when & then
+        UUID userId = UUID.randomUUID();
         mockMvc.perform(get("/users")
                         .param("nickname", nickname)
                         .param("page", "0")
                         .param("size", "20")
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].userId").value(response.getUserId().toString()))
                 .andExpect(jsonPath("$.content[0].nickname").value(nickname))
                 .andExpect(jsonPath("$.content[0].tag").value("AB12"))
                 .andExpect(jsonPath("$.content[0].profileImageUrl").value(nullValue()))
@@ -165,7 +169,7 @@ public class UserControllerTest {
 
         UserSearchResponse response =
                 UserSearchResponse.builder()
-                        .userId(1L)
+                        .userId(UUID.randomUUID())
                         .nickname(nickname)
                         .tag(tag)
                         .profileImageUrl(null)
@@ -175,13 +179,14 @@ public class UserControllerTest {
                 .thenReturn(Optional.of(response));
 
         // when & then
+        UUID userId = UUID.randomUUID();
         mockMvc.perform(get("/users")
                         .param("nickname", nickname)
                         .param("tag", tag)
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].userId").value(response.getUserId().toString()))
                 .andExpect(jsonPath("$.content[0].nickname").value(nickname))
                 .andExpect(jsonPath("$.content[0].tag").value(tag))
                 .andExpect(jsonPath("$.content[0].profileImageUrl").value(nullValue()));
@@ -190,8 +195,9 @@ public class UserControllerTest {
     @Test
     @DisplayName("nickname 파라미터 누락 시 400에러 반환")
     void search_user_missing_nickname_returns_400() throws Exception {
+        UUID userId = UUID.randomUUID();
         mockMvc.perform(get("/users")
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_PROBLEM_JSON_VALUE)
                 )
                 .andExpect(status().isBadRequest())
@@ -206,7 +212,7 @@ public class UserControllerTest {
     @DisplayName("내 프로필 상세조회 성공 테스트")
     void get_my_profile_detail_success() throws Exception {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         UserProfileResponseDto response =
                 UserProfileResponseDto.builder()
@@ -252,7 +258,7 @@ public class UserControllerTest {
     @DisplayName("기본 프로필 수정 성공")
     void update_my_profile_success() throws Exception {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
         UserProfileUpdateRequest request =
                 UserProfileUpdateRequest.builder()
                         .birthVisible(true)
@@ -279,7 +285,7 @@ public class UserControllerTest {
     @DisplayName("닉네임/태그 변경 성공 테스트")
     void update_identity_success() throws Exception {
         // given
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         UserProfileIdentityUpdateRequest request =
                 UserProfileIdentityUpdateRequest.builder()
@@ -303,7 +309,7 @@ public class UserControllerTest {
     }
 
     // Helper method
-    private RequestPostProcessor authenticatedUser(Long userId) {
+    private RequestPostProcessor authenticatedUser(UUID userId) {
         return authentication(
                 new UsernamePasswordAuthenticationToken(
                         userId,
