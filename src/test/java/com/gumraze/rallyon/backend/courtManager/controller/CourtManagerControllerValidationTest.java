@@ -2,8 +2,10 @@ package com.gumraze.rallyon.backend.courtManager.controller;
 
 import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.config.SecurityConfig;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
 import com.gumraze.rallyon.backend.courtManager.dto.*;
 import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
+import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +42,12 @@ class CourtManagerControllerValidationTest {
     private FreeGameService freeGameService;
 
     @MockitoBean
+    private CreateFreeGameUseCase createFreeGameUseCase;
+
+    @MockitoBean
+    private CreateFreeGameCommandMapper createFreeGameCommandMapper;
+
+    @MockitoBean
     private JwtAccessTokenValidator jwtAccessTokenValidator;
 
     @BeforeEach
@@ -50,71 +58,41 @@ class CourtManagerControllerValidationTest {
     @Test
     @DisplayName("자유게임 생성 시 title 누락이면 400")
     void createFreeGame_without_title() throws Exception {
-        // given: title이 누락된 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title(null)
-                .courtCount(2)
-                .roundCount(3)
-                .gradeType(GradeType.NATIONAL)
-                .build();
-
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+        assertCreateFreeGameBadRequest(createRequest(
+                null, GradeType.NATIONAL, 2, 3, null, List.of(), List.of()
+        ));
     }
 
     @Test
     @DisplayName("자유게임 생성 시 courtCount 누락이면 400")
     void createFreeGame_without_courtCount() throws Exception {
-        // given: courtCount가 누락된 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("테스트 게임")
-                .gradeType(GradeType.NATIONAL)
-                .roundCount(3)
-                .build();
-
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+        assertCreateFreeGameBadRequest(createRequest(
+                "테스트 게임", GradeType.NATIONAL, null, 3, null, List.of(), List.of()
+        ));
     }
 
     @Test
     @DisplayName("자유게임 생성 시 roundCount 누락이면 400")
     void createFreeGame_without_roundCount() throws Exception {
-        // given: roundCount가 누락된 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("테스트 게임")
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .build();
-
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+        assertCreateFreeGameBadRequest(createRequest(
+                "테스트 게임", GradeType.NATIONAL, 2, null, null, List.of(), List.of()
+        ));
     }
 
     @Test
     @DisplayName("자유게임 생성 시 courtCount와 roundCount가 모두 누락이면 400")
     void createFreeGame_without_courtCount_and_roundCount() throws Exception {
-        // given: courtCount와 roundCount가 모두 없는 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .gradeType(GradeType.NATIONAL)
-                .build();
-
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임 1", GradeType.NATIONAL, null, null, null, List.of(), List.of()
+        ));
     }
 
     @Test
     @DisplayName("자유게임 생성 시 gradeType 누락이면 400")
     void createFreeGame_without_gradeType() throws Exception {
-        // given: gradeType이 누락된 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임")
-                .courtCount(2)
-                .roundCount(3)
-                .build();
-
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임", null, 2, 3, null, List.of(), List.of()
+        ));
     }
 
     @Test
@@ -137,41 +115,73 @@ class CourtManagerControllerValidationTest {
     @Test
     @DisplayName("자유게임 생성 시 참가자 필수 항목이 누락되면 400")
     void createFreeGame_with_participant_without_gender() throws Exception {
-        // given: 참가자는 있지만 gender가 없는 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .roundCount(3)
-                .participants(
-                        List.of(
-                                ParticipantCreateRequest.builder()
-                                        .originalName("참가자 1")
-                                        .grade(Grade.ROOKIE)
-                                        .ageGroup(20)
-                                        .build()
-                        )
-                )
-                .build();
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임 1",
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                List.of(new CreateFreeGameRequest.ParticipantRequest(
+                        "p1",
+                        null,
+                        "참가자 1",
+                        null,
+                        Grade.ROOKIE,
+                        20
+                )),
+                List.of()
+        ));
+    }
 
-        // when & then: 참가자 validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+    @Test
+    @DisplayName("자유게임 생성 시 participant clientId 누락이면 400")
+    void createFreeGame_with_participant_without_clientId() throws Exception {
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임 1",
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                List.of(new CreateFreeGameRequest.ParticipantRequest(
+                        null,
+                        null,
+                        "참가자 1",
+                        Gender.MALE,
+                        Grade.ROOKIE,
+                        20
+                )),
+                List.of()
+        ));
     }
 
     @Test
     @DisplayName("자유게임 생성 시 location 길이가 255자를 초과하면 400")
     void createFreeGame_with_too_long_location() throws Exception {
-        // given: 길이가 255자를 초과하는 location이 포함된 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임")
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .roundCount(3)
-                .location("A".repeat(256))
-                .build();
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임", GradeType.NATIONAL, 2, 3, "A".repeat(256), List.of(), List.of()
+        ));
+    }
 
-        // when & then: validation 실패로 400을 반환해야 한다.
-        assertCreateFreeGameBadRequest(request);
+    @Test
+    @DisplayName("자유게임 생성 시 court slots 길이가 4가 아니면 400")
+    void createFreeGame_with_invalid_slots_length() throws Exception {
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임",
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                List.of(),
+                List.of(
+                        new CreateFreeGameRequest.RoundRequest(
+                                1,
+                                List.of(new CreateFreeGameRequest.CourtRequest(
+                                        1,
+                                        List.of("p1", "p2", "p3")
+                                ))
+                        )
+                )
+        ));
     }
 
     @Test
@@ -355,5 +365,27 @@ class CourtManagerControllerValidationTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.title").exists());
+    }
+
+    private CreateFreeGameRequest createRequest(
+            String title,
+            GradeType gradeType,
+            Integer courtCount,
+            Integer roundCount,
+            String location,
+            List<CreateFreeGameRequest.ParticipantRequest> participants,
+            List<CreateFreeGameRequest.RoundRequest> rounds
+    ) {
+        return new CreateFreeGameRequest(
+                title,
+                null,
+                gradeType,
+                courtCount,
+                roundCount,
+                location,
+                null,
+                participants,
+                rounds
+        );
     }
 }

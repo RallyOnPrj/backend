@@ -1,0 +1,80 @@
+package com.gumraze.rallyon.backend.courtManager.controller;
+
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.dto.CreateFreeGameRequest;
+import com.gumraze.rallyon.backend.user.constants.Gender;
+import com.gumraze.rallyon.backend.user.constants.Grade;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class CreateFreeGameCommandMapperTest {
+
+    private final CreateFreeGameCommandMapper mapper = new CreateFreeGameCommandMapper();
+
+    @Test
+    @DisplayName("create request를 create command로 변환한다")
+    void toCommand_mapsRequestToCommand() {
+        // given
+        CreateFreeGameRequest request = new CreateFreeGameRequest(
+                "수요 자유게임",
+                MatchRecordMode.STATUS_ONLY,
+                GradeType.NATIONAL,
+                2,
+                1,
+                "잠실 배드민턴장",
+                List.of(10L, 11L),
+                List.of(
+                        new CreateFreeGameRequest.ParticipantRequest(
+                                "p1",
+                                100L,
+                                "김대환",
+                                Gender.MALE,
+                                Grade.C,
+                                20
+                        )
+                ),
+                List.of(
+                        new CreateFreeGameRequest.RoundRequest(
+                                1,
+                                List.of(
+                                        new CreateFreeGameRequest.CourtRequest(
+                                                1,
+                                                Arrays.asList("p1", null, null, null)
+                                        )
+                                )
+                        )
+                )
+        );
+
+        // when
+        CreateFreeGameCommand command = mapper.toCommand(request);
+
+        // then
+        assertThat(command.title()).isEqualTo("수요 자유게임");
+        assertThat(command.matchRecordMode()).isEqualTo(MatchRecordMode.STATUS_ONLY);
+        assertThat(command.gradeType()).isEqualTo(GradeType.NATIONAL);
+        assertThat(command.courtCount()).isEqualTo(2);
+        assertThat(command.roundCount()).isEqualTo(1);
+        assertThat(command.location()).isEqualTo("잠실 배드민턴장");
+        assertThat(command.managerIds()).containsExactly(10L, 11L);
+
+        assertThat(command.participants()).hasSize(1);
+        assertThat(command.participants().getFirst().clientId()).isEqualTo("p1");
+        assertThat(command.participants().getFirst().userId()).isEqualTo(100L);
+        assertThat(command.participants().getFirst().originalName()).isEqualTo("김대환");
+
+        assertThat(command.rounds()).hasSize(1);
+        assertThat(command.rounds().getFirst().roundNumber()).isEqualTo(1);
+        assertThat(command.rounds().getFirst().courts()).hasSize(1);
+        assertThat(command.rounds().getFirst().courts().getFirst().courtNumber()).isEqualTo(1);
+        assertThat(command.rounds().getFirst().courts().getFirst().slots())
+                .containsExactly("p1", null, null, null);
+    }
+}

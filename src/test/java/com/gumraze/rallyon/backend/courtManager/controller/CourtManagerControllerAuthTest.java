@@ -4,6 +4,7 @@ import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
 import com.gumraze.rallyon.backend.common.exception.NotFoundException;
 import com.gumraze.rallyon.backend.config.SecurityConfig;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
 import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
@@ -46,28 +47,37 @@ class CourtManagerControllerAuthTest {
     private FreeGameService freeGameService;
 
     @MockitoBean
+    private CreateFreeGameUseCase createFreeGameUseCase;
+
+    @MockitoBean
+    private CreateFreeGameCommandMapper createFreeGameCommandMapper;
+
+    @MockitoBean
     private JwtAccessTokenValidator jwtAccessTokenValidator;
 
     @Test
     @DisplayName("자유게임 생성 시 토큰이 없으면 401")
     void createFreeGame_without_token() throws Exception {
-        // given: 정상 payload지만 인증 정보가 없는 생성 요청을 준비한다.
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .roundCount(3)
-                .participants(
-                        List.of(
-                                ParticipantCreateRequest.builder()
-                                        .originalName("참가자 1")
-                                        .gender(Gender.MALE)
-                                        .grade(Grade.ROOKIE)
-                                        .ageGroup(20)
-                                        .build()
+        CreateFreeGameRequest request = new CreateFreeGameRequest(
+                "자유게임 1",
+                null,
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                null,
+                List.of(
+                        new CreateFreeGameRequest.ParticipantRequest(
+                                "p1",
+                                null,
+                                "참가자 1",
+                                Gender.MALE,
+                                Grade.ROOKIE,
+                                20
                         )
-                )
-                .build();
+                ),
+                List.of()
+        );
 
         String body = objectMapper.writeValueAsString(request);
 

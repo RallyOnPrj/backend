@@ -1,6 +1,13 @@
 package com.gumraze.rallyon.backend.courtManager.service;
 
-import com.gumraze.rallyon.backend.courtManager.dto.*;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameDetailResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameParticipantDetailResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameParticipantsResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameRoundMatchResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchResponse;
 import java.util.UUID;
 
 /**
@@ -10,16 +17,6 @@ import java.util.UUID;
  * 코트 매니저 기능의 서비스 계약을 정의한다.</p>
  */
 public interface FreeGameService {
-
-    /**
-     * 새로운 자유게임을 생성한다.
-     *
-     * @param userId 게임 생성 요청 사용자 ID
-     * @param request 자유게임 생성 요청 정보
-     * @return 생성된 자유게임 식별 정보
-     * @throws IllegalArgumentException 요청 값이 유효하지 않거나 생성자가 존재하지 않는 경우
-     */
-    CreateFreeGameResponse createFreeGame(Long userId, CreateFreeGameRequest request);
 
     /**
      * 자유게임 상세 정보를 조회한다.

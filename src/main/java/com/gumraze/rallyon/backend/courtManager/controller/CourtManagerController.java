@@ -1,6 +1,8 @@
 package com.gumraze.rallyon.backend.courtManager.controller;
 
 import com.gumraze.rallyon.backend.api.courtManager.CourtManagerApi;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.dto.*;
 import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
 import jakarta.validation.Valid;
@@ -18,6 +20,8 @@ import java.util.UUID;
 public class CourtManagerController implements CourtManagerApi {
 
     private final FreeGameService freeGameService;
+    private final CreateFreeGameUseCase createFreeGameUseCase;
+    private final CreateFreeGameCommandMapper createFreeGameCommandMapper;
 
     @Override
     @PostMapping()
@@ -25,10 +29,12 @@ public class CourtManagerController implements CourtManagerApi {
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid CreateFreeGameRequest request
     ) {
-
-        // 서비스 호출
-        CreateFreeGameResponse response = freeGameService.createFreeGame(userId, request);
-        URI location = URI.create("/free-games/" + response.getGameId());
+        CreateFreeGameCommand command = createFreeGameCommandMapper.toCommand(request);
+        UUID gameId = createFreeGameUseCase.create(userId, command);
+        CreateFreeGameResponse response = CreateFreeGameResponse.builder()
+                .gameId(gameId)
+                .build();
+        URI location = URI.create("/free-games/" + gameId);
 
         return ResponseEntity
                 .created(location)
