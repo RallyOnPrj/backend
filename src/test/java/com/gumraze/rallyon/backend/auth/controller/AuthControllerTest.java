@@ -6,6 +6,7 @@ import com.gumraze.rallyon.backend.auth.service.AuthService;
 import com.gumraze.rallyon.backend.auth.service.OAuthLoginResult;
 import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.auth.token.JwtProperties;
+import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.config.SecurityConfig;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -95,6 +96,21 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.title").exists());
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 리프레시 토큰이면 401 ProblemDetail을 반환한다")
+    void refresh_with_invalid_cookie_returns_unauthorized() throws Exception {
+        when(authService.refresh("bad-refresh"))
+                .thenThrow(new UnauthorizedException("유효하지 않은 Refresh Token입니다."));
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(new Cookie("refresh_token", "bad-refresh"))
+                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("유효하지 않은 Refresh Token입니다."));
     }
 
     @Test

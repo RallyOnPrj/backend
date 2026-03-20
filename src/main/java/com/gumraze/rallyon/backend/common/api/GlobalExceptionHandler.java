@@ -3,6 +3,7 @@ package com.gumraze.rallyon.backend.common.api;
 import com.gumraze.rallyon.backend.common.exception.ConflictException;
 import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
 import com.gumraze.rallyon.backend.common.exception.NotFoundException;
+import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.common.exception.UnprocessableEntityException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -129,6 +130,22 @@ public class GlobalExceptionHandler {
                 HttpStatus.FORBIDDEN,
                 "/problems/forbidden",
                 "접근 권한이 없습니다.",
+                ex.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ProblemDetail> handleUnauthorized(
+            UnauthorizedException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("[인증 실패]: {}", ex.getMessage());
+
+        return buildProblemDetailResponse(
+                HttpStatus.UNAUTHORIZED,
+                "/problems/unauthorized",
+                "인증에 실패했습니다.",
                 ex.getMessage(),
                 request
         );

@@ -7,6 +7,7 @@ import com.gumraze.rallyon.backend.auth.oauth.OAuthUserInfo;
 import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenGenerator;
 import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.auth.token.JwtProperties;
+import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -319,7 +320,7 @@ class AuthServiceTest {
         // given
         RefreshTokenService localRefreshTokenService = mock(RefreshTokenService.class);
         when(localRefreshTokenService.validateAndGetUserId("bad-refresh"))
-                .thenThrow(new RuntimeException("invalid refresh token"));
+                .thenThrow(new UnauthorizedException("유효하지 않은 Refresh Token입니다."));
         AuthService localAuthService = newAuthService(
                 userAuthRepository,
                 localRefreshTokenService,
@@ -329,8 +330,8 @@ class AuthServiceTest {
 
         // when/then
         assertThatThrownBy(() -> localAuthService.refresh("bad-refresh"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("invalid refresh token");
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("유효하지 않은 Refresh Token입니다.");
         verify(localRefreshTokenService).validateAndGetUserId("bad-refresh");
         verify(localRefreshTokenService, never()).rotate(any(UUID.class));
     }

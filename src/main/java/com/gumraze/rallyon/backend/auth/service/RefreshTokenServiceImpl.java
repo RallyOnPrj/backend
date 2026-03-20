@@ -4,6 +4,7 @@ import com.gumraze.rallyon.backend.auth.entity.RefreshToken;
 import com.gumraze.rallyon.backend.auth.repository.RefreshTokenRepository;
 import com.gumraze.rallyon.backend.auth.token.JwtProperties;
 import com.gumraze.rallyon.backend.auth.token.RefreshTokenGenerator;
+import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
      *
      * @param userId the user's identifier (primary key) whose refresh token will be rotated
      * @return the newly generated plaintext refresh token
-     * @throws NoSuchElementException if no user exists with the given id
+     * @throws UnauthorizedException if no user exists with the given id
      */
     @Override
     public String rotate(UUID userId) {
         // 사용자 id 조회
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnauthorizedException("사용자를 찾을 수 없습니다."));
 
         // 기존 Refresh Token 삭제
         jpaRefreshTokenRepository.deleteByUser(user);
@@ -55,16 +57,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public UUID validateAndGetUserId(String token) {
+        if (token == null || token.isBlank()) {
+            throw new UnauthorizedException("Refresh Token이 없습니다.");
+        }
+
         String tokenHash = refreshTokenGenerator.hash(token);
 
         // Refresh Token 조회
         RefreshToken refreshToken = jpaRefreshTokenRepository
                 .findByTokenHash(tokenHash)
-                .orElseThrow();
+                .orElseThrow(() -> new UnauthorizedException("유효하지 않은 Refresh Token입니다."));
 
-        if (refreshToken.getExpiredAt().isBefore(LocalDateTime.now())) {
+        if (refreshToken.isExpired()) {
             jpaRefreshTokenRepository.delete(refreshToken); // 만료 토큰 정리
-            throw new RuntimeException("Refresh Token이 만료되었습니다.");
+            throw new UnauthorizedException("만료된 Refresh Token입니다.");
         }
 
         return refreshToken.getUser().getId();
