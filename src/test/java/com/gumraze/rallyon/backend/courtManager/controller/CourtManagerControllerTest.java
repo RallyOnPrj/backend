@@ -120,7 +120,7 @@ class CourtManagerControllerTest {
                         new CreateFreeGameRequest.ParticipantRequest(
                                 "p1",
                                 null,
-                                "참가자 1",
+                                "참가자",
                                 Gender.MALE,
                                 Grade.ROOKIE,
                                 20
@@ -140,7 +140,7 @@ class CourtManagerControllerTest {
                         new CreateFreeGameCommand.Participant(
                                 "p1",
                                 null,
-                                "참가자 1",
+                                "참가자",
                                 Gender.MALE,
                                 Grade.ROOKIE,
                                 20

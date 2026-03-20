@@ -70,7 +70,7 @@ class CourtManagerControllerAuthTest {
                         new CreateFreeGameRequest.ParticipantRequest(
                                 "p1",
                                 null,
-                                "참가자 1",
+                                "참가자",
                                 Gender.MALE,
                                 Grade.ROOKIE,
                                 20

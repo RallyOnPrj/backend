@@ -124,7 +124,7 @@ class CourtManagerControllerValidationTest {
                 List.of(new CreateFreeGameRequest.ParticipantRequest(
                         "p1",
                         null,
-                        "참가자 1",
+                        "참가자",
                         null,
                         Grade.ROOKIE,
                         20
@@ -145,7 +145,28 @@ class CourtManagerControllerValidationTest {
                 List.of(new CreateFreeGameRequest.ParticipantRequest(
                         null,
                         null,
-                        "참가자 1",
+                        "참가자",
+                        Gender.MALE,
+                        Grade.ROOKIE,
+                        20
+                )),
+                List.of()
+        ));
+    }
+
+    @Test
+    @DisplayName("자유게임 생성 시 participant originalName이 한글 또는 영문이 아니면 400")
+    void createFreeGame_with_invalid_participant_originalName() throws Exception {
+        assertCreateFreeGameBadRequest(createRequest(
+                "자유게임 1",
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                List.of(new CreateFreeGameRequest.ParticipantRequest(
+                        "p1",
+                        null,
+                        "1234",
                         Gender.MALE,
                         Grade.ROOKIE,
                         20

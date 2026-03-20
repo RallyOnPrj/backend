@@ -45,6 +45,10 @@ public record CreateFreeGameRequest(
             UUID userId,
 
             @NotBlank
+            @Pattern(
+                    regexp = "^(?=.*[A-Za-z가-힣])[A-Za-z가-힣 ]+$",
+                    message = "참가자 이름은 한글 또는 영문만 입력할 수 있습니다."
+            )
             String originalName,
 
             @NotNull
