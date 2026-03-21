@@ -34,13 +34,14 @@ public class SaveFreeGamePersistenceAdapterTest {
         User organizer = User.builder().id(UUID.randomUUID()).build();
         UUID gameId = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .title("자유게임")
-                .organizer(organizer)
-                .gradeType(GradeType.NATIONAL)
-                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
-                .location("잠실 배드민턴장")
-                .build();
+        FreeGame freeGame = FreeGame.create(
+                "자유게임",
+                organizer,
+                GradeType.NATIONAL,
+                MatchRecordMode.STATUS_ONLY,
+                null,
+                "잠실 배드민턴장"
+        );
 
         FreeGame savedFreeGame = FreeGame.builder()
                 .id(gameId)

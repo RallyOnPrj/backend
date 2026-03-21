@@ -43,14 +43,14 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
         validateManagerIds(organizerId, command.managerIds());
         String shareCode = issueShareCodePort.issue();
 
-        FreeGame freeGame = FreeGame.builder()
-                .title(command.title())
-                .organizer(organizer)
-                .gradeType(command.gradeType())
-                .matchRecordMode(matchRecordMode)
-                .shareCode(shareCode)
-                .location(command.location())
-                .build();
+        FreeGame freeGame = FreeGame.create(
+                command.title(),
+                organizer,
+                command.gradeType(),
+                matchRecordMode,
+                shareCode,
+                command.location()
+        );
 
         FreeGame savedGame = saveFreeGamePort.save(freeGame);
         saveFreeGameSettingPort.save(savedGame, command.courtCount(), command.roundCount());

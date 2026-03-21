@@ -65,6 +65,27 @@ public class FreeGame {
 
     protected FreeGame() {}
 
+    public static FreeGame create(
+            String title,
+            User organizer,
+            GradeType gradeType,
+            MatchRecordMode matchRecordMode,
+            String shareCode,
+            String location
+    ) {
+        FreeGame freeGame = new FreeGame();
+        freeGame.title = title;
+        freeGame.organizer = organizer;
+        freeGame.gradeType = gradeType;
+        freeGame.matchRecordMode = matchRecordMode;
+        freeGame.shareCode = shareCode;
+        freeGame.location = location;
+        freeGame.gameType = GameType.FREE;
+        freeGame.gameStatus = GameStatus.NOT_STARTED;
+        return freeGame;
+    }
+
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

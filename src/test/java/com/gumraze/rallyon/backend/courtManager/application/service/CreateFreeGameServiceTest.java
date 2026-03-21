@@ -7,6 +7,8 @@ import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGam
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameRoundPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameSettingPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveGameParticipantPort;
+import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
+import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.CourtAssignment;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.RoundAssignment;
@@ -110,6 +112,8 @@ class CreateFreeGameServiceTest {
         FreeGame freeGame = freeGameCaptor.getValue();
         assertThat(freeGame.getOrganizer()).isEqualTo(organizer);
         assertThat(freeGame.getShareCode()).isEqualTo(shareCode);
+        assertThat(freeGame.getGameType()).isEqualTo(GameType.FREE);
+        assertThat(freeGame.getGameStatus()).isEqualTo(GameStatus.NOT_STARTED);
         assertThat(freeGame.getMatchRecordMode()).isEqualTo(MatchRecordMode.RESULT);
         assertThat(freeGame.getLocation()).isEqualTo("잠실 배드민턴장");
 
