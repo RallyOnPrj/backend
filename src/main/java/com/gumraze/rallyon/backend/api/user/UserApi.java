@@ -3,7 +3,6 @@ package com.gumraze.rallyon.backend.api.user;
 import com.gumraze.rallyon.backend.api.common.ApiAuthValidationResponses;
 import com.gumraze.rallyon.backend.api.common.ApiBearerAuth;
 import com.gumraze.rallyon.backend.user.dto.*;
-import com.gumraze.rallyon.backend.user.entity.UserProfileUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

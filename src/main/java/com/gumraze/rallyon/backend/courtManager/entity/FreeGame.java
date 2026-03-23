@@ -1,14 +1,17 @@
 package com.gumraze.rallyon.backend.courtManager.entity;
 
+import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import com.gumraze.rallyon.backend.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,7 +21,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @Table(name = "free_games")
-public class FreeGame {
+public class FreeGame extends MutableAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -57,10 +60,12 @@ public class FreeGame {
     @Column(name = "location", length = 255)
     private String location;
 
-    @Column(name = "created_at")
+    @Setter(AccessLevel.PROTECTED)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Setter(AccessLevel.PROTECTED)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     protected FreeGame() {}
@@ -85,18 +90,6 @@ public class FreeGame {
         return freeGame;
     }
 
-
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public void update(
             String title,

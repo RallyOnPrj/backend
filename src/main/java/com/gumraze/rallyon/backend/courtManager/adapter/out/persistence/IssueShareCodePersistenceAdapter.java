@@ -1,8 +1,8 @@
 package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
 import com.gumraze.rallyon.backend.courtManager.application.port.out.IssueShareCodePort;
-import com.gumraze.rallyon.backend.courtManager.repository.GameRepository;
-import com.gumraze.rallyon.backend.courtManager.service.ShareCodeGenerator;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameRepository;
+import com.gumraze.rallyon.backend.courtManager.domain.share.ShareCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

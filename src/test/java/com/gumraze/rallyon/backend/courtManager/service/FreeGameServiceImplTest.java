@@ -1,6 +1,7 @@
 package com.gumraze.rallyon.backend.courtManager.service;
 
 import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
+import com.gumraze.rallyon.backend.courtManager.domain.share.ShareCodeGenerator;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchResult;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.RoundStatus;
@@ -9,7 +10,7 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameMatch;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameRound;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.courtManager.repository.*;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.*;
 import com.gumraze.rallyon.backend.courtManager.service.support.FreeGameFixtures;
 import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.repository.UserRepository;

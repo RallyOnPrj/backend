@@ -3,7 +3,7 @@ package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameSettingPort;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameSetting;
-import com.gumraze.rallyon.backend.courtManager.repository.FreeGameSettingRepository;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameSettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

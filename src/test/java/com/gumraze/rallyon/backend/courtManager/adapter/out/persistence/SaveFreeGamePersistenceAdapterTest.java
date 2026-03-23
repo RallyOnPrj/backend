@@ -2,7 +2,7 @@ package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
-import com.gumraze.rallyon.backend.courtManager.repository.GameRepository;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameRepository;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import com.gumraze.rallyon.backend.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;

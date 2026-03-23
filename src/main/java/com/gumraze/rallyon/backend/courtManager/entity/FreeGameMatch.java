@@ -1,13 +1,16 @@
 package com.gumraze.rallyon.backend.courtManager.entity;
 
+import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchResult;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchType;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,7 +24,7 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(columnNames = {"round_id", "court_number"})
 )
 @NoArgsConstructor
-public class FreeGameMatch {
+public class FreeGameMatch extends MutableAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -61,21 +64,11 @@ public class FreeGameMatch {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;       // 코트 삭제 시 삭제된 코트를 표시하기 위함, 소프트 삭제용
 
+    @Setter(AccessLevel.PROTECTED)
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Setter(AccessLevel.PROTECTED)
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

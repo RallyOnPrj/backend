@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
-import com.gumraze.rallyon.backend.courtManager.repository.GameRepository;
-import com.gumraze.rallyon.backend.courtManager.service.ShareCodeGenerator;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameRepository;
+import com.gumraze.rallyon.backend.courtManager.domain.share.ShareCodeGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

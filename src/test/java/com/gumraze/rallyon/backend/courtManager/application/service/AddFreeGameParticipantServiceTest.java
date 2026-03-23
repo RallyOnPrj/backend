@@ -1,5 +1,7 @@
 package com.gumraze.rallyon.backend.courtManager.application.service;
 
+import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
+import com.gumraze.rallyon.backend.common.exception.NotFoundException;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.AddFreeGameParticipantCommand;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.AddGameParticipantPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadFreeGamePort;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -59,7 +62,7 @@ class AddFreeGameParticipantServiceTest {
                 .build();
 
         // 게임 stub
-        given(loadFreeGamePort.loadById(gameId)).willReturn(Optional.of(freeGame));
+        given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         UUID participantId = UUID.randomUUID();
         AddFreeGameParticipantCommand command = new AddFreeGameParticipantCommand(
@@ -88,9 +91,53 @@ class AddFreeGameParticipantServiceTest {
 
         // then
         assertThat(result).isEqualTo(participantId);
-        verify(loadFreeGamePort).loadById(gameId);
+        verify(loadFreeGamePort).loadGameById(gameId);
         verify(addGameParticipantPort).add(freeGame, command);
     }
 
+    @Test
+    @DisplayName("존재하지 않는 자유게임이면 예외가 발생한다.")
+    void add_throwsWhenGameDoesNotExist() {
+        UUID organizerId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
 
+        given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.add(
+                organizerId,
+                gameId,
+                new AddFreeGameParticipantCommand(null, "서승재", Gender.MALE, Grade.C, 20)
+        ))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining(gameId.toString());
+    }
+
+    @Test
+    @DisplayName("운영자가 아니면 참가자를 추가할 수 없다.")
+    void add_throwsWhenRequesterIsNotOrganizer() {
+        UUID organizerId = UUID.randomUUID();
+        UUID requesterId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+
+        User organizer = User.builder().id(organizerId).build();
+        FreeGame freeGame = FreeGame.builder()
+                .id(gameId)
+                .title("자유게임")
+                .organizer(organizer)
+                .gradeType(GradeType.NATIONAL)
+                .matchRecordMode(MatchRecordMode.RESULT)
+                .shareCode("share-code")
+                .location("숙지배드민턴")
+                .build();
+
+        given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
+
+        assertThatThrownBy(() -> service.add(
+                requesterId,
+                gameId,
+                new AddFreeGameParticipantCommand(null, "서승재", Gender.MALE, Grade.C, 20)
+        ))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessageContaining(gameId.toString());
+    }
 }

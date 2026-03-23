@@ -1,4 +1,4 @@
-package com.gumraze.rallyon.backend.courtManager.controller;
+package com.gumraze.rallyon.backend.courtManager.adapter.in.web;
 
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;

@@ -12,13 +12,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
-jwt:
-  access-token:
-    secret: ${JWT_ACCESS_TOKEN_SECRET}
-    expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
-  refresh-token:
-    expiration-hours: ${JWT_REFRESH_TOKEN_EXPIRATION_HOURS}
-
 oauth:
   allowed-providers: ${OAUTH_ALLOWED_PROVIDERS:KAKAO}
   dummy:
@@ -26,14 +19,27 @@ oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
+    authorization-uri: ${KAKAO_AUTHORIZATION_URI:https://kauth.kakao.com/oauth/authorize}
     token-uri: https://kauth.kakao.com/oauth/token
     user-info-uri: https://kapi.kakao.com/v2/user/me
+    scopes:
+      - profile_nickname
+      - profile_image
+      - account_email
+      - gender
+      - age_range
+      - birthday
   google:
-    enabled: false
+    enabled: ${GOOGLE_OAUTH_ENABLED:false}
     client-id: ${GOOGLE_CLIENT_ID:}
     client-secret: ${GOOGLE_CLIENT_SECRET:}
+    authorization-uri: ${GOOGLE_AUTHORIZATION_URI:https://accounts.google.com/o/oauth2/v2/auth}
     token-uri: https://oauth2.googleapis.com/token
     user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+    scopes:
+      - openid
+      - profile
+      - email
 
 server:
   port: 8080
@@ -43,6 +49,33 @@ logging:
     root: INFO
 
 app:
+  auth:
+    issuer: ${APP_AUTH_ISSUER:https://auth.rallyon.test}
+    frontend-base-url: ${APP_AUTH_FRONTEND_BASE_URL:https://rallyon.test}
+    browser-client:
+      client-id: ${APP_AUTH_BROWSER_CLIENT_ID:rallyon-web}
+      redirect-uri: ${APP_AUTH_BROWSER_REDIRECT_URI:https://auth.rallyon.test/identity/session/callback}
+      scopes:
+        - openid
+        - profile
+        - email
+    cookies:
+      access-token-name: ${APP_AUTH_ACCESS_TOKEN_COOKIE_NAME:access_token}
+      access-token-domain: ${APP_AUTH_ACCESS_TOKEN_COOKIE_DOMAIN:.rallyon.test}
+      access-token-path: ${APP_AUTH_ACCESS_TOKEN_COOKIE_PATH:/}
+      refresh-token-name: ${APP_AUTH_REFRESH_TOKEN_COOKIE_NAME:refresh_token}
+      refresh-token-domain: ${APP_AUTH_REFRESH_TOKEN_COOKIE_DOMAIN:}
+      refresh-token-path: ${APP_AUTH_REFRESH_TOKEN_COOKIE_PATH:/identity}
+      same-site: ${APP_AUTH_COOKIE_SAME_SITE:Lax}
+      secure: ${APP_AUTH_COOKIE_SECURE:true}
+    tokens:
+      access-token-expiration-seconds: ${APP_AUTH_ACCESS_TOKEN_EXPIRATION_SECONDS:900}
+      refresh-token-expiration-seconds: ${APP_AUTH_REFRESH_TOKEN_EXPIRATION_SECONDS:1209600}
+      authorization-code-expiration-seconds: ${APP_AUTH_AUTHORIZATION_CODE_EXPIRATION_SECONDS:300}
+  security:
+    resource-server:
+      host: ${APP_API_HOST:api.rallyon.test}
+      access-token-name: ${APP_AUTH_ACCESS_TOKEN_COOKIE_NAME:access_token}
   cors:
     allowed-origins:
       - http://localhost:3000
@@ -51,6 +84,7 @@ app:
       - https://localhost:3001
       - https://localhost:3433
       - https://rallyon.test
+      - https://auth.rallyon.test
 
 naver:
   search:

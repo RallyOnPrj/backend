@@ -8,7 +8,7 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameMatch;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameRound;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.courtManager.repository.*;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.*;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
@@ -80,12 +80,14 @@ public class GetFreeGameParticipantsUseCaseTest {
         // given
         UUID gameId = UUID.randomUUID();
         UUID organizerId = UUID.randomUUID();
+        LocalDateTime earlier = LocalDateTime.of(2025, 1, 1, 10, 0);
+        LocalDateTime later = earlier.plusMinutes(5);
 
         FreeGame freeGame = buildFreeGame(gameId, organizerId, MatchRecordMode.RESULT);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(freeGame));
 
-        GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "KimB", null);
-        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "KimA", buildUser(UUID.randomUUID()));
+        GameParticipant p1 = buildParticipant(UUID.randomUUID(), freeGame, "KimB", null, earlier);
+        GameParticipant p2 = buildParticipant(UUID.randomUUID(), freeGame, "KimA", buildUser(UUID.randomUUID()), later);
         when(gameParticipantRepository.findByFreeGameId(gameId))
                 .thenReturn(List.of(p1, p2));
 
@@ -94,6 +96,8 @@ public class GetFreeGameParticipantsUseCaseTest {
 
         // then
         assertThat(response.getParticipants()).hasSize(2);
+        assertThat(response.getParticipants().get(0).getDisplayName()).isEqualTo("KimB");
+        assertThat(response.getParticipants().get(1).getDisplayName()).isEqualTo("KimA");
         Map<String, FreeGameParticipantResponse> participantsByName = response.getParticipants().stream()
                 .collect(Collectors.toMap(FreeGameParticipantResponse::getDisplayName, Function.identity()));
 
@@ -224,6 +228,16 @@ public class GetFreeGameParticipantsUseCaseTest {
     }
 
     private GameParticipant buildParticipant(UUID id, FreeGame freeGame, String displayName, User user) {
+        return buildParticipant(id, freeGame, displayName, user, LocalDateTime.now());
+    }
+
+    private GameParticipant buildParticipant(
+            UUID id,
+            FreeGame freeGame,
+            String displayName,
+            User user,
+            LocalDateTime createdAt
+    ) {
         return GameParticipant.builder()
                 .id(id)
                 .freeGame(freeGame)
@@ -233,8 +247,8 @@ public class GetFreeGameParticipantsUseCaseTest {
                 .gender(Gender.MALE)
                 .grade(Grade.ROOKIE)
                 .ageGroup(30)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(createdAt)
+                .updatedAt(createdAt)
                 .build();
     }
 

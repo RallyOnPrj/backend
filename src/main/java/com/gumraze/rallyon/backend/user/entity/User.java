@@ -1,5 +1,6 @@
 package com.gumraze.rallyon.backend.user.entity;
 
+import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.user.constants.UserRole;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @Table(name = "users")
-public class User {
+public class User extends MutableAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,15 +43,4 @@ public class User {
     // JPA 프록시 생성을 위한 기본 생성자
     protected User() {}
 
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

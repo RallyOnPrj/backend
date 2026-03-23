@@ -5,16 +5,14 @@ import com.gumraze.rallyon.backend.common.exception.NotFoundException;
 import com.gumraze.rallyon.backend.courtManager.constants.*;
 import com.gumraze.rallyon.backend.courtManager.dto.*;
 import com.gumraze.rallyon.backend.courtManager.entity.*;
-import com.gumraze.rallyon.backend.courtManager.repository.*;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
 public class FreeGameServiceImpl implements FreeGameService {
 
@@ -263,8 +261,6 @@ public class FreeGameServiceImpl implements FreeGameService {
                         .freeGame(freeGame)
                         .roundNumber(roundRequest.getRoundNumber())
                         .roundStatus(RoundStatus.NOT_STARTED)
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
                         .build();
                 resolvedRound = freeGameRoundRepository.save(resolvedRound);
             }
@@ -314,9 +310,17 @@ public class FreeGameServiceImpl implements FreeGameService {
         // organizer 권한 검증 및 게임 조회
         FreeGame freeGame = validateGameAndOrganizer(gameId, userId);
 
-        // 참가자 기본 목록은 ID 오름차순 정렬
+        // 참가자 기본 목록은 생성 순서 기준으로 정렬
         List<GameParticipant> participants = gameParticipantRepository.findByFreeGameId(gameId).stream()
-                .sorted(Comparator.comparing(GameParticipant::getId))
+                .sorted(Comparator
+                        .comparing(
+                                GameParticipant::getCreatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        )
+                        .thenComparing(
+                                GameParticipant::getId,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        ))
                 .toList();
 
         MatchRecordMode matchRecordMode = freeGame.getMatchRecordMode();

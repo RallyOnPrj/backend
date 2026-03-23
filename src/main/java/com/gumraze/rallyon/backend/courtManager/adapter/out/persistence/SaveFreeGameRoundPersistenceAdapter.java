@@ -10,9 +10,9 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameMatch;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameRound;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.courtManager.repository.FreeGameMatchRepository;
-import com.gumraze.rallyon.backend.courtManager.repository.FreeGameRoundRepository;
-import com.gumraze.rallyon.backend.courtManager.repository.GameParticipantRepository;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameMatchRepository;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameRoundRepository;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

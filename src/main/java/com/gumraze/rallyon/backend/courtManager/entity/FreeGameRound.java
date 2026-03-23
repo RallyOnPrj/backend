@@ -1,5 +1,6 @@
 package com.gumraze.rallyon.backend.courtManager.entity;
 
+import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.courtManager.constants.RoundStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.util.UUID;
         name = "free_game_round",
         uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "round_number"})
 )
-public class FreeGameRound {
+public class FreeGameRound extends MutableAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -41,15 +42,4 @@ public class FreeGameRound {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }
