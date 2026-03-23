@@ -1,6 +1,7 @@
 package com.gumraze.rallyon.backend.identity.adapter.in.web;
 
 import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvidersProperties;
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.authentication.adapter.out.oauth.OAuthAuthorizationUrlFactory;
@@ -61,6 +62,7 @@ public class IdentityController {
     private final AuthorizationServerTokenClient authorizationServerTokenClient;
     private final AuthorizationServerProperties properties;
     private final OAuth2AuthorizationService authorizationService;
+    private final OAuthAllowedProvidersProperties allowedProviders;
     private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public IdentityController(
@@ -71,7 +73,8 @@ public class IdentityController {
             BrowserAuthorizationRequestContextRepository contextRepository,
             AuthorizationServerTokenClient authorizationServerTokenClient,
             AuthorizationServerProperties properties,
-            OAuth2AuthorizationService authorizationService
+            OAuth2AuthorizationService authorizationService,
+            OAuthAllowedProvidersProperties allowedProviders
     ) {
         this.registerLocalIdentityUseCase = registerLocalIdentityUseCase;
         this.localIdentityAuthenticator = localIdentityAuthenticator;
@@ -81,6 +84,7 @@ public class IdentityController {
         this.authorizationServerTokenClient = authorizationServerTokenClient;
         this.properties = properties;
         this.authorizationService = authorizationService;
+        this.allowedProviders = allowedProviders;
     }
 
     @PostMapping("/password/register")
@@ -89,6 +93,20 @@ public class IdentityController {
                 new RegisterLocalIdentityCommand(request.getEmail(), request.getPassword())
         );
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/login/context")
+    public ResponseEntity<LoginContextResponse> loginContext(HttpServletRequest request) {
+        Optional<BrowserAuthorizationRequestContext> context = contextRepository.load(request.getSession(true));
+
+        return ResponseEntity.ok(new LoginContextResponse(
+                context.isPresent(),
+                context.map(BrowserAuthorizationRequestContext::returnTo).orElse("/profile"),
+                allowedProviders.getAllowedProviders().stream()
+                        .filter(provider -> provider != AuthProvider.DUMMY)
+                        .toList(),
+                buildDummyOptions(context.orElse(null))
+        ));
     }
 
     @GetMapping("/session/start")
@@ -340,6 +358,36 @@ public class IdentityController {
         return properties.getIssuer() + "/login?error=" + errorCode;
     }
 
+    private List<DummyLoginOptionResponse> buildDummyOptions(BrowserAuthorizationRequestContext context) {
+        if (context == null || !allowedProviders.getAllowedProviders().contains(AuthProvider.DUMMY)) {
+            return List.of();
+        }
+
+        return List.of(
+                new DummyLoginOptionResponse(
+                        "DUMMY 로그인 (manager-local)",
+                        buildDummyStartUrl("manager-local", context.returnTo())
+                ),
+                new DummyLoginOptionResponse(
+                        "DUMMY 로그인 (player-local)",
+                        buildDummyStartUrl("player-local", context.returnTo())
+                ),
+                new DummyLoginOptionResponse(
+                        "DUMMY 로그인 (fresh-20ab6990)",
+                        buildDummyStartUrl("fresh-20ab6990", context.returnTo())
+                )
+        );
+    }
+
+    private String buildDummyStartUrl(String dummyCode, String returnTo) {
+        return UriComponentsBuilder.fromPath("/identity/session/start")
+                .queryParam("provider", AuthProvider.DUMMY.name())
+                .queryParam("dummyCode", dummyCode)
+                .queryParam("returnTo", returnTo)
+                .build(true)
+                .toUriString();
+    }
+
     private ResponseEntity<Void> redirect(String location) {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(location))
@@ -420,5 +468,19 @@ public class IdentityController {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    public record LoginContextResponse(
+            boolean hasSession,
+            String returnTo,
+            List<AuthProvider> allowedProviders,
+            List<DummyLoginOptionResponse> dummyOptions
+    ) {
+    }
+
+    public record DummyLoginOptionResponse(
+            String label,
+            String startUrl
+    ) {
     }
 }

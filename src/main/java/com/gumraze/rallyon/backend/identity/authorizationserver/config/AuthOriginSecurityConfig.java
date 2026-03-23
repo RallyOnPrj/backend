@@ -37,6 +37,7 @@ public class AuthOriginSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/login",
+                                "/identity/login/context",
                                 "/identity/session/**",
                                 "/identity/social/**",
                                 "/identity/local/login",

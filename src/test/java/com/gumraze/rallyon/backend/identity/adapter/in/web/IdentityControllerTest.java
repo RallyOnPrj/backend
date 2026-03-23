@@ -48,13 +48,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({IdentityController.class, IdentityLoginPageController.class})
+@WebMvcTest(IdentityController.class)
 @Import({
         SecurityConfig.class,
         AuthOriginSecurityConfig.class,
@@ -94,13 +95,11 @@ class IdentityControllerTest {
     private OAuth2AuthorizationService authorizationService;
 
     @Test
-    @DisplayName("auth 호스트에서는 백엔드 로그인 페이지를 제공한다")
-    void login_page_is_available_on_auth_host() throws Exception {
-        mockMvc.perform(get("/login")
+    @DisplayName("auth 호스트에서는 프론트 로그인 UI용 컨텍스트를 제공한다")
+    void login_context_is_available_on_auth_host() throws Exception {
+        mockMvc.perform(get("/identity/login/context")
                         .header(HttpHeaders.HOST, "auth.rallyon.test"))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
-                        .string(org.hamcrest.Matchers.containsString("RallyOn 로그인")));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -147,6 +146,28 @@ class IdentityControllerTest {
                 .get()
                 .extracting(BrowserAuthorizationRequestContext::returnTo)
                 .isEqualTo("/court-manager");
+    }
+
+    @Test
+    @DisplayName("로그인 컨텍스트는 세션 상태와 허용된 로그인 수단을 반환한다")
+    void login_context_returns_session_state_and_allowed_providers() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        contextRepository.save(session, new BrowserAuthorizationRequestContext(
+                "auth-state",
+                "social-state",
+                "code-verifier",
+                "/court-manager"
+        ));
+
+        mockMvc.perform(get("/identity/login/context")
+                        .header(HttpHeaders.HOST, "auth.rallyon.test")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasSession").value(true))
+                .andExpect(jsonPath("$.returnTo").value("/court-manager"))
+                .andExpect(jsonPath("$.allowedProviders").isArray())
+                .andExpect(jsonPath("$.allowedProviders[0]").value("KAKAO"))
+                .andExpect(jsonPath("$.dummyOptions").isArray());
     }
 
     @Test

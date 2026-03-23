@@ -2,7 +2,7 @@
 
 Spring Boot 3.5 기반 RallyOn 백엔드 서비스입니다. 현재는 하나의 앱 안에서 다음 역할을 함께 제공합니다.
 
-- `auth.rallyon.test`: Authorization Server, 백엔드 로그인 UI, 브라우저 세션 어댑터
+- `auth.rallyon.test`: Authorization Server, 프론트 로그인 UI, 브라우저 세션 어댑터
 - `api.rallyon.test`: Resource Server API
 
 ## 주요 기능
@@ -52,7 +52,7 @@ Spring Boot 3.5 기반 RallyOn 백엔드 서비스입니다. 현재는 하나의
 
 ## Origin 빠른 참고
 - Auth host: `https://auth.rallyon.test`
-  - `/login` (백엔드가 렌더링)
+  - `/login` (프론트가 렌더링, 인증 처리는 백엔드 `/identity/**` 사용)
   - `/oauth2/**`
   - `/.well-known/**`
   - `/identity/session/start`
