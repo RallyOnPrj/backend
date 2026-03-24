@@ -1,8 +1,8 @@
 package com.gumraze.rallyon.backend.courtManager.service.support;
 
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
-import com.gumraze.rallyon.backend.courtManager.repository.GameRepository;
-import com.gumraze.rallyon.backend.courtManager.service.ShareCodeGenerator;
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameRepository;
+import com.gumraze.rallyon.backend.courtManager.domain.share.ShareCodeGenerator;
 import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.repository.UserRepository;
 import org.mockito.ArgumentCaptor;

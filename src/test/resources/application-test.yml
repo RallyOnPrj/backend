@@ -21,4 +21,4 @@ jwt:
     expiration-hours: 5
 
 oauth:
-  allowed-providers: dummy, kakao
+  allowed-providers: dummy, kakao, google

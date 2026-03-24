@@ -1,6 +1,6 @@
 package com.gumraze.rallyon.backend.user.entity;
 
-import com.gumraze.rallyon.backend.region.entity.RegionDistrict;
+import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import jakarta.persistence.*;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserProfile {
+public class UserProfile extends MutableAuditEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -38,9 +38,8 @@ public class UserProfile {
     @Enumerated(EnumType.STRING)
     private Grade nationalGrade;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "district_id")
-    private RegionDistrict regionDistrict;
+    @Column(name = "district_id")
+    private UUID districtId;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -51,7 +50,10 @@ public class UserProfile {
     @Column(name = "tag_changed_at", nullable = false)
     private LocalDateTime tagChangedAt;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;    // 계정 생성 시점이 아닌 프로필 생성 시점
+
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
 }

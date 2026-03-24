@@ -1,5 +1,8 @@
 package com.gumraze.rallyon.backend.courtManager.application.service;
 
+import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
+import com.gumraze.rallyon.backend.common.exception.NotFoundException;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.AddFreeGameParticipantUseCase;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.AddFreeGameParticipantCommand;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.AddGameParticipantPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadFreeGamePort;
@@ -7,21 +10,25 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AddFreeGameParticipantService {
+@Transactional
+public class AddFreeGameParticipantService implements AddFreeGameParticipantUseCase {
 
     private final LoadFreeGamePort loadFreeGamePort;
     private final AddGameParticipantPort addGameParticipantPort;
 
+    @Override
     public UUID add(UUID organizerId, UUID gameId, AddFreeGameParticipantCommand command) {
-        FreeGame freeGame = loadFreeGamePort.loadById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 자유게임입니다."));
+        FreeGame freeGame = loadFreeGamePort.loadGameById(gameId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 자유게임입니다. gameId: " + gameId));
 
         if (!freeGame.getOrganizer().getId().equals(organizerId)) {
-            throw new IllegalArgumentException("자신이 운영하는 자유게임에만 참가자를 추가할 수 있습니다.");
+            throw new ForbiddenException("게임의 organizer가 아닙니다. gameId: " + gameId);
         }
 
         GameParticipant savedParticipant = addGameParticipantPort.add(freeGame, command);

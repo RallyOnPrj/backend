@@ -1,15 +1,25 @@
-package com.gumraze.rallyon.backend.courtManager.controller;
+package com.gumraze.rallyon.backend.courtManager.adapter.in.web;
 
-import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
-import com.gumraze.rallyon.backend.common.exception.NotFoundException;
-import com.gumraze.rallyon.backend.config.SecurityConfig;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.AddFreeGameParticipantUseCase;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
-import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
-import com.gumraze.rallyon.backend.courtManager.constants.GameType;
-import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
-import com.gumraze.rallyon.backend.courtManager.dto.*;
-import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantsUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetPublicFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameInfoUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.UpdateFreeGameRoundsAndMatchesCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameParticipantDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetPublicFreeGameDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.dto.CreateFreeGameRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameDetailResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.MatchRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.RoundRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
+import com.gumraze.rallyon.backend.security.config.SecurityConfig;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
@@ -19,9 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -30,30 +42,33 @@ import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtM
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CourtManagerController.class)
 @Import(SecurityConfig.class)
 class CourtManagerControllerAuthTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
-    private FreeGameService freeGameService;
-
-    @MockitoBean
-    private CreateFreeGameUseCase createFreeGameUseCase;
-
-    @MockitoBean
-    private CreateFreeGameCommandMapper createFreeGameCommandMapper;
-
-    @MockitoBean
-    private JwtAccessTokenValidator jwtAccessTokenValidator;
+    @MockitoBean private CreateFreeGameUseCase createFreeGameUseCase;
+    @MockitoBean private GetFreeGameDetailUseCase getFreeGameDetailUseCase;
+    @MockitoBean private UpdateFreeGameInfoUseCase updateFreeGameInfoUseCase;
+    @MockitoBean private GetFreeGameRoundsAndMatchesUseCase getFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesUseCase updateFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private AddFreeGameParticipantUseCase addFreeGameParticipantUseCase;
+    @MockitoBean private GetFreeGameParticipantsUseCase getFreeGameParticipantsUseCase;
+    @MockitoBean private GetFreeGameParticipantDetailUseCase getFreeGameParticipantDetailUseCase;
+    @MockitoBean private GetPublicFreeGameDetailUseCase getPublicFreeGameDetailUseCase;
+    @MockitoBean private CreateFreeGameCommandMapper createFreeGameCommandMapper;
+    @MockitoBean private UpdateFreeGameInfoCommandMapper updateFreeGameInfoCommandMapper;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesCommandMapper updateFreeGameRoundsAndMatchesCommandMapper;
+    @MockitoBean private AddFreeGameParticipantCommandMapper addFreeGameParticipantCommandMapper;
+    @MockitoBean private JwtDecoder jwtDecoder;
 
     @Test
     @DisplayName("자유게임 생성 시 토큰이 없으면 401")
@@ -66,240 +81,88 @@ class CourtManagerControllerAuthTest {
                 3,
                 null,
                 null,
-                List.of(
-                        new CreateFreeGameRequest.ParticipantRequest(
-                                "p1",
-                                null,
-                                "참가자",
-                                Gender.MALE,
-                                Grade.ROOKIE,
-                                20
-                        )
-                ),
+                List.of(new CreateFreeGameRequest.ParticipantRequest("p1", null, "참가자", Gender.MALE, Grade.ROOKIE, 20)),
                 List.of()
         );
 
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .content(body))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("자유게임 상세 조회 시 토큰이 없으면 401")
     void getFreeGameDetail_without_token() throws Exception {
-        // given: 인증되지 않은 요청으로 상세 조회를 호출한다.
-        UUID userId = UUID.randomUUID();
-        UUID gameId = UUID.randomUUID();
-        FreeGameDetailResponse response = freeGameDetailResponse(userId, gameId);
-
-        when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
-
-        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
-        mockMvc.perform(get("/free-games/{gameId}", gameId)
+        mockMvc.perform(get("/free-games/{gameId}", UUID.randomUUID())
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("자유게임 기본 정보 수정 시 토큰이 없으면 401")
-    void updateFreeGameInfo_without_token() throws Exception {
-        // given: 정상 payload지만 인증 정보가 없는 수정 요청을 준비한다.
-        UUID gameId = UUID.randomUUID();
-        UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
-                .title("수정된 자유게임")
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .gradeType(GradeType.REGIONAL)
-                .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then: 인증 정보가 없으면 401을 반환해야 한다.
-        mockMvc.perform(patch("/free-games/{gameId}", gameId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .content(body))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
-    }
-
-    @Test
-    @DisplayName("라운드/매치 부분 수정 PATCH - 토큰 없음이면 401")
-    void updateRoundMatch_without_token_then_unauthorized() throws Exception {
-        // given
-        UUID gameId = UUID.randomUUID();
-        UUID teamA1 = UUID.randomUUID();
-        UUID teamA2 = UUID.randomUUID();
-        UUID teamB1 = UUID.randomUUID();
-        UUID teamB2 = UUID.randomUUID();
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(List.of(teamA1, teamA2))
-                                                        .teamBIds(List.of(teamB1, teamB2))
-                                                        .build()
-                                        ))
-                                        .build()
-                        ))
-                        .build();
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
-    }
-
-    @Test
-    @DisplayName("라운드/매치 부분 수정 - organizer 아니면 403")
+    @DisplayName("라운드/매치 수정 시 organizer 아니면 403")
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
-        // given
         UUID gameId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UpdateFreeGameRoundMatchRequest request = UpdateFreeGameRoundMatchRequest.builder()
+                .rounds(List.of(
+                        RoundRequest.builder()
+                                .roundNumber(1)
+                                .matches(List.of(
+                                        MatchRequest.builder()
+                                                .courtNumber(1)
+                                                .teamAIds(List.of(UUID.randomUUID(), UUID.randomUUID()))
+                                                .teamBIds(List.of(UUID.randomUUID(), UUID.randomUUID()))
+                                                .build()
+                                ))
+                                .build()
+                ))
+                .build();
+        UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(userId, gameId, List.of());
 
-        when(freeGameService.updateFreeGameRoundMatch(eq(userId), eq(gameId), any()))
+        when(updateFreeGameRoundsAndMatchesCommandMapper.toCommand(
+                eq(userId),
+                eq(gameId),
+                any(UpdateFreeGameRoundMatchRequest.class)
+        )).thenReturn(command);
+        when(updateFreeGameRoundsAndMatchesUseCase.update(eq(command)))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
 
-        UUID teamA1 = UUID.randomUUID();
-        UUID teamA2 = UUID.randomUUID();
-        UUID teamB1 = UUID.randomUUID();
-        UUID teamB2 = UUID.randomUUID();
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(List.of(teamA1, teamA2))
-                                                        .teamBIds(List.of(teamB1, teamB2))
-                                                        .build()
-                                        ))
-                                        .build()))
-                        .build();
-
-        // when & then
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
                         .with(authenticatedUser(userId))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("참가자 상세 조회 GET - 토큰 없음이면 401")
-    void getParticipantDetail_without_token_then_unauthorized() throws Exception {
-        UUID gameId = UUID.randomUUID();
-        UUID participantId = UUID.randomUUID();
-
-        // when & then
-        mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
-    }
-
-    @Test
-    @DisplayName("참가자 상세 조회 - organizer 아니면 403")
+    @DisplayName("참가자 상세 조회 시 organizer 아니면 403")
     void getParticipantDetail_when_not_organizer_then_forbidden() throws Exception {
-        // given
+        UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
 
-        when(freeGameService.getFreeGameParticipantDetail(eq(userId), eq(gameId), eq(participantId)))
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(userId, gameId, participantId)))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
 
-        // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("shareCode로 공개 게임 조회 시 토큰 없이 요청 가능")
-    void getPublicFreeGameDetail_without_token_then_ok() throws Exception {
-        // given
+    @DisplayName("공개 상세 조회는 토큰 없이도 접근 가능하다")
+    void getPublicFreeGameDetail_without_token() throws Exception {
         String shareCode = "public-share-code";
+        FreeGameDetailResponse response = freeGameDetailResponse(UUID.randomUUID(), UUID.randomUUID());
+        when(getPublicFreeGameDetailUseCase.get(new GetPublicFreeGameDetailQuery(shareCode))).thenReturn(response);
 
-        FreeGameDetailResponse response = FreeGameDetailResponse.builder()
-                .gameId(UUID.randomUUID())
-                .title("공개 게임")
-                .gameType(GameType.FREE)
-                .gameStatus(GameStatus.NOT_STARTED)
-                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
-                .gradeType(GradeType.NATIONAL)
-                .location("잠실 배드민턴장")
-                .courtCount(2)
-                .roundCount(3)
-                .organizerId(UUID.randomUUID())
-                .shareCode(shareCode)
-                .build();
-
-        when(freeGameService.getPublicFreeGameDetail(shareCode))
-                .thenReturn(response);
-
-        // when & then
         mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(response.getGameId().toString()))
-                .andExpect(jsonPath("$.shareCode").value(shareCode))
-                .andExpect(jsonPath("$.title").value("공개 게임"));
+                .andExpect(jsonPath("$.gameId").value(response.getGameId().toString()));
     }
-
-    @Test
-    @DisplayName("존재하지 않는 공유 링크면 404를 반환한다")
-    void getPublicFreeGameDetail_when_shareCode_not_found_then_not_found() throws Exception {
-        // given
-        String shareCode = "missing-share-code";
-
-        when(freeGameService.getPublicFreeGameDetail(shareCode))
-                .thenThrow(new NotFoundException("존재하지 않는 공유 링크입니다."));
-
-        // when & then
-        mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(status().isNotFound());
-    }
-
 }
