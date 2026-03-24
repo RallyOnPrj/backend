@@ -9,6 +9,8 @@ import com.gumraze.rallyon.backend.identity.authorizationserver.domain.IdentityA
 import com.gumraze.rallyon.backend.identity.authorizationserver.domain.OAuthTokenResponse;
 import com.gumraze.rallyon.backend.identity.authorizationserver.support.BrowserAuthorizationRequestContextRepository;
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvidersProperties;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthProviderRegistry;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.dummy.DummyOAuthProperties;
 import com.gumraze.rallyon.backend.identity.authentication.adapter.out.oauth.OAuthAuthorizationUrlFactory;
 import com.gumraze.rallyon.backend.identity.authentication.application.service.LocalIdentityAuthenticator;
 import com.gumraze.rallyon.backend.identity.authentication.application.service.OAuthIdentityAuthenticator;
@@ -45,16 +47,18 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({IdentityController.class, IdentityLoginPageController.class})
+@WebMvcTest(IdentityController.class)
 @Import({
         SecurityConfig.class,
         AuthOriginSecurityConfig.class,
@@ -93,14 +97,23 @@ class IdentityControllerTest {
     @MockitoBean
     private OAuth2AuthorizationService authorizationService;
 
+    @MockitoBean
+    private OAuthProviderRegistry oAuthProviderRegistry;
+
+    @Autowired
+    void setUpRegistryDefaults() {
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.KAKAO)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.GOOGLE)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.APPLE)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.DUMMY)).thenReturn(true);
+    }
+
     @Test
-    @DisplayName("auth 호스트에서는 백엔드 로그인 페이지를 제공한다")
-    void login_page_is_available_on_auth_host() throws Exception {
-        mockMvc.perform(get("/login")
+    @DisplayName("auth 호스트에서는 프론트 로그인 UI용 컨텍스트를 제공한다")
+    void login_context_is_available_on_auth_host() throws Exception {
+        mockMvc.perform(get("/identity/login/context")
                         .header(HttpHeaders.HOST, "auth.rallyon.test"))
-                .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
-                        .string(org.hamcrest.Matchers.containsString("RallyOn 로그인")));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -147,6 +160,26 @@ class IdentityControllerTest {
                 .get()
                 .extracting(BrowserAuthorizationRequestContext::returnTo)
                 .isEqualTo("/court-manager");
+    }
+
+    @Test
+    @DisplayName("로그인 컨텍스트는 세션 상태와 허용된 로그인 수단을 반환한다")
+    void login_context_returns_session_state_and_allowed_providers() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        contextRepository.save(session, new BrowserAuthorizationRequestContext(
+                "auth-state",
+                "social-state",
+                "code-verifier",
+                "/court-manager"
+        ));
+
+        mockMvc.perform(get("/identity/login/context")
+                        .header(HttpHeaders.HOST, "auth.rallyon.test")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasSession").value(true))
+                .andExpect(jsonPath("$.returnTo").value("/court-manager"))
+                .andExpect(jsonPath("$.allowedProviders[0]").value("KAKAO"));
     }
 
     @Test
@@ -296,8 +329,13 @@ class IdentityControllerTest {
         @Bean
         OAuthAllowedProvidersProperties oAuthAllowedProvidersProperties() {
             OAuthAllowedProvidersProperties properties = new OAuthAllowedProvidersProperties();
-            properties.setAllowedProviders(List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.DUMMY));
+            properties.setAllowedProviders(List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.APPLE, AuthProvider.DUMMY));
             return properties;
+        }
+
+        @Bean
+        DummyOAuthProperties dummyOAuthProperties() {
+            return new DummyOAuthProperties(true, true);
         }
     }
 }
