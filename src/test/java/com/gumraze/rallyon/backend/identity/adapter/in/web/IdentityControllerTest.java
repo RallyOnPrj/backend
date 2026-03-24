@@ -9,6 +9,8 @@ import com.gumraze.rallyon.backend.identity.authorizationserver.domain.IdentityA
 import com.gumraze.rallyon.backend.identity.authorizationserver.domain.OAuthTokenResponse;
 import com.gumraze.rallyon.backend.identity.authorizationserver.support.BrowserAuthorizationRequestContextRepository;
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvidersProperties;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthProviderRegistry;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.dummy.DummyOAuthProperties;
 import com.gumraze.rallyon.backend.identity.authentication.adapter.out.oauth.OAuthAuthorizationUrlFactory;
 import com.gumraze.rallyon.backend.identity.authentication.application.service.LocalIdentityAuthenticator;
 import com.gumraze.rallyon.backend.identity.authentication.application.service.OAuthIdentityAuthenticator;
@@ -45,6 +47,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,6 +96,17 @@ class IdentityControllerTest {
 
     @MockitoBean
     private OAuth2AuthorizationService authorizationService;
+
+    @MockitoBean
+    private OAuthProviderRegistry oAuthProviderRegistry;
+
+    @Autowired
+    void setUpRegistryDefaults() {
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.KAKAO)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.GOOGLE)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.APPLE)).thenReturn(true);
+        lenient().when(oAuthProviderRegistry.supports(AuthProvider.DUMMY)).thenReturn(true);
+    }
 
     @Test
     @DisplayName("auth 호스트에서는 프론트 로그인 UI용 컨텍스트를 제공한다")
@@ -165,9 +179,11 @@ class IdentityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasSession").value(true))
                 .andExpect(jsonPath("$.returnTo").value("/court-manager"))
-                .andExpect(jsonPath("$.allowedProviders").isArray())
                 .andExpect(jsonPath("$.allowedProviders[0]").value("KAKAO"))
-                .andExpect(jsonPath("$.dummyOptions").isArray());
+                .andExpect(jsonPath("$.allowedProviders[1]").value("GOOGLE"))
+                .andExpect(jsonPath("$.allowedProviders[2]").value("APPLE"))
+                .andExpect(jsonPath("$.dummyOptions.length()").value(3))
+                .andExpect(jsonPath("$.dummyOptions[0].startUrl").value(org.hamcrest.Matchers.containsString("/identity/session/start?provider=DUMMY")));
     }
 
     @Test
@@ -317,8 +333,13 @@ class IdentityControllerTest {
         @Bean
         OAuthAllowedProvidersProperties oAuthAllowedProvidersProperties() {
             OAuthAllowedProvidersProperties properties = new OAuthAllowedProvidersProperties();
-            properties.setAllowedProviders(List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.DUMMY));
+            properties.setAllowedProviders(List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.APPLE, AuthProvider.DUMMY));
             return properties;
+        }
+
+        @Bean
+        DummyOAuthProperties dummyOAuthProperties() {
+            return new DummyOAuthProperties(true, true);
         }
     }
 }

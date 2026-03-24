@@ -2,6 +2,8 @@ package com.gumraze.rallyon.backend.identity.adapter.in.web;
 
 import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvidersProperties;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthProviderRegistry;
+import com.gumraze.rallyon.backend.identity.adapter.out.oauth.dummy.DummyOAuthProperties;
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.authentication.adapter.out.oauth.OAuthAuthorizationUrlFactory;
@@ -23,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +66,8 @@ public class IdentityController {
     private final AuthorizationServerProperties properties;
     private final OAuth2AuthorizationService authorizationService;
     private final OAuthAllowedProvidersProperties allowedProviders;
+    private final OAuthProviderRegistry oAuthProviderRegistry;
+    private final DummyOAuthProperties dummyOAuthProperties;
     private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public IdentityController(
@@ -74,7 +79,9 @@ public class IdentityController {
             AuthorizationServerTokenClient authorizationServerTokenClient,
             AuthorizationServerProperties properties,
             OAuth2AuthorizationService authorizationService,
-            OAuthAllowedProvidersProperties allowedProviders
+            OAuthAllowedProvidersProperties allowedProviders,
+            OAuthProviderRegistry oAuthProviderRegistry,
+            DummyOAuthProperties dummyOAuthProperties
     ) {
         this.registerLocalIdentityUseCase = registerLocalIdentityUseCase;
         this.localIdentityAuthenticator = localIdentityAuthenticator;
@@ -85,6 +92,8 @@ public class IdentityController {
         this.properties = properties;
         this.authorizationService = authorizationService;
         this.allowedProviders = allowedProviders;
+        this.oAuthProviderRegistry = oAuthProviderRegistry;
+        this.dummyOAuthProperties = dummyOAuthProperties;
     }
 
     @PostMapping("/password/register")
@@ -103,7 +112,7 @@ public class IdentityController {
                 context.isPresent(),
                 context.map(BrowserAuthorizationRequestContext::returnTo).orElse("/profile"),
                 allowedProviders.getAllowedProviders().stream()
-                        .filter(provider -> provider != AuthProvider.DUMMY)
+                        .filter(this::isVisibleSocialProvider)
                         .toList(),
                 buildDummyOptions(context.orElse(null))
         ));
@@ -134,6 +143,8 @@ public class IdentityController {
         if (provider == null) {
             return redirect("/login");
         }
+
+        validateRequestedProvider(provider);
 
         if (provider == AuthProvider.DUMMY) {
             if (dummyCode == null || dummyCode.isBlank()) {
@@ -172,6 +183,8 @@ public class IdentityController {
             @PathVariable AuthProvider provider,
             HttpServletRequest request
     ) {
+        validateRequestedProvider(provider);
+
         BrowserAuthorizationRequestContext context = contextRepository.load(request.getSession())
                 .orElseThrow(() -> new UnauthorizedException("로그인 세션이 만료되었습니다. 다시 시도해주세요."));
 
@@ -186,6 +199,29 @@ public class IdentityController {
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String error,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        return handleSocialCallback(provider, code, state, error, request, response);
+    }
+
+    @PostMapping(path = "/social/callback/{provider}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> socialCallbackFormPost(
+            @PathVariable AuthProvider provider,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String error,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        return handleSocialCallback(provider, code, state, error, request, response);
+    }
+
+    private ResponseEntity<Void> handleSocialCallback(
+            AuthProvider provider,
+            String code,
+            String state,
+            String error,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
@@ -359,7 +395,7 @@ public class IdentityController {
     }
 
     private List<DummyLoginOptionResponse> buildDummyOptions(BrowserAuthorizationRequestContext context) {
-        if (context == null || !allowedProviders.getAllowedProviders().contains(AuthProvider.DUMMY)) {
+        if (context == null || !isDummyLoginVisible()) {
             return List.of();
         }
 
@@ -386,6 +422,33 @@ public class IdentityController {
                 .queryParam("returnTo", returnTo)
                 .build(true)
                 .toUriString();
+    }
+
+    private boolean isVisibleSocialProvider(AuthProvider provider) {
+        return provider != AuthProvider.DUMMY
+                && allowedProviders.getAllowedProviders().contains(provider)
+                && oAuthProviderRegistry.supports(provider);
+    }
+
+    private boolean isDummyLoginVisible() {
+        return dummyOAuthProperties.enabled()
+                && dummyOAuthProperties.loginPageVisible()
+                && allowedProviders.getAllowedProviders().contains(AuthProvider.DUMMY)
+                && oAuthProviderRegistry.supports(AuthProvider.DUMMY);
+    }
+
+    private void validateRequestedProvider(AuthProvider provider) {
+        if (!allowedProviders.getAllowedProviders().contains(provider)) {
+            throw new UnauthorizedException("허용되지 않는 로그인 수단입니다.");
+        }
+
+        if (provider == AuthProvider.DUMMY && !isDummyLoginVisible()) {
+            throw new UnauthorizedException("테스트 로그인은 현재 환경에서 사용할 수 없습니다.");
+        }
+
+        if (provider != AuthProvider.DUMMY && !oAuthProviderRegistry.supports(provider)) {
+            throw new UnauthorizedException("현재 사용할 수 없는 로그인 수단입니다.");
+        }
     }
 
     private ResponseEntity<Void> redirect(String location) {
