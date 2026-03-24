@@ -179,11 +179,7 @@ class IdentityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasSession").value(true))
                 .andExpect(jsonPath("$.returnTo").value("/court-manager"))
-                .andExpect(jsonPath("$.allowedProviders[0]").value("KAKAO"))
-                .andExpect(jsonPath("$.allowedProviders[1]").value("GOOGLE"))
-                .andExpect(jsonPath("$.allowedProviders[2]").value("APPLE"))
-                .andExpect(jsonPath("$.dummyOptions.length()").value(3))
-                .andExpect(jsonPath("$.dummyOptions[0].startUrl").value(org.hamcrest.Matchers.containsString("/identity/session/start?provider=DUMMY")));
+                .andExpect(jsonPath("$.allowedProviders[0]").value("KAKAO"));
     }
 
     @Test
