@@ -26,4 +26,8 @@ public class OAuthProviderRegistry {
         }
         return resolved;
     }
+
+    public boolean supports(AuthProvider provider) {
+        return providers.containsKey(provider);
+    }
 }

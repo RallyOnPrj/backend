@@ -16,6 +16,7 @@ oauth:
   allowed-providers: ${OAUTH_ALLOWED_PROVIDERS:KAKAO}
   dummy:
     enabled: ${OAUTH_DUMMY_ENABLED:false}
+    login-page-visible: ${OAUTH_DUMMY_LOGIN_PAGE_VISIBLE:false}
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
@@ -39,6 +40,17 @@ oauth:
     scopes:
       - openid
       - profile
+      - email
+  apple:
+    enabled: ${APPLE_OAUTH_ENABLED:false}
+    client-id: ${APPLE_CLIENT_ID:}
+    team-id: ${APPLE_TEAM_ID:}
+    key-id: ${APPLE_KEY_ID:}
+    private-key: ${APPLE_PRIVATE_KEY:}
+    authorization-uri: ${APPLE_AUTHORIZATION_URI:https://appleid.apple.com/auth/authorize}
+    token-uri: ${APPLE_TOKEN_URI:https://appleid.apple.com/auth/token}
+    scopes:
+      - name
       - email
 
 server:
