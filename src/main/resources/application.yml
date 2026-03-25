@@ -27,9 +27,6 @@ oauth:
       - profile_nickname
       - profile_image
       - account_email
-      - gender
-      - age_range
-      - birthday
   google:
     enabled: ${GOOGLE_OAUTH_ENABLED:false}
     client-id: ${GOOGLE_CLIENT_ID:}
@@ -50,7 +47,6 @@ oauth:
     authorization-uri: ${APPLE_AUTHORIZATION_URI:https://appleid.apple.com/auth/authorize}
     token-uri: ${APPLE_TOKEN_URI:https://appleid.apple.com/auth/token}
     scopes:
-      - name
       - email
 
 server:
@@ -63,6 +59,7 @@ logging:
 app:
   auth:
     issuer: ${APP_AUTH_ISSUER:https://auth.rallyon.test}
+    internal-base-url: ${APP_AUTH_INTERNAL_BASE_URL:}
     frontend-base-url: ${APP_AUTH_FRONTEND_BASE_URL:https://rallyon.test}
     browser-client:
       client-id: ${APP_AUTH_BROWSER_CLIENT_ID:rallyon-web}
@@ -84,6 +81,11 @@ app:
       access-token-expiration-seconds: ${APP_AUTH_ACCESS_TOKEN_EXPIRATION_SECONDS:900}
       refresh-token-expiration-seconds: ${APP_AUTH_REFRESH_TOKEN_EXPIRATION_SECONDS:1209600}
       authorization-code-expiration-seconds: ${APP_AUTH_AUTHORIZATION_CODE_EXPIRATION_SECONDS:300}
+    signing-key:
+      private-key-pem: ${APP_AUTH_SIGNING_PRIVATE_KEY_PEM:}
+      private-key-path: ${APP_AUTH_SIGNING_PRIVATE_KEY_PATH:}
+      key-id: ${APP_AUTH_SIGNING_KEY_ID:rallyon-auth-key}
+      allow-generated-key-fallback: ${APP_AUTH_ALLOW_GENERATED_KEY_FALLBACK:true}
   security:
     resource-server:
       host: ${APP_API_HOST:api.rallyon.test}

@@ -12,10 +12,12 @@ import java.util.List;
 public class AuthorizationServerProperties {
 
     private String issuer = "http://localhost:8080";
+    private String internalBaseUrl;
     private String frontendBaseUrl = "http://localhost:3000";
     private BrowserClient browserClient = new BrowserClient();
     private Cookies cookies = new Cookies();
     private Tokens tokens = new Tokens();
+    private SigningKey signingKey = new SigningKey();
 
     @Getter
     @Setter
@@ -44,5 +46,14 @@ public class AuthorizationServerProperties {
         private long accessTokenExpirationSeconds = 3600;
         private long refreshTokenExpirationSeconds = 43200;
         private long authorizationCodeExpirationSeconds = 300;
+    }
+
+    @Getter
+    @Setter
+    public static class SigningKey {
+        private String privateKeyPem;
+        private String privateKeyPath;
+        private String keyId = "rallyon-auth-key";
+        private boolean allowGeneratedKeyFallback = true;
     }
 }
