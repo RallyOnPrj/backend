@@ -1,6 +1,6 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.oauth;
 
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

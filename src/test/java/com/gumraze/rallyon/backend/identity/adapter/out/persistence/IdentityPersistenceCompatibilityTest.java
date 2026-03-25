@@ -2,7 +2,7 @@ package com.gumraze.rallyon.backend.identity.adapter.out.persistence;
 
 import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityLocalCredentialRepository;
 import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityOAuthLinkRepository;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
 import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
 import com.gumraze.rallyon.backend.user.entity.User;

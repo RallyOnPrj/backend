@@ -2,8 +2,8 @@ package com.gumraze.rallyon.backend.identity.adapter.out.oauth.apple;
 
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.apple.dto.AppleTokenResponse;
 import com.gumraze.rallyon.backend.identity.application.port.out.OAuthProviderPort;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.authentication.OAuthUserInfo;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;

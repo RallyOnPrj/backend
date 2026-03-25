@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository;
 
 import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.oauth;
 
 import com.gumraze.rallyon.backend.identity.application.port.out.OAuthProviderPort;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;

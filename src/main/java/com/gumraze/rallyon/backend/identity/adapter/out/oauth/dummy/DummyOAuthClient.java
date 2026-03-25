@@ -1,8 +1,8 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.oauth.dummy;
 
 import com.gumraze.rallyon.backend.identity.application.port.out.OAuthProviderPort;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.authentication.OAuthUserInfo;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

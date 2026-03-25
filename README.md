@@ -54,14 +54,10 @@ Spring Boot 3.5 기반 RallyOn 백엔드 서비스입니다. 현재는 하나의
 
 ## Origin 빠른 참고
 - Auth host: `https://auth.rallyon.test`
-  - `/login` (프론트가 렌더링, 인증 처리는 백엔드 `/identity/**` 사용)
+  - auth UI
+  - `/identity/**`
   - `/oauth2/**`
   - `/.well-known/**`
-  - `/identity/session/start`
-  - `/identity/session/callback`
-  - `/identity/token/refresh`
-  - `/identity/logout`
-  - `POST /identity/password/register`
 - API host: `https://api.rallyon.test`
   - `/users/**`
   - `/regions/**`

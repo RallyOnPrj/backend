@@ -1,6 +1,6 @@
 package com.gumraze.rallyon.backend.identity.application.port.out;
 
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
 
 import java.util.Optional;

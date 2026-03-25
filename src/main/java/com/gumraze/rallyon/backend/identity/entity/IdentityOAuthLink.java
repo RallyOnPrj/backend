@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.identity.entity;
 
 import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
-import com.gumraze.rallyon.backend.identity.domain.authentication.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.entity.User;
 import jakarta.persistence.*;

@@ -7,8 +7,8 @@ import com.gumraze.rallyon.backend.identity.application.port.out.LoadLocalCreden
 import com.gumraze.rallyon.backend.identity.application.port.out.PasswordHasherPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveIdentityAccountPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveLocalCredentialPort;
-import com.gumraze.rallyon.backend.identity.domain.authentication.EmailNormalizer;
-import com.gumraze.rallyon.backend.identity.domain.authentication.PasswordPolicy;
+import com.gumraze.rallyon.backend.identity.domain.EmailNormalizer;
+import com.gumraze.rallyon.backend.identity.domain.PasswordPolicy;
 import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
 import com.gumraze.rallyon.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
