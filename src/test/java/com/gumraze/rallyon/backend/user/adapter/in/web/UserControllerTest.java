@@ -6,7 +6,7 @@ import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import com.gumraze.rallyon.backend.user.dto.UserMeResponse;
-import com.gumraze.rallyon.backend.user.dto.UserProfileIdentityUpdateRequest;
+import com.gumraze.rallyon.backend.user.dto.UserProfilePrefillResponseDto;
 import com.gumraze.rallyon.backend.user.dto.UserProfileResponseDto;
 import com.gumraze.rallyon.backend.user.dto.UserSearchResponse;
 import com.gumraze.rallyon.backend.user.dto.UserProfileUpdateRequest;
@@ -71,9 +71,6 @@ class UserControllerTest {
 
     @MockitoBean
     private UpdateMyProfileUseCase updateMyProfileUseCase;
-
-    @MockitoBean
-    private UpdateMyPublicIdentityUseCase updateMyPublicIdentityUseCase;
 
     @Test
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
@@ -225,6 +222,8 @@ class UserControllerTest {
     void update_my_profile_success() throws Exception {
         UUID userId = UUID.randomUUID();
         UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
+                .nickname("newNickname")
+                .tag("SON7")
                 .birthVisible(true)
                 .gender(Gender.MALE)
                 .regionalGrade(Grade.D)
@@ -241,21 +240,20 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("닉네임/태그 변경 성공 테스트")
-    void update_identity_success() throws Exception {
+    @DisplayName("프로필 초기값 조회 성공 테스트")
+    void get_profile_defaults_success() throws Exception {
         UUID userId = UUID.randomUUID();
-        UserProfileIdentityUpdateRequest request = UserProfileIdentityUpdateRequest.builder()
-                .nickname("newNickname")
-                .tag("SON7")
-                .build();
+        UserProfilePrefillResponseDto response =
+                new UserProfilePrefillResponseDto("kakao-player", true);
 
-        doNothing().when(updateMyPublicIdentityUseCase).update(any());
+        when(getMyProfilePrefillUseCase.get(any())).thenReturn(response);
 
-        mockMvc.perform(patch("/users/me/profile/identity")
+        mockMvc.perform(get("/users/me/profile/defaults")
                         .with(authenticatedUser(userId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNoContent());
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.suggestedNickname").value("kakao-player"))
+                .andExpect(jsonPath("$.hasOauthNickname").value(true));
     }
 
     private RequestPostProcessor authenticatedUser(UUID userId) {

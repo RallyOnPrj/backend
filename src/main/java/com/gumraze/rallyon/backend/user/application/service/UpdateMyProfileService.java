@@ -1,20 +1,20 @@
 package com.gumraze.rallyon.backend.user.application.service;
 
+import com.gumraze.rallyon.backend.common.exception.ConflictException;
 import com.gumraze.rallyon.backend.common.exception.NotFoundException;
+import com.gumraze.rallyon.backend.common.exception.UnprocessableEntityException;
 import com.gumraze.rallyon.backend.user.application.port.in.UpdateMyProfileUseCase;
 import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadRegionPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.application.port.out.SaveUserProfilePort;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
+import com.gumraze.rallyon.backend.user.service.UserProfileValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -24,11 +24,16 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
     private final LoadUserProfilePort loadUserProfilePort;
     private final SaveUserProfilePort saveUserProfilePort;
     private final LoadRegionPort loadRegionPort;
+    private final UserProfileValidator userProfileValidator;
 
     @Override
     public void update(UpdateMyProfileCommand command) {
+        userProfileValidator.validateForUpdate(command);
+
         UserProfile profile = loadUserProfilePort.loadByUserId(command.userId())
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
+
+        applyPublicIdentityChanges(profile, command);
 
         if (command.regionalGrade() != null) {
             profile.setRegionalGrade(command.regionalGrade());
@@ -37,7 +42,7 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
             profile.setNationalGrade(command.nationalGrade());
         }
         if (command.birth() != null) {
-            profile.setBirth(parseBirth(command.birth()));
+            profile.setBirth(userProfileValidator.parseBirthStartOfDay(command.birth()));
         }
         if (command.birthVisible() != null) {
             profile.setBirthVisible(command.birthVisible());
@@ -57,11 +62,39 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
         saveUserProfilePort.save(profile);
     }
 
-    private LocalDateTime parseBirth(String birth) {
-        LocalDate parsed = LocalDate.parse(
-                birth,
-                DateTimeFormatter.BASIC_ISO_DATE.withLocale(Locale.KOREA)
-        );
-        return parsed.atStartOfDay();
+    private void applyPublicIdentityChanges(UserProfile profile, UpdateMyProfileCommand command) {
+        String requestedNickname = command.nickname();
+        String normalizedTag = userProfileValidator.normalizeOptionalTag(command.tag());
+
+        boolean nicknameRequested = requestedNickname != null;
+        boolean tagRequested = normalizedTag != null;
+
+        if (!nicknameRequested && !tagRequested) {
+            return;
+        }
+
+        String finalNickname = nicknameRequested ? requestedNickname : profile.getNickname();
+        String finalTag = tagRequested ? normalizedTag : profile.getTag();
+
+        if (tagRequested) {
+            LocalDateTime lastChanged = profile.getTagChangedAt();
+            if (lastChanged != null && lastChanged.isAfter(LocalDateTime.now().minusDays(90))) {
+                throw new UnprocessableEntityException("태그 변경은 90일 이내에 한 번만 가능합니다.");
+            }
+        }
+
+        loadUserProfilePort.loadByNicknameAndTag(finalNickname, finalTag)
+                .filter(existing -> !existing.getUser().getId().equals(command.userId()))
+                .ifPresent(existing -> {
+                    throw new ConflictException("이미 존재하는 닉네임과 태그입니다.");
+                });
+
+        if (nicknameRequested && !finalNickname.equals(profile.getNickname())) {
+            profile.setNickname(finalNickname);
+        }
+        if (tagRequested && !finalTag.equals(profile.getTag())) {
+            profile.setTag(finalTag);
+            profile.setTagChangedAt(LocalDateTime.now());
+        }
     }
 }

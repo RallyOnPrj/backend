@@ -1,37 +1,109 @@
 package com.gumraze.rallyon.backend.user.service;
 
+import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.dto.UserProfileCreateRequest;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 @Component
 public class UserProfileValidator {
 
     // 프로필 생성 시 검증 메서드
     public void validateForCreate(UserProfileCreateRequest request) {
-        if (request.getNickname() == null || request.getNickname().isBlank()) {
+        validateRequiredNickname(request.getNickname());
+        validateRequiredBirth(request.getBirth());
+        validateBirthFormat(request.getBirth());
+        validateRequiredGender(request.getGender());
+        validateRequiredDistrictId(request.getDistrictId());
+    }
+
+    public void validateForUpdate(UpdateMyProfileCommand command) {
+        validateOptionalNickname(command.nickname());
+        validateOptionalBirth(command.birth());
+        validateOptionalTag(command.tag());
+    }
+
+    public LocalDateTime parseBirthStartOfDay(String birth) {
+        validateRequiredBirth(birth);
+        validateBirthFormat(birth);
+        LocalDate parsed = LocalDate.parse(
+                birth,
+                DateTimeFormatter.BASIC_ISO_DATE.withLocale(Locale.KOREA)
+        );
+        return parsed.atStartOfDay();
+    }
+
+    public String normalizeOptionalTag(String tag) {
+        if (tag == null || tag.isBlank()) {
+            return null;
+        }
+        return tag.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
+    }
+
+    private void validateRequiredNickname(String nickname) {
+        if (nickname == null || nickname.isBlank()) {
             throw new IllegalArgumentException("Nickname이 필요합니다.");
         }
+    }
 
-        if (request.getBirth() == null || request.getBirth().isBlank()) {
+    private void validateOptionalNickname(String nickname) {
+        if (nickname != null && nickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임은 비워둘 수 없습니다.");
+        }
+    }
+
+    private void validateRequiredBirth(String birth) {
+        if (birth == null || birth.isBlank()) {
             throw new IllegalArgumentException("Birth가 필요합니다.");
         }
+    }
 
-        if (request.getGender() == null) {
+    private void validateOptionalBirth(String birth) {
+        if (birth == null) {
+            return;
+        }
+        if (birth.isBlank()) {
+            throw new IllegalArgumentException("Birth는 비워둘 수 없습니다.");
+        }
+        validateBirthFormat(birth);
+    }
+
+    private void validateBirthFormat(String birth) {
+        try {
+            LocalDate.parse(
+                    birth,
+                    DateTimeFormatter.BASIC_ISO_DATE.withLocale(Locale.KOREA)
+            );
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Birth 형식이 올바르지 않습니다.");
+        }
+    }
+
+    private void validateRequiredGender(Object gender) {
+        if (gender == null) {
             throw new IllegalArgumentException("gender가 필요합니다.");
         }
+    }
 
-        if (request.getDistrictId() == null) {
+    private void validateRequiredDistrictId(Object districtId) {
+        if (districtId == null) {
             throw new IllegalArgumentException("districtId가 필요합니다.");
         }
     }
 
-    public void validateForUpdate(UserProfileCreateRequest request) {
-        throw new UnsupportedOperationException();
-    }
+    private void validateOptionalTag(String tag) {
+        if (tag == null || tag.isBlank()) {
+            return;
+        }
 
-    public LocalDateTime parseBirthStartOfDay(String birth) {
-        throw new UnsupportedOperationException();
+        String normalizedTag = normalizeOptionalTag(tag);
+        if (normalizedTag == null || normalizedTag.length() != 4) {
+            throw new IllegalArgumentException("태그는 4글자로 입력해야 합니다.");
+        }
     }
 }

@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public record UpdateMyProfileCommand(
         UUID userId,
+        String nickname,
+        String tag,
         Grade regionalGrade,
         Grade nationalGrade,
         String birth,

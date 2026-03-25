@@ -16,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -63,7 +60,7 @@ public class CreateMyProfileService implements CreateMyProfileUseCase {
                 .districtId(districtId)
                 .regionalGrade(command.regionalGrade())
                 .nationalGrade(command.nationalGrade())
-                .birth(parseBirth(command.birth()))
+                .birth(userProfileValidator.parseBirthStartOfDay(command.birth()))
                 .gender(command.gender())
                 .tag(userProfileTagGenerator.generate())
                 .tagChangedAt(LocalDateTime.now())
@@ -78,13 +75,5 @@ public class CreateMyProfileService implements CreateMyProfileUseCase {
 
         user.setStatus(UserStatus.ACTIVE);
         saveUserProfilePort.save(profile);
-    }
-
-    private LocalDateTime parseBirth(String birth) {
-        LocalDate parsed = LocalDate.parse(
-                birth,
-                DateTimeFormatter.BASIC_ISO_DATE.withLocale(Locale.KOREA)
-        );
-        return parsed.atStartOfDay();
     }
 }

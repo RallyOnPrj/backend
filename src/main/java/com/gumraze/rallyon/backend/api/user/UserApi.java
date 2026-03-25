@@ -102,7 +102,7 @@ public interface UserApi {
     );
 
     @Operation(
-            summary = "프로필 닉네임 프리필 조회",
+            summary = "프로필 초기값 조회",
             description = "제3자 로그인 닉네임이 있으면 suggestedNickname으로 반환합니다."
     )
     @ApiResponses({
@@ -123,7 +123,7 @@ public interface UserApi {
                     )
             )
     })
-    ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(
+    ResponseEntity<UserProfilePrefillResponseDto> profileDefaults(
             UUID userId
     );
 
@@ -163,7 +163,7 @@ public interface UserApi {
 
     @Operation(
             summary = "내 프로필 수정",
-            description = "내 프로필 정보를 수정합니다."
+            description = "내 프로필 정보를 수정합니다. 닉네임과 태그도 같은 aggregate에서 함께 수정합니다."
     )
     @ApiAuthValidationResponses
     @ApiResponses({
@@ -184,46 +184,5 @@ public interface UserApi {
     ResponseEntity<Void> updateMyProfile(
             UUID userId,
             UserProfileUpdateRequest request
-    );
-
-    @Operation(
-            summary = "닉네임/태그 변경",
-            description = "닉네임과 태그를 변경합니다."
-    )
-    @ApiAuthValidationResponses
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "닉네임/태그 변경 성공 (No Content)",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "사용자의 프로필을 찾을 수 없습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "이미 존재하는 닉네임과 태그입니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "422",
-                    description = "요청을 처리할 수 없습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            )
-    })
-    ResponseEntity<Void> updateIdentity(
-            UUID userId,
-            UserProfileIdentityUpdateRequest request
     );
 }

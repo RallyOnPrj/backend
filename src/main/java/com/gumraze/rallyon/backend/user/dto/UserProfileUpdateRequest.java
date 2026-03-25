@@ -12,6 +12,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class UserProfileUpdateRequest {
+    private String nickname;
+    private String tag;
     private Grade regionalGrade;
     private Grade nationalGrade;
     private String birth;

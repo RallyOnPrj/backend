@@ -4,7 +4,6 @@ import com.gumraze.rallyon.backend.api.user.UserApi;
 import com.gumraze.rallyon.backend.user.application.port.in.*;
 import com.gumraze.rallyon.backend.user.application.port.in.command.CreateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
-import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyPublicIdentityCommand;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfilePrefillQuery;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfileQuery;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyUserSummaryQuery;
@@ -31,7 +30,6 @@ public class UserController implements UserApi {
     private final GetMyProfilePrefillUseCase getMyProfilePrefillUseCase;
     private final GetMyProfileUseCase getMyProfileUseCase;
     private final UpdateMyProfileUseCase updateMyProfileUseCase;
-    private final UpdateMyPublicIdentityUseCase updateMyPublicIdentityUseCase;
 
     @Override
     @GetMapping
@@ -69,8 +67,8 @@ public class UserController implements UserApi {
     }
 
     @Override
-    @GetMapping("/me/profile/prefill")
-    public ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(@AuthenticationPrincipal UUID userId) {
+    @GetMapping("/me/profile/defaults")
+    public ResponseEntity<UserProfilePrefillResponseDto> profileDefaults(@AuthenticationPrincipal UUID userId) {
         return ResponseEntity.ok(getMyProfilePrefillUseCase.get(new GetMyProfilePrefillQuery(userId)));
     }
 
@@ -88,6 +86,8 @@ public class UserController implements UserApi {
     ) {
         updateMyProfileUseCase.update(new UpdateMyProfileCommand(
                 userId,
+                request.getNickname(),
+                request.getTag(),
                 request.getRegionalGrade(),
                 request.getNationalGrade(),
                 request.getBirth(),
@@ -95,20 +95,6 @@ public class UserController implements UserApi {
                 request.getDistrictId(),
                 request.getProfileImageUrl(),
                 request.getGender()
-        ));
-        return ResponseEntity.noContent().build();
-    }
-
-    @Override
-    @PatchMapping("/me/profile/identity")
-    public ResponseEntity<Void> updateIdentity(
-            @AuthenticationPrincipal UUID userId,
-            @RequestBody UserProfileIdentityUpdateRequest request
-    ) {
-        updateMyPublicIdentityUseCase.update(new UpdateMyPublicIdentityCommand(
-                userId,
-                request.getNickname(),
-                request.getTag()
         ));
         return ResponseEntity.noContent().build();
     }
