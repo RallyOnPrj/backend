@@ -7,7 +7,7 @@ import com.gumraze.rallyon.backend.identity.domain.authentication.OAuthUserInfo;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,7 +20,7 @@ import org.springframework.web.client.RestClient;
 
 import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.ECPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
@@ -91,12 +91,12 @@ public class AppleOAuthClient implements OAuthProviderPort {
                     .build();
 
             SignedJWT signedJWT = new SignedJWT(
-                    new JWSHeader.Builder(JWSAlgorithm.RS256)
+                    new JWSHeader.Builder(JWSAlgorithm.ES256)
                             .keyID(properties.keyId())
                             .build(),
                     claimsSet
             );
-            signedJWT.sign(new RSASSASigner((RSAPrivateKey) parsePrivateKey(properties.privateKey())));
+            signedJWT.sign(new ECDSASigner((ECPrivateKey) parsePrivateKey(properties.privateKey())));
             return signedJWT.serialize();
         } catch (JOSEException e) {
             throw new IllegalStateException("Apple client secret 생성에 실패했습니다.", e);
@@ -121,7 +121,7 @@ public class AppleOAuthClient implements OAuthProviderPort {
 
             byte[] keyBytes = Base64.getDecoder().decode(normalized);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+            return KeyFactory.getInstance("EC").generatePrivate(keySpec);
         } catch (Exception e) {
             throw new IllegalStateException("Apple private key 파싱에 실패했습니다.", e);
         }
