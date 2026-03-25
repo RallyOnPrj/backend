@@ -1,5 +1,6 @@
 package com.gumraze.rallyon.backend.identity.adapter.in.web;
 
+import com.gumraze.rallyon.backend.common.exception.ConflictException;
 import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvidersProperties;
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthProviderRegistry;
@@ -24,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -46,16 +48,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Controller
 @RequestMapping("/identity")
 public class IdentityController {
+
+    private static final String LOGIN_SCREEN = "login";
+    private static final String SIGNUP_SCREEN = "signup";
 
     private final RegisterLocalIdentityUseCase registerLocalIdentityUseCase;
     private final LocalIdentityAuthenticator localIdentityAuthenticator;
@@ -122,15 +130,18 @@ public class IdentityController {
     public ResponseEntity<Void> startSession(
             @RequestParam(required = false) AuthProvider provider,
             @RequestParam(required = false) String dummyCode,
+            @RequestParam(required = false, defaultValue = LOGIN_SCREEN) String screen,
             @RequestParam(required = false, defaultValue = "/profile") String returnTo,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
+        String normalizedScreen = normalizeScreen(screen);
         BrowserAuthorizationRequestContext context = new BrowserAuthorizationRequestContext(
                 PkceUtils.generateState(),
                 PkceUtils.generateState(),
                 PkceUtils.generateVerifier(),
-                normalizeReturnTo(returnTo)
+                normalizeReturnTo(returnTo),
+                normalizedScreen
         );
         contextRepository.save(request.getSession(true), context);
 
@@ -141,7 +152,7 @@ public class IdentityController {
         }
 
         if (provider == null) {
-            return redirect("/login");
+            return redirect("/" + normalizedScreen);
         }
 
         validateRequestedProvider(provider);
@@ -166,15 +177,61 @@ public class IdentityController {
     public ResponseEntity<Void> loginWithLocalForm(
             @RequestParam String email,
             @RequestParam String password,
+            @RequestParam(required = false, defaultValue = "/profile") String returnTo,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        IdentityAuthenticatedPrincipal principal = localIdentityAuthenticator.authenticate(email, password);
+        BrowserAuthorizationRequestContext context = contextRepository.load(request.getSession())
+                .orElse(null);
+        if (context == null) {
+            return redirect(authPageWithError(LOGIN_SCREEN, "login_session_expired", returnTo));
+        }
+
+        IdentityAuthenticatedPrincipal principal;
+        try {
+            principal = localIdentityAuthenticator.authenticate(email, password);
+        } catch (UnauthorizedException ex) {
+            return redirect(authPageWithError(context.screen(), "local_login_failed", context.returnTo()));
+        }
         saveAuthenticatedPrincipal(principal, request, response);
 
-        BrowserAuthorizationRequestContext context = contextRepository.load(request.getSession())
-                .orElseThrow(() -> new UnauthorizedException("로그인 세션이 만료되었습니다. 다시 시도해주세요."));
+        return redirect(buildAuthorizationUri(context));
+    }
 
+    @PostMapping(path = "/local/register", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> registerWithLocalForm(
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String passwordConfirm,
+            @RequestParam(required = false, defaultValue = "/profile") String returnTo,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        if (!Objects.equals(password, passwordConfirm)) {
+            return redirect(authPageWithError(SIGNUP_SCREEN, "password_mismatch", returnTo));
+        }
+
+        BrowserAuthorizationRequestContext context = contextRepository.load(request.getSession())
+                .orElse(null);
+        if (context == null) {
+            return redirect(authPageWithError(SIGNUP_SCREEN, "signup_session_expired", returnTo));
+        }
+
+        try {
+            registerLocalIdentityUseCase.register(new RegisterLocalIdentityCommand(email, password));
+        } catch (ConflictException ex) {
+            return redirect(authPageWithError(context.screen(), "duplicate_email", context.returnTo()));
+        } catch (IllegalArgumentException ex) {
+            return redirect(authPageWithError(context.screen(), "invalid_password", context.returnTo()));
+        }
+
+        IdentityAuthenticatedPrincipal principal;
+        try {
+            principal = localIdentityAuthenticator.authenticate(email, password);
+        } catch (UnauthorizedException ex) {
+            return redirect(authPageWithError(context.screen(), "local_login_failed", context.returnTo()));
+        }
+        saveAuthenticatedPrincipal(principal, request, response);
         return redirect(buildAuthorizationUri(context));
     }
 
@@ -225,15 +282,20 @@ public class IdentityController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
+        Optional<BrowserAuthorizationRequestContext> contextOptional = contextRepository.load(request.getSession());
         if (error != null) {
-            return redirect(loginPageWithError("social_login_failed"));
+            return redirect(authPageWithError(
+                    contextOptional.map(BrowserAuthorizationRequestContext::screen).orElse(LOGIN_SCREEN),
+                    "social_login_failed",
+                    contextOptional.map(BrowserAuthorizationRequestContext::returnTo).orElse("/profile")
+            ));
         }
 
-        BrowserAuthorizationRequestContext context = contextRepository.load(request.getSession())
+        BrowserAuthorizationRequestContext context = contextOptional
                 .orElseThrow(() -> new UnauthorizedException("로그인 세션이 만료되었습니다. 다시 시도해주세요."));
 
         if (code == null || state == null || !state.equals(context.socialState())) {
-            return redirect(loginPageWithError("invalid_social_callback"));
+            return redirect(authPageWithError(context.screen(), "invalid_social_callback", context.returnTo()));
         }
 
         String redirectUri = properties.getIssuer() + "/identity/social/callback/" + provider.name();
@@ -250,20 +312,33 @@ public class IdentityController {
             @RequestParam(required = false) String error,
             HttpServletRequest request
     ) {
+        HttpSession session = request.getSession();
+        Optional<BrowserAuthorizationRequestContext> contextOptional = contextRepository.load(session);
         if (error != null) {
-            return redirect(loginPageWithError("authorization_failed"));
+            contextOptional.ifPresent(ignored -> contextRepository.clear(session));
+            return redirect(authPageWithError(
+                    contextOptional.map(BrowserAuthorizationRequestContext::screen).orElse(LOGIN_SCREEN),
+                    "authorization_failed",
+                    contextOptional.map(BrowserAuthorizationRequestContext::returnTo).orElse("/profile")
+            ));
         }
 
-        HttpSession session = request.getSession();
-        BrowserAuthorizationRequestContext context = contextRepository.load(session)
+        BrowserAuthorizationRequestContext context = contextOptional
                 .orElseThrow(() -> new UnauthorizedException("인증 세션이 만료되었습니다."));
 
         if (code == null || state == null || !state.equals(context.authorizationState())) {
             contextRepository.clear(session);
-            return redirect(loginPageWithError("invalid_authorization_state"));
+            return redirect(authPageWithError(context.screen(), "invalid_authorization_state", context.returnTo()));
         }
 
-        OAuthTokenResponse tokenResponse = authorizationServerTokenClient.exchangeAuthorizationCode(code, context);
+        OAuthTokenResponse tokenResponse;
+        try {
+            tokenResponse = authorizationServerTokenClient.exchangeAuthorizationCode(code, context);
+        } catch (RestClientException ex) {
+            log.warn("Authorization code exchange failed for returnTo={}", context.returnTo(), ex);
+            contextRepository.clear(session);
+            return redirect(authPageWithError(context.screen(), "token_exchange_failed", context.returnTo()));
+        }
         IdentityAuthenticatedPrincipal principal = resolveCurrentPrincipal(SecurityContextHolder.getContext().getAuthentication());
         contextRepository.clear(session);
 
@@ -390,8 +465,16 @@ public class IdentityController {
         return returnTo;
     }
 
-    private String loginPageWithError(String errorCode) {
-        return properties.getIssuer() + "/login?error=" + errorCode;
+    private String normalizeScreen(String screen) {
+        return SIGNUP_SCREEN.equalsIgnoreCase(screen) ? SIGNUP_SCREEN : LOGIN_SCREEN;
+    }
+
+    private String authPageWithError(String screen, String errorCode, String returnTo) {
+        return UriComponentsBuilder.fromUriString(properties.getIssuer() + "/" + normalizeScreen(screen))
+                .queryParam("error", errorCode)
+                .queryParam("returnTo", normalizeReturnTo(returnTo))
+                .build(true)
+                .toUriString();
     }
 
     private List<DummyLoginOptionResponse> buildDummyOptions(BrowserAuthorizationRequestContext context) {

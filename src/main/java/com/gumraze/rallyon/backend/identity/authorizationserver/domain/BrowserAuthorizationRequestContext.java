@@ -6,6 +6,7 @@ public record BrowserAuthorizationRequestContext(
         String authorizationState,
         String socialState,
         String codeVerifier,
-        String returnTo
+        String returnTo,
+        String screen
 ) implements Serializable {
 }

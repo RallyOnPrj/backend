@@ -41,6 +41,7 @@ public class AuthOriginSecurityConfig {
                                 "/identity/session/**",
                                 "/identity/social/**",
                                 "/identity/local/login",
+                                "/identity/local/register",
                                 "/identity/password/register",
                                 "/identity/token/refresh",
                                 "/identity/logout",
