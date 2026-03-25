@@ -5,6 +5,8 @@ Spring Boot 3.5 기반 RallyOn 백엔드 서비스입니다. 현재는 하나의
 - `auth.rallyon.test`: Authorization Server, 프론트 로그인 UI, 브라우저 세션 어댑터
 - `api.rallyon.test`: Resource Server API
 
+아키텍처 기준선과 유비쿼터스 언어는 [`ARCHITECTURE.md`](./ARCHITECTURE.md)를 canonical source로 사용합니다.
+
 ## 주요 기능
 - **인증/인가**: Spring Authorization Server 기반 Authorization Code + PKCE, OIDC discovery, Kakao/Google OAuth, 로컬 이메일 로그인, 로컬 개발용 DUMMY provider
 - **세션 쿠키**: access token은 `.rallyon.test` 범위의 HttpOnly 쿠키, refresh token은 `auth.rallyon.test` 전용 HttpOnly 쿠키
