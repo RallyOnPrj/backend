@@ -21,7 +21,7 @@ public class LocalIdentityController {
 
     @PostMapping(path = "/identity/accounts/local", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createLocalAccount(@Valid @RequestBody RegisterLocalIdentityRequest request) {
-        registerLocalIdentityUseCase.register(new RegisterLocalIdentityCommand(request.getEmail(), request.getPassword()));
+        registerLocalIdentityUseCase.register(new RegisterLocalIdentityCommand(request.email(), request.password()));
         return ResponseEntity.noContent().build();
     }
 }

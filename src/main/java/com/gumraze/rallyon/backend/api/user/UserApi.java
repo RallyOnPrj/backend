@@ -82,7 +82,7 @@ public interface UserApi {
 
     @Operation(
             summary = "프로필 생성",
-            description = "닉네임/지역/등급을 입력해 프로필을 생성하고 계정을 ACTIVE로 전환합니다."
+            description = "닉네임/지역/등급을 입력해 프로필을 생성하고 온보딩 상태를 ACTIVE로 전환합니다."
     )
     @ApiAuthValidationResponses
     @ApiResponses({
@@ -111,7 +111,7 @@ public interface UserApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = UserProfilePrefillResponseDto.class)
+                            schema = @Schema(implementation = UserProfileDefaultsResponse.class)
                     )
             ),
             @ApiResponse(
@@ -123,8 +123,8 @@ public interface UserApi {
                     )
             )
     })
-    ResponseEntity<UserProfilePrefillResponseDto> profileDefaults(
-            UUID userId
+    ResponseEntity<UserProfileDefaultsResponse> profileDefaults(
+            UUID identityAccountId
     );
 
     @Operation(

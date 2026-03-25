@@ -25,12 +25,12 @@ public class IdentityOAuthLinkPersistenceAdapter implements LoadOAuthLinkPort, S
 
     @Override
     public Optional<IdentityOAuthLink> loadByUserIdAndProvider(UUID userId, AuthProvider provider) {
-        return repository.findByUser_IdAndProvider(userId, provider);
+        return repository.findByIdentityAccount_IdAndProvider(userId, provider);
     }
 
     @Override
     public Optional<String> loadLatestDisplayName(UUID userId) {
-        return repository.findByUser_IdOrderByUpdatedAtDesc(userId).stream()
+        return repository.findByIdentityAccount_IdOrderByUpdatedAtDesc(userId).stream()
                 .map(IdentityOAuthLink::getNickname)
                 .filter(nickname -> nickname != null && !nickname.isBlank())
                 .findFirst();

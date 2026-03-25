@@ -42,11 +42,11 @@ public class SearchUsersService implements SearchUsersUseCase {
     }
 
     private UserSearchResponse toResponse(UserProfile userProfile) {
-        return UserSearchResponse.builder()
-                .userId(userProfile.getUser().getId())
-                .nickname(userProfile.getNickname())
-                .tag(userProfile.getTag())
-                .profileImageUrl(userProfile.getProfileImageUrl())
-                .build();
+        return new UserSearchResponse(
+                userProfile.getIdentityAccountId(),
+                userProfile.getNickname(),
+                userProfile.getTag(),
+                userProfile.getProfileImageUrl()
+        );
     }
 }

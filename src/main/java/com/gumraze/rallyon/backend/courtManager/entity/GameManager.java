@@ -1,24 +1,27 @@
 package com.gumraze.rallyon.backend.courtManager.entity;
 
 import com.gumraze.rallyon.backend.common.persistence.CreatedAtEntity;
-import com.gumraze.rallyon.backend.user.entity.User;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
 @Entity
 @Table(
         name = "game_managers",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"freegame_id", "user_id"}
-        )
+        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "identity_account_id"})
 )
 public class GameManager extends CreatedAtEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -27,13 +30,29 @@ public class GameManager extends CreatedAtEntity {
     @JoinColumn(name = "freegame_id", nullable = false)
     private FreeGame freeGame;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "identity_account_id", nullable = false)
+    private UUID identityAccountId;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    protected GameManager() {}
+    protected GameManager() {
+    }
+
+    public static GameManager assign(FreeGame freeGame, UUID identityAccountId) {
+        GameManager manager = new GameManager();
+        manager.freeGame = freeGame;
+        manager.identityAccountId = identityAccountId;
+        return manager;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    protected void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

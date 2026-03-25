@@ -65,24 +65,50 @@ class ModuleArchitectureTest {
     @ArchTest
     static final ArchRule legacy_auth_and_user_service_packages_must_not_have_service_annotations =
             classes().that().resideInAnyPackage(
-                            "..auth.service..",
-                            "..auth.controller..",
-                            "..user.service..",
-                            "..user.controller.."
+                            "com.gumraze.rallyon.backend.auth.service..",
+                            "com.gumraze.rallyon.backend.auth.controller..",
+                            "com.gumraze.rallyon.backend.user.service..",
+                            "com.gumraze.rallyon.backend.user.controller.."
                     )
-                    .should().notBeAnnotatedWith(Service.class);
+                    .should().notBeAnnotatedWith(Service.class)
+                    .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule legacy_auth_and_user_service_packages_must_not_have_rest_controller_annotations =
             classes().that().resideInAnyPackage(
-                            "..auth.service..",
-                            "..auth.controller..",
-                            "..user.service..",
-                            "..user.controller.."
+                            "com.gumraze.rallyon.backend.auth.service..",
+                            "com.gumraze.rallyon.backend.auth.controller..",
+                            "com.gumraze.rallyon.backend.user.service..",
+                            "com.gumraze.rallyon.backend.user.controller.."
                     )
-                    .should().notBeAnnotatedWith(RestController.class);
+                    .should().notBeAnnotatedWith(RestController.class)
+                    .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule no_classes_should_depend_on_legacy_auth_package =
             noClasses().should().dependOnClassesThat().resideInAnyPackage("..auth..");
+
+    @ArchTest
+    static final ArchRule identity_must_not_depend_on_authorization =
+            noClasses().that().resideInAnyPackage("..identity..")
+                    .should().dependOnClassesThat().resideInAnyPackage("..authorization..");
+
+    @ArchTest
+    static final ArchRule authorization_must_only_use_user_read_contracts =
+            noClasses().that().resideInAnyPackage("..authorization..")
+                    .should().dependOnClassesThat().resideInAnyPackage(
+                            "..user.adapter..",
+                            "..user.repository..",
+                            "..user.entity..",
+                            "..user.application.service..",
+                            "..user.application.port.out.."
+                    );
+
+    @ArchTest
+    static final ArchRule court_manager_must_not_depend_on_user_or_identity_entities =
+            noClasses().that().resideInAnyPackage("..courtManager..")
+                    .should().dependOnClassesThat().resideInAnyPackage(
+                            "..user.entity..",
+                            "..identity.entity.."
+                    );
 }

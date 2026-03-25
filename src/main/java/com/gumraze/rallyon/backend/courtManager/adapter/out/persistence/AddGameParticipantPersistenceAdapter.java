@@ -6,8 +6,7 @@ import com.gumraze.rallyon.backend.courtManager.domain.ParticipantDisplayNamePol
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,32 +15,30 @@ import org.springframework.stereotype.Component;
 public class AddGameParticipantPersistenceAdapter implements AddGameParticipantPort {
 
     private final GameParticipantRepository gameParticipantRepository;
-    private final UserRepository userRepository;
+    private final IdentityAccountRepository identityAccountRepository;
 
     @Override
     public GameParticipant add(FreeGame freeGame, AddFreeGameParticipantCommand command) {
-        User participantUser = null;
         if (command.userId() != null) {
-            participantUser = userRepository.findById(command.userId())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 userId입니다. :" + command.userId()));
+            identityAccountRepository.findById(command.userId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + command.userId()));
         }
 
-        GameParticipant participant = GameParticipant.builder()
-                .freeGame(freeGame)
-                .user(participantUser)
-                .originalName(command.name())
-                .displayName(ParticipantDisplayNamePolicy.resolve(
+        GameParticipant participant = GameParticipant.create(
+                freeGame,
+                command.userId(),
+                command.name(),
+                ParticipantDisplayNamePolicy.resolve(
                         command.name(),
                         command.gender(),
                         command.grade(),
                         command.age(),
                         gameParticipantRepository.findByFreeGameId(freeGame.getId())
-                ))
-                .gender(command.gender())
-                .grade(command.grade())
-                .ageGroup(command.age())
-                .build();
+                ),
+                command.gender(),
+                command.grade(),
+                command.age()
+        );
 
         return gameParticipantRepository.save(participant);
     }

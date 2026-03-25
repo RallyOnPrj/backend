@@ -35,29 +35,34 @@ public final class CourtManagerControllerFixtures {
     }
 
     public static FreeGameDetailResponse freeGameDetailResponse(UUID organizerId, UUID gameId) {
-        return FreeGameDetailResponse.builder()
-                .gameId(gameId)
-                .title("자유게임")
-                .gameType(GameType.FREE)
-                .gameStatus(GameStatus.NOT_STARTED)
-                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
-                .gradeType(GradeType.NATIONAL)
-                .location("잠실 배드민턴장")
-                .courtCount(2)
-                .roundCount(2)
-                .organizerId(organizerId)
-                .build();
+        return new FreeGameDetailResponse(
+                gameId,
+                "자유게임",
+                GameType.FREE,
+                GameStatus.NOT_STARTED,
+                MatchRecordMode.STATUS_ONLY,
+                GradeType.NATIONAL,
+                2,
+                2,
+                organizerId,
+                null,
+                "잠실 배드민턴장"
+        );
     }
 
     public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID userId, String displayName) {
-        return FreeGameParticipantResponse.builder()
-                .participantId(participantId)
-                .userId(userId)
-                .displayName(displayName)
-                .gender(Gender.MALE)
-                .grade(Grade.ROOKIE)
-                .ageGroup(30)
-                .build();
+        return new FreeGameParticipantResponse(
+                participantId,
+                userId,
+                displayName,
+                Gender.MALE,
+                Grade.ROOKIE,
+                30,
+                null,
+                null,
+                null,
+                null
+        );
     }
 
     public static FreeGameParticipantResponse participantResponseWithStats(
@@ -67,29 +72,25 @@ public final class CourtManagerControllerFixtures {
             int winCount,
             int lossCount
     ) {
-        return FreeGameParticipantResponse.builder()
-                .participantId(participant.getParticipantId())
-                .userId(participant.getUserId())
-                .displayName(participant.getDisplayName())
-                .gender(participant.getGender())
-                .grade(participant.getGrade())
-                .ageGroup(participant.getAgeGroup())
-                .assignedMatchCount(assignedMatchCount)
-                .completedMatchCount(completedMatchCount)
-                .winCount(winCount)
-                .lossCount(lossCount)
-                .build();
+        return new FreeGameParticipantResponse(
+                participant.participantId(),
+                participant.identityAccountId(),
+                participant.displayName(),
+                participant.gender(),
+                participant.grade(),
+                participant.ageGroup(),
+                assignedMatchCount,
+                completedMatchCount,
+                winCount,
+                lossCount
+        );
     }
 
     public static FreeGameParticipantsResponse participantsResponse(
             UUID gameId,
             List<FreeGameParticipantResponse> participants
     ) {
-        return FreeGameParticipantsResponse.builder()
-                .gameId(gameId)
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .participants(participants)
-                .build();
+        return new FreeGameParticipantsResponse(gameId, MatchRecordMode.RESULT, participants);
     }
 
     public static FreeGameParticipantDetailResponse participantDetailResponse(
@@ -98,14 +99,14 @@ public final class CourtManagerControllerFixtures {
             UUID userId,
             String displayName
     ) {
-        return FreeGameParticipantDetailResponse.builder()
-                .gameId(gameId)
-                .participantId(participantId)
-                .userId(userId)
-                .displayName(displayName)
-                .gender(Gender.MALE)
-                .grade(Grade.ROOKIE)
-                .ageGroup(30)
-                .build();
+        return new FreeGameParticipantDetailResponse(
+                gameId,
+                participantId,
+                userId,
+                displayName,
+                Gender.MALE,
+                Grade.ROOKIE,
+                30
+        );
     }
 }

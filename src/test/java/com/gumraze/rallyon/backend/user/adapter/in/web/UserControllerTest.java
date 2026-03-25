@@ -1,15 +1,20 @@
 package com.gumraze.rallyon.backend.user.adapter.in.web;
 
 import com.gumraze.rallyon.backend.security.config.SecurityConfig;
-import com.gumraze.rallyon.backend.user.application.port.in.*;
+import com.gumraze.rallyon.backend.user.application.port.in.CreateMyProfileUseCase;
+import com.gumraze.rallyon.backend.user.application.port.in.GetMyProfileDefaultsUseCase;
+import com.gumraze.rallyon.backend.user.application.port.in.GetMyProfileUseCase;
+import com.gumraze.rallyon.backend.user.application.port.in.GetMyUserSummaryUseCase;
+import com.gumraze.rallyon.backend.user.application.port.in.SearchUsersUseCase;
+import com.gumraze.rallyon.backend.user.application.port.in.UpdateMyProfileUseCase;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import com.gumraze.rallyon.backend.user.dto.UserMeResponse;
-import com.gumraze.rallyon.backend.user.dto.UserProfilePrefillResponseDto;
+import com.gumraze.rallyon.backend.user.dto.UserProfileDefaultsResponse;
 import com.gumraze.rallyon.backend.user.dto.UserProfileResponseDto;
-import com.gumraze.rallyon.backend.user.dto.UserSearchResponse;
 import com.gumraze.rallyon.backend.user.dto.UserProfileUpdateRequest;
+import com.gumraze.rallyon.backend.user.dto.UserSearchResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +44,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 @Import(SecurityConfig.class)
@@ -64,7 +71,7 @@ class UserControllerTest {
     private CreateMyProfileUseCase createMyProfileUseCase;
 
     @MockitoBean
-    private GetMyProfilePrefillUseCase getMyProfilePrefillUseCase;
+    private GetMyProfileDefaultsUseCase getMyProfileDefaultsUseCase;
 
     @MockitoBean
     private GetMyProfileUseCase getMyProfileUseCase;
@@ -73,47 +80,45 @@ class UserControllerTest {
     private UpdateMyProfileUseCase updateMyProfileUseCase;
 
     @Test
-    @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다.")
+    @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다")
     void get_me_returns_pending_user_status() throws Exception {
-        UUID userId = UUID.randomUUID();
-        UserMeResponse response = UserMeResponse.builder()
-                .status(UserStatus.PENDING)
-                .build();
+        UUID identityAccountId = UUID.randomUUID();
+        UserMeResponse response = new UserMeResponse(UserStatus.PENDING, null, null);
 
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(identityAccountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(response.getStatus().name()))
+                .andExpect(jsonPath("$.status").value(UserStatus.PENDING.name()))
                 .andExpect(jsonPath("$.profileImageUrl").value(nullValue()))
                 .andExpect(jsonPath("$.nickname").value(nullValue()));
     }
 
     @Test
-    @DisplayName("ACTIVE 사용자가 /users/me 조회 시 프로필 정보를 반환한다.")
+    @DisplayName("ACTIVE 사용자가 /users/me 조회 시 프로필 정보를 반환한다")
     void get_user_me_return_profile_when_active() throws Exception {
-        UUID userId = UUID.randomUUID();
-        UserMeResponse response = UserMeResponse.builder()
-                .status(UserStatus.ACTIVE)
-                .nickname("테스트 닉네임")
-                .profileImageUrl("http://profile-image.com")
-                .build();
+        UUID identityAccountId = UUID.randomUUID();
+        UserMeResponse response = new UserMeResponse(
+                UserStatus.ACTIVE,
+                "http://profile-image.com",
+                "테스트 닉네임"
+        );
 
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(identityAccountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(response.getStatus().name()))
+                .andExpect(jsonPath("$.status").value(UserStatus.ACTIVE.name()))
                 .andExpect(jsonPath("$.nickname").value("테스트 닉네임"))
                 .andExpect(jsonPath("$.profileImageUrl").value("http://profile-image.com"));
     }
 
     @Test
-    @DisplayName("토큰이 없으면 401을 반환한다.")
+    @DisplayName("토큰이 없으면 401을 반환한다")
     void get_user_me_returns_unauthorized_when_token_is_missing() throws Exception {
         mockMvc.perform(get("/users/me")
                         .accept(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
@@ -126,12 +131,12 @@ class UserControllerTest {
     @DisplayName("닉네임으로 사용자 검색")
     void search_user_by_nickname() throws Exception {
         String nickname = "kim";
-        UserSearchResponse response = UserSearchResponse.builder()
-                .userId(UUID.randomUUID())
-                .nickname(nickname)
-                .tag("AB12")
-                .profileImageUrl(null)
-                .build();
+        UserSearchResponse response = new UserSearchResponse(
+                UUID.randomUUID(),
+                nickname,
+                "AB12",
+                null
+        );
 
         Page<UserSearchResponse> page = new PageImpl<>(List.of(response), PageRequest.of(0, 20), 1);
         when(searchUsersUseCase.search(any())).thenReturn(page);
@@ -143,7 +148,7 @@ class UserControllerTest {
                         .with(authenticatedUser(UUID.randomUUID()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].userId").value(response.getUserId().toString()))
+                .andExpect(jsonPath("$.content[0].identityAccountId").value(response.identityAccountId().toString()))
                 .andExpect(jsonPath("$.content[0].nickname").value(nickname))
                 .andExpect(jsonPath("$.content[0].tag").value("AB12"));
     }
@@ -154,12 +159,12 @@ class UserControllerTest {
         String nickname = "kim";
         String tag = "AB12";
 
-        UserSearchResponse response = UserSearchResponse.builder()
-                .userId(UUID.randomUUID())
-                .nickname(nickname)
-                .tag(tag)
-                .profileImageUrl(null)
-                .build();
+        UserSearchResponse response = new UserSearchResponse(
+                UUID.randomUUID(),
+                nickname,
+                tag,
+                null
+        );
 
         Page<UserSearchResponse> page = new PageImpl<>(List.of(response), PageRequest.of(0, 20), 1);
         when(searchUsersUseCase.search(any())).thenReturn(page);
@@ -186,30 +191,30 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("내 프로필 상세조회 성공 테스트")
+    @DisplayName("내 프로필 상세조회 성공")
     void get_my_profile_detail_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        UserProfileResponseDto response = UserProfileResponseDto.builder()
-                .status(UserStatus.ACTIVE)
-                .nickname("테스트 닉네임")
-                .tag("AB12")
-                .profileImageUrl("http://profile-image.com")
-                .birth(LocalDateTime.of(2000, 1, 1, 0, 0))
-                .birthVisible(true)
-                .gender(Gender.MALE)
-                .regionalGrade(Grade.D)
-                .nationalGrade(Grade.D)
-                .districtName("테스트 구")
-                .provinceName("테스트 시/도")
-                .tagChangedAt(LocalDateTime.of(2022, 1, 1, 0, 0))
-                .createdAt(LocalDateTime.of(2022, 1, 1, 0, 0))
-                .updatedAt(LocalDateTime.of(2022, 1, 1, 0, 0))
-                .build();
+        UUID identityAccountId = UUID.randomUUID();
+        UserProfileResponseDto response = new UserProfileResponseDto(
+                UserStatus.ACTIVE,
+                "테스트 닉네임",
+                "AB12",
+                "http://profile-image.com",
+                Gender.MALE,
+                LocalDateTime.of(2000, 1, 1, 0, 0),
+                true,
+                Grade.D,
+                Grade.D,
+                "테스트 구",
+                "테스트 시/도",
+                LocalDateTime.of(2022, 1, 1, 0, 0),
+                LocalDateTime.of(2022, 1, 1, 0, 0),
+                LocalDateTime.of(2022, 1, 1, 0, 0)
+        );
 
         when(getMyProfileUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me/profile")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(identityAccountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
@@ -220,40 +225,42 @@ class UserControllerTest {
     @Test
     @DisplayName("기본 프로필 수정 성공")
     void update_my_profile_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        UserProfileUpdateRequest request = UserProfileUpdateRequest.builder()
-                .nickname("newNickname")
-                .tag("SON7")
-                .birthVisible(true)
-                .gender(Gender.MALE)
-                .regionalGrade(Grade.D)
-                .nationalGrade(Grade.D)
-                .build();
+        UUID identityAccountId = UUID.randomUUID();
+        UserProfileUpdateRequest request = new UserProfileUpdateRequest(
+                "newNickname",
+                "SON7",
+                Grade.D,
+                Grade.D,
+                null,
+                true,
+                null,
+                null,
+                Gender.MALE
+        );
 
         doNothing().when(updateMyProfileUseCase).update(any());
 
         mockMvc.perform(patch("/users/me/profile")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(identityAccountId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("프로필 초기값 조회 성공 테스트")
+    @DisplayName("프로필 초기값 조회 성공")
     void get_profile_defaults_success() throws Exception {
-        UUID userId = UUID.randomUUID();
-        UserProfilePrefillResponseDto response =
-                new UserProfilePrefillResponseDto("kakao-player", true);
+        UUID identityAccountId = UUID.randomUUID();
+        UserProfileDefaultsResponse response = new UserProfileDefaultsResponse("kakao-player", true);
 
-        when(getMyProfilePrefillUseCase.get(any())).thenReturn(response);
+        when(getMyProfileDefaultsUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me/profile/defaults")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(identityAccountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.suggestedNickname").value("kakao-player"))
-                .andExpect(jsonPath("$.hasOauthNickname").value(true));
+                .andExpect(jsonPath("$.hasSuggestedNickname").value(true));
     }
 
     private RequestPostProcessor authenticatedUser(UUID userId) {

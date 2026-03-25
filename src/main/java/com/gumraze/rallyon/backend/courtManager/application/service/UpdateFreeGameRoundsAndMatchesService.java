@@ -68,24 +68,28 @@ public class UpdateFreeGameRoundsAndMatchesService implements UpdateFreeGameRoun
             FreeGameRound round = roundsByNumber.get(roundCommand.roundNumber());
             if (round == null) {
                 round = manageFreeGameRoundMatchPort.saveRound(
-                        FreeGameRound.builder()
-                                .freeGame(freeGame)
-                                .roundNumber(roundCommand.roundNumber())
-                                .roundStatus(RoundStatus.NOT_STARTED)
-                                .build()
+                        FreeGameRound.create(
+                                freeGame,
+                                roundCommand.roundNumber(),
+                                RoundStatus.NOT_STARTED
+                        )
                 );
             }
 
             FreeGameRound targetRound = round;
             List<FreeGameMatch> matches = roundCommand.matches().stream()
-                    .map(match -> FreeGameMatch.builder()
-                            .round(targetRound)
-                            .courtNumber(match.courtNumber())
-                            .teamAPlayer1(resolveParticipant(participantsById, match.teamAIds().get(0)))
-                            .teamAPlayer2(resolveParticipant(participantsById, match.teamAIds().get(1)))
-                            .teamBPlayer1(resolveParticipant(participantsById, match.teamBIds().get(0)))
-                            .teamBPlayer2(resolveParticipant(participantsById, match.teamBIds().get(1)))
-                            .build())
+                    .map(match -> FreeGameMatch.create(
+                            targetRound,
+                            match.courtNumber(),
+                            resolveParticipant(participantsById, match.teamAIds().get(0)),
+                            resolveParticipant(participantsById, match.teamAIds().get(1)),
+                            resolveParticipant(participantsById, match.teamBIds().get(0)),
+                            resolveParticipant(participantsById, match.teamBIds().get(1)),
+                            null,
+                            null,
+                            null,
+                            true
+                    ))
                     .toList();
 
             manageFreeGameRoundMatchPort.replaceMatches(targetRound, matches);

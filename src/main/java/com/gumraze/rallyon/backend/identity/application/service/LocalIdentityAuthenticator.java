@@ -36,9 +36,8 @@ public class LocalIdentityAuthenticator implements AuthenticateLocalIdentityUseC
         }
 
         return new AuthenticatedIdentity(
-                credential.getUserId(),
-                credential.getUser().getRole(),
-                credential.getUser().getStatus(),
+                credential.getIdentityAccountId(),
+                credential.getIdentityAccount().getRole(),
                 null
         );
     }

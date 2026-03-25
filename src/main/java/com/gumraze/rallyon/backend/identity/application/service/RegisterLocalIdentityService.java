@@ -9,8 +9,8 @@ import com.gumraze.rallyon.backend.identity.application.port.out.SaveIdentityAcc
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveLocalCredentialPort;
 import com.gumraze.rallyon.backend.identity.domain.EmailNormalizer;
 import com.gumraze.rallyon.backend.identity.domain.PasswordPolicy;
+import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
 import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
-import com.gumraze.rallyon.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +36,12 @@ public class RegisterLocalIdentityService implements RegisterLocalIdentityUseCas
             throw new ConflictException("이미 가입된 이메일입니다.");
         }
 
-        User user = saveIdentityAccountPort.save(User.builder().build());
-        saveLocalCredentialPort.save(IdentityLocalCredential.builder()
-                .user(user)
-                .emailNormalized(normalizedEmail)
-                .passwordHash(passwordHasherPort.hash(command.password()))
-                .build());
-        return user.getId();
+        IdentityAccount identityAccount = saveIdentityAccountPort.save(IdentityAccount.create());
+        saveLocalCredentialPort.save(IdentityLocalCredential.issue(
+                identityAccount,
+                normalizedEmail,
+                passwordHasherPort.hash(command.password())
+        ));
+        return identityAccount.getId();
     }
 }

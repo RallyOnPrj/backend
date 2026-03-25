@@ -1,13 +1,13 @@
 package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
+import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,24 +31,20 @@ import static org.mockito.Mockito.verify;
 class SaveGameParticipantPersistenceAdapterTest {
 
     private GameParticipantRepository gameParticipantRepository;
-    private UserRepository userRepository;
+    private IdentityAccountRepository identityAccountRepository;
     private SaveGameParticipantPersistenceAdapter adapter;
 
     @BeforeEach
     void setUp() {
         gameParticipantRepository = mock(GameParticipantRepository.class);
-        userRepository = mock(UserRepository.class);
-        adapter = new SaveGameParticipantPersistenceAdapter(gameParticipantRepository, userRepository);
+        identityAccountRepository = mock(IdentityAccountRepository.class);
+        adapter = new SaveGameParticipantPersistenceAdapter(gameParticipantRepository, identityAccountRepository);
     }
 
     @Test
     @DisplayName("참가자를 저장하고 clientId 기준 매핑을 반환한다")
     void saveAll_returnsParticipantsByClientId() {
-        // given
-        FreeGame freeGame = FreeGame.builder()
-                .id(UUID.randomUUID())
-                .title("자유게임")
-                .build();
+        FreeGame freeGame = freeGame();
 
         List<CreateFreeGameCommand.Participant> participants = List.of(
                 new CreateFreeGameCommand.Participant("p1", null, "서승재", Gender.MALE, Grade.SS, 20),
@@ -66,10 +62,8 @@ class SaveGameParticipantPersistenceAdapterTest {
                     return participant;
                 });
 
-        // when
         Map<String, GameParticipant> result = adapter.saveAll(freeGame, participants);
 
-        // then
         assertThat(result).hasSize(2);
         assertThat(result).containsKeys("p1", "p2");
         assertThat(result.get("p1").getOriginalName()).isEqualTo("서승재");
@@ -77,52 +71,45 @@ class SaveGameParticipantPersistenceAdapterTest {
     }
 
     @Test
-    @DisplayName("userId가 있으면 회원 참가자로 저장한다")
-    void saveAll_withUserId_loadsAndAssignsUser() {
-        // given
-        UUID userId = UUID.randomUUID();
-        User user = User.builder().id(userId).build();
-        FreeGame freeGame = FreeGame.builder().id(UUID.randomUUID()).title("자유게임").build();
+    @DisplayName("identityAccountId가 있으면 회원 참가자로 저장한다")
+    void saveAll_withUserId_loadsAndAssignsIdentityAccountId() {
+        UUID identityAccountId = UUID.randomUUID();
+        FreeGame freeGame = freeGame();
         List<CreateFreeGameCommand.Participant> participants = List.of(
-                new CreateFreeGameCommand.Participant("p1", userId, "서승재", Gender.MALE, Grade.A, 20)
+                new CreateFreeGameCommand.Participant("p1", identityAccountId, "서승재", Gender.MALE, Grade.A, 20)
         );
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.of(mock()));
         given(gameParticipantRepository.save(any(GameParticipant.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         adapter.saveAll(freeGame, participants);
 
-        // then
         ArgumentCaptor<GameParticipant> captor = ArgumentCaptor.forClass(GameParticipant.class);
         verify(gameParticipantRepository).save(captor.capture());
-        assertThat(captor.getValue().getUser()).isEqualTo(user);
+        assertThat(captor.getValue().getIdentityAccountId()).isEqualTo(identityAccountId);
     }
 
     @Test
-    @DisplayName("존재하지 않는 userId면 예외가 발생한다")
+    @DisplayName("존재하지 않는 identityAccountId면 예외가 발생한다")
     void saveAll_withUnknownUserId_throws() {
-        // given
-        UUID userId = UUID.randomUUID();
-        FreeGame freeGame = FreeGame.builder().id(UUID.randomUUID()).title("자유게임").build();
+        UUID identityAccountId = UUID.randomUUID();
+        FreeGame freeGame = freeGame();
         List<CreateFreeGameCommand.Participant> participants = List.of(
-                new CreateFreeGameCommand.Participant("p1", userId, "서승재", Gender.MALE, Grade.A, 20)
+                new CreateFreeGameCommand.Participant("p1", identityAccountId, "서승재", Gender.MALE, Grade.A, 20)
         );
 
-        given(userRepository.findById(userId)).willReturn(Optional.empty());
+        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> adapter.saveAll(freeGame, participants))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("존재하지 않는 userId");
+                .hasMessageContaining("identityAccountId");
     }
 
     @Test
     @DisplayName("동일 정보를 가진 참가자는 displayName 접미사로 구분한다")
     void saveAll_withDuplicateParticipants_assignsDistinctDisplayNames() {
-        // given
-        FreeGame freeGame = FreeGame.builder().id(UUID.randomUUID()).title("자유게임").build();
+        FreeGame freeGame = freeGame();
         List<CreateFreeGameCommand.Participant> participants = List.of(
                 new CreateFreeGameCommand.Participant("p1", null, "홍길동", Gender.MALE, Grade.A, 20),
                 new CreateFreeGameCommand.Participant("p2", null, "홍길동", Gender.MALE, Grade.A, 20)
@@ -131,15 +118,26 @@ class SaveGameParticipantPersistenceAdapterTest {
         given(gameParticipantRepository.save(any(GameParticipant.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         adapter.saveAll(freeGame, participants);
 
-        // then
         ArgumentCaptor<GameParticipant> captor = ArgumentCaptor.forClass(GameParticipant.class);
         verify(gameParticipantRepository, times(2)).save(captor.capture());
         List<GameParticipant> savedParticipants = captor.getAllValues();
 
         assertThat(savedParticipants.get(0).getDisplayName()).isEqualTo("홍길동");
         assertThat(savedParticipants.get(1).getDisplayName()).isEqualTo("홍길동A");
+    }
+
+    private FreeGame freeGame() {
+        FreeGame freeGame = FreeGame.create(
+                "자유게임",
+                UUID.randomUUID(),
+                GradeType.NATIONAL,
+                com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode.STATUS_ONLY,
+                null,
+                null
+        );
+        ReflectionTestUtils.setField(freeGame, "id", UUID.randomUUID());
+        return freeGame;
     }
 }

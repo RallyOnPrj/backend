@@ -168,21 +168,23 @@ class CourtManagerControllerTest {
     void updateFreeGameInfo_success() throws Exception {
         UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
-        UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
-                .title("수정된 자유게임")
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .gradeType(GradeType.REGIONAL)
-                .build();
+        UpdateFreeGameRequest request = new UpdateFreeGameRequest(
+                "수정된 자유게임",
+                MatchRecordMode.RESULT,
+                GradeType.REGIONAL,
+                null,
+                null
+        );
         UpdateFreeGameInfoCommand command = new UpdateFreeGameInfoCommand(
                 userId,
                 gameId,
-                request.getTitle(),
-                request.getMatchRecordMode(),
-                request.getGradeType(),
-                request.getLocation(),
-                request.getManagerIds()
+                request.title(),
+                request.matchRecordMode(),
+                request.gradeType(),
+                request.location(),
+                request.managerIds()
         );
-        UpdateFreeGameResponse response = UpdateFreeGameResponse.builder().gameId(gameId).build();
+        UpdateFreeGameResponse response = new UpdateFreeGameResponse(gameId);
 
         when(updateFreeGameInfoCommandMapper.toCommand(eq(userId), eq(gameId), any(UpdateFreeGameRequest.class)))
                 .thenReturn(command);
@@ -207,25 +209,25 @@ class CourtManagerControllerTest {
         UUID teamB1 = UUID.randomUUID();
         UUID teamB2 = UUID.randomUUID();
 
-        FreeGameRoundMatchResponse response = FreeGameRoundMatchResponse.builder()
-                .gameId(gameId)
-                .rounds(List.of(
-                        FreeGameRoundResponse.builder()
-                                .roundNumber(1)
-                                .roundStatus(RoundStatus.NOT_STARTED)
-                                .matches(List.of(
-                                        FreeGameMatchResponse.builder()
-                                                .courtNumber(1L)
-                                                .teamAIds(List.of(teamA1, teamA2))
-                                                .teamBIds(List.of(teamB1, teamB2))
-                                                .matchStatus(MatchStatus.NOT_STARTED)
-                                                .matchResult(MatchResult.NULL)
-                                                .isActive(true)
-                                                .build()
-                                ))
-                                .build()
-                ))
-                .build();
+        FreeGameRoundMatchResponse response = new FreeGameRoundMatchResponse(
+                gameId,
+                List.of(
+                        new FreeGameRoundResponse(
+                                1,
+                                RoundStatus.NOT_STARTED,
+                                List.of(
+                                        new FreeGameMatchResponse(
+                                                1L,
+                                                List.of(teamA1, teamA2),
+                                                List.of(teamB1, teamB2),
+                                                MatchStatus.NOT_STARTED,
+                                                MatchResult.NULL,
+                                                true
+                                        )
+                                )
+                        )
+                )
+        );
 
         when(getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(userId, gameId)))
                 .thenReturn(response);
@@ -249,20 +251,20 @@ class CourtManagerControllerTest {
         UUID teamB1 = UUID.randomUUID();
         UUID teamB2 = UUID.randomUUID();
 
-        UpdateFreeGameRoundMatchRequest request = UpdateFreeGameRoundMatchRequest.builder()
-                .rounds(List.of(
-                        RoundRequest.builder()
-                                .roundNumber(1)
-                                .matches(List.of(
-                                        MatchRequest.builder()
-                                                .courtNumber(1)
-                                                .teamAIds(List.of(teamA1, teamA2))
-                                                .teamBIds(List.of(teamB1, teamB2))
-                                                .build()
-                                ))
-                                .build()
-                ))
-                .build();
+        UpdateFreeGameRoundMatchRequest request = new UpdateFreeGameRoundMatchRequest(
+                List.of(
+                        new RoundRequest(
+                                1,
+                                List.of(
+                                        new MatchRequest(
+                                                1,
+                                                List.of(teamA1, teamA2),
+                                                List.of(teamB1, teamB2)
+                                        )
+                                )
+                        )
+                )
+        );
         UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(
                 userId,
                 gameId,

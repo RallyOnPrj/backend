@@ -3,7 +3,7 @@ package com.gumraze.rallyon.backend.user.adapter.out.persistence;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.application.port.out.SaveUserProfilePort;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
-import com.gumraze.rallyon.backend.user.repository.UserProfileRepository;
+import com.gumraze.rallyon.backend.user.adapter.out.persistence.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +19,13 @@ public class UserProfilePersistenceAdapter implements LoadUserProfilePort, SaveU
     private final UserProfileRepository userProfileRepository;
 
     @Override
-    public boolean existsByUserId(UUID userId) {
-        return userProfileRepository.existsById(userId);
+    public boolean existsByIdentityAccountId(UUID identityAccountId) {
+        return userProfileRepository.existsById(identityAccountId);
     }
 
     @Override
-    public Optional<UserProfile> loadByUserId(UUID userId) {
-        return userProfileRepository.findByUserId(userId);
+    public Optional<UserProfile> loadByIdentityAccountId(UUID identityAccountId) {
+        return userProfileRepository.findByIdentityAccountId(identityAccountId);
     }
 
     @Override

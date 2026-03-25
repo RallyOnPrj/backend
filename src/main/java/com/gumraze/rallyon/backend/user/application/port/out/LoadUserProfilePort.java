@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface LoadUserProfilePort {
 
-    boolean existsByUserId(UUID userId);
+    boolean existsByIdentityAccountId(UUID identityAccountId);
 
-    Optional<UserProfile> loadByUserId(UUID userId);
+    Optional<UserProfile> loadByIdentityAccountId(UUID identityAccountId);
 
     Optional<UserProfile> loadByNicknameAndTag(String nickname, String tag);
 

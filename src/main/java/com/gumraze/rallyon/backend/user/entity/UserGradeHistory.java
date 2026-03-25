@@ -2,10 +2,14 @@ package com.gumraze.rallyon.backend.user.entity;
 
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -13,16 +17,14 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_grade_history")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserGradeHistory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "identity_account_id", nullable = false)
+    private UUID identityAccountId;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;
@@ -34,21 +36,19 @@ public class UserGradeHistory {
     @Column(name = "changed_at")
     private LocalDateTime changedAt;
 
-    /**
-     * Create a record of a user's grade change and timestamp the change.
-     *
-     * @param user the user whose grade changed
-     * @param grade the new grade assigned to the user
-     * @param gradeType the nature of the grade change (e.g., how or why the grade was changed)
-     */
-    public UserGradeHistory(
-            User user,
+    protected UserGradeHistory() {
+    }
+
+    public static UserGradeHistory record(
+            UUID identityAccountId,
             Grade grade,
             GradeType gradeType
     ) {
-        this.user = user;
-        this.grade = grade;
-        this.gradeType = Objects.requireNonNull(gradeType, "gradeType must not be null");
-        this.changedAt = LocalDateTime.now();
+        UserGradeHistory history = new UserGradeHistory();
+        history.identityAccountId = identityAccountId;
+        history.grade = grade;
+        history.gradeType = Objects.requireNonNull(gradeType, "gradeType must not be null");
+        history.changedAt = LocalDateTime.now();
+        return history;
     }
 }

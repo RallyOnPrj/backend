@@ -48,10 +48,10 @@ class LocalIdentityControllerTest {
     @Test
     @DisplayName("로컬 회원가입 계정 생성 API는 쿠키를 발급하지 않는다")
     void create_local_account_without_issuing_cookies() throws Exception {
-        RegisterLocalIdentityRequest request = RegisterLocalIdentityRequest.builder()
-                .email("user@rallyon.local")
-                .password("password123!")
-                .build();
+        RegisterLocalIdentityRequest request = new RegisterLocalIdentityRequest(
+                "user@rallyon.local",
+                "password123!"
+        );
 
         var result = mockMvc.perform(post("/identity/accounts/local")
                         .header(HttpHeaders.HOST, "auth.rallyon.test")

@@ -1,22 +1,20 @@
 package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadUserPort;
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class LoadUserPersistenceAdapter implements LoadUserPort {
 
-    private final UserRepository userRepository;
+    private final IdentityAccountRepository identityAccountRepository;
 
     @Override
-    public Optional<User> loadById(UUID userId) {
-        return userRepository.findById(userId);
+    public boolean existsById(UUID identityAccountId) {
+        return identityAccountRepository.existsById(identityAccountId);
     }
 }

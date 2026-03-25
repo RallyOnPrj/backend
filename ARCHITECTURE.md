@@ -66,6 +66,7 @@
 - `OAuth Link`: 외부 OAuth provider와 연결된 자격증명
 - `Auth Provider`: KAKAO, GOOGLE, APPLE, DUMMY 같은 로그인 제공자
 - `Authenticated Identity`: 인증 완료 결과로 얻는 주체 표현
+- `identity_accounts`: 인증 주체의 canonical 저장 모델
 
 ### Authorization
 
@@ -77,12 +78,14 @@
 
 ### User / Profile
 
-- `User`: RallyOn 내부 사용자 주체
+- `User Module`: RallyOn 프로필과 온보딩 상태를 소유하는 모듈
 - `User Status`: `PENDING` 또는 `ACTIVE`
 - `Profile`: RallyOn 서비스 사용을 위한 사용자 정보 집합
 - `Profile Defaults`: 소셜 로그인 등에서 가져온 추천 초기값
 - `Nickname`: 공개 이름
 - `Tag`: 닉네임 중복을 구분하는 공개 식별 보조값
+- `PENDING`: 프로필이 아직 없는 계정 상태
+- `ACTIVE`: 프로필이 생성된 계정 상태
 
 ### Region
 
@@ -97,6 +100,7 @@
 - `Participant`: 게임 참가자
 - `Round`: 한 차수의 경기 편성
 - `Match`: 특정 코트에서 열리는 경기
+- `Organizer`, `Participant`, `Manager`는 모두 `identityAccountId`로 식별한다
 
 ### 용어 규칙
 
@@ -141,6 +145,8 @@ module/
 - `application/port/out`은 외부 의존성 계약을 둔다.
 - `application/service`는 유스케이스 조합과 트랜잭션 경계를 담당한다.
 - `domain`은 엔티티, 값 객체, 정책, 팩토리, 도메인 서비스만 둔다.
+- DTO, command, query, result는 기본적으로 `record`를 우선한다.
+- `@ConfigurationProperties`는 작고 immutable한 경우에만 `record`를 사용하고, 중첩 설정과 기본값이 많은 경우에는 `class`를 유지한다.
 
 금지:
 

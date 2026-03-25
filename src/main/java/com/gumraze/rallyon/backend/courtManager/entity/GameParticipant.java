@@ -3,27 +3,29 @@ package com.gumraze.rallyon.backend.courtManager.entity;
 import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
-import com.gumraze.rallyon.backend.user.entity.User;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Getter
-@Builder
-@AllArgsConstructor
 @Table(
         name = "game_participants",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "user_id"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "identity_account_id"})
 )
 public class GameParticipant extends MutableAuditEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -32,16 +34,12 @@ public class GameParticipant extends MutableAuditEntity {
     @JoinColumn(name = "freegame_id", nullable = false)
     private FreeGame freeGame;
 
-    // 비회원 참가 허용
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "identity_account_id")
+    private UUID identityAccountId;
 
-    @NotNull
     @Column(name = "original_name", nullable = false)
     private String originalName;
 
-    @NotNull
     @Column(name = "display_name", nullable = false)
     private String displayName;
 
@@ -56,13 +54,84 @@ public class GameParticipant extends MutableAuditEntity {
     @Column(name = "age_group", nullable = false)
     private Integer ageGroup;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected GameParticipant() {}
+    protected GameParticipant() {
+    }
+
+    public static GameParticipant create(
+            FreeGame freeGame,
+            UUID identityAccountId,
+            String originalName,
+            String displayName,
+            Gender gender,
+            Grade grade,
+            Integer ageGroup
+    ) {
+        GameParticipant participant = new GameParticipant();
+        participant.freeGame = freeGame;
+        participant.identityAccountId = identityAccountId;
+        participant.originalName = originalName;
+        participant.displayName = displayName;
+        participant.gender = gender;
+        participant.grade = grade;
+        participant.ageGroup = ageGroup;
+        return participant;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public FreeGame getFreeGame() {
+        return freeGame;
+    }
+
+    public UUID getIdentityAccountId() {
+        return identityAccountId;
+    }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public Grade getGrade() {
+        return grade;
+    }
+
+    public Integer getAgeGroup() {
+        return ageGroup;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    protected void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    protected void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

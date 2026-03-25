@@ -4,7 +4,7 @@ import com.gumraze.rallyon.backend.api.user.UserApi;
 import com.gumraze.rallyon.backend.user.application.port.in.*;
 import com.gumraze.rallyon.backend.user.application.port.in.command.CreateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
-import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfilePrefillQuery;
+import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfileDefaultsQuery;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfileQuery;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyUserSummaryQuery;
 import com.gumraze.rallyon.backend.user.application.port.in.query.SearchUsersQuery;
@@ -27,7 +27,7 @@ public class UserController implements UserApi {
     private final SearchUsersUseCase searchUsersUseCase;
     private final GetMyUserSummaryUseCase getMyUserSummaryUseCase;
     private final CreateMyProfileUseCase createMyProfileUseCase;
-    private final GetMyProfilePrefillUseCase getMyProfilePrefillUseCase;
+    private final GetMyProfileDefaultsUseCase getMyProfileDefaultsUseCase;
     private final GetMyProfileUseCase getMyProfileUseCase;
     private final UpdateMyProfileUseCase updateMyProfileUseCase;
 
@@ -43,58 +43,58 @@ public class UserController implements UserApi {
 
     @Override
     @GetMapping("/me")
-    public ResponseEntity<UserMeResponse> me(@AuthenticationPrincipal UUID userId) {
-        return ResponseEntity.ok(getMyUserSummaryUseCase.get(new GetMyUserSummaryQuery(userId)));
+    public ResponseEntity<UserMeResponse> me(@AuthenticationPrincipal UUID identityAccountId) {
+        return ResponseEntity.ok(getMyUserSummaryUseCase.get(new GetMyUserSummaryQuery(identityAccountId)));
     }
 
     @Override
     @PostMapping("/me/profile")
     public ResponseEntity<UserProfileCreateResponseDto> createProfile(
-            @AuthenticationPrincipal UUID userId,
+            @AuthenticationPrincipal UUID identityAccountId,
             @RequestBody UserProfileCreateRequest request
     ) {
         createMyProfileUseCase.create(new CreateMyProfileCommand(
-                userId,
-                request.getNickname(),
-                request.getDistrictId(),
-                request.getRegionalGrade(),
-                request.getNationalGrade(),
-                request.getBirth(),
-                request.getGender()
+                identityAccountId,
+                request.nickname(),
+                request.districtId(),
+                request.regionalGrade(),
+                request.nationalGrade(),
+                request.birth(),
+                request.gender()
         ));
         return ResponseEntity.created(URI.create("/users/me/profile"))
-                .body(UserProfileCreateResponseDto.builder().userId(userId).build());
+                .body(new UserProfileCreateResponseDto(identityAccountId));
     }
 
     @Override
     @GetMapping("/me/profile/defaults")
-    public ResponseEntity<UserProfilePrefillResponseDto> profileDefaults(@AuthenticationPrincipal UUID userId) {
-        return ResponseEntity.ok(getMyProfilePrefillUseCase.get(new GetMyProfilePrefillQuery(userId)));
+    public ResponseEntity<UserProfileDefaultsResponse> profileDefaults(@AuthenticationPrincipal UUID identityAccountId) {
+        return ResponseEntity.ok(getMyProfileDefaultsUseCase.get(new GetMyProfileDefaultsQuery(identityAccountId)));
     }
 
     @Override
     @GetMapping("/me/profile")
-    public ResponseEntity<UserProfileResponseDto> getMyProfile(@AuthenticationPrincipal UUID userId) {
-        return ResponseEntity.ok(getMyProfileUseCase.get(new GetMyProfileQuery(userId)));
+    public ResponseEntity<UserProfileResponseDto> getMyProfile(@AuthenticationPrincipal UUID identityAccountId) {
+        return ResponseEntity.ok(getMyProfileUseCase.get(new GetMyProfileQuery(identityAccountId)));
     }
 
     @Override
     @PatchMapping("/me/profile")
     public ResponseEntity<Void> updateMyProfile(
-            @AuthenticationPrincipal UUID userId,
+            @AuthenticationPrincipal UUID identityAccountId,
             @RequestBody UserProfileUpdateRequest request
     ) {
         updateMyProfileUseCase.update(new UpdateMyProfileCommand(
-                userId,
-                request.getNickname(),
-                request.getTag(),
-                request.getRegionalGrade(),
-                request.getNationalGrade(),
-                request.getBirth(),
-                request.getBirthVisible(),
-                request.getDistrictId(),
-                request.getProfileImageUrl(),
-                request.getGender()
+                identityAccountId,
+                request.nickname(),
+                request.tag(),
+                request.regionalGrade(),
+                request.nationalGrade(),
+                request.birth(),
+                request.birthVisible(),
+                request.districtId(),
+                request.profileImageUrl(),
+                request.gender()
         ));
         return ResponseEntity.noContent().build();
     }

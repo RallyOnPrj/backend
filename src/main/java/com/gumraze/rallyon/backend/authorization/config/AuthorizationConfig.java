@@ -249,7 +249,6 @@ public class AuthorizationConfig {
 
             context.getClaims().subject(identityPrincipal.getName());
             context.getClaims().claim("roles", roles);
-            context.getClaims().claim("status", identityPrincipal.status().name());
             if (identityPrincipal.displayName() != null && !identityPrincipal.displayName().isBlank()) {
                 context.getClaims().claim("name", identityPrincipal.displayName());
             }

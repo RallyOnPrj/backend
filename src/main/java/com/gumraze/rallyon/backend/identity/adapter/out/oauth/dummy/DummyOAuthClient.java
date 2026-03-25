@@ -23,10 +23,17 @@ public class DummyOAuthClient implements OAuthProviderPort {
                 ? "dummy"
                 : authorizationCode;
 
-        return OAuthUserInfo.builder()
-                .providerUserId(providerUserId)
-                .email(authorizationCode + "@dummy.com")
-                .nickname(providerUserId)
-                .build();
+        return new OAuthUserInfo(
+                providerUserId,
+                authorizationCode + "@dummy.com",
+                providerUserId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
     }
 }

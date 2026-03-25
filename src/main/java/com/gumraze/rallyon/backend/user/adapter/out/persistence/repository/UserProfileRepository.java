@@ -1,4 +1,4 @@
-package com.gumraze.rallyon.backend.user.repository;
+package com.gumraze.rallyon.backend.user.adapter.out.persistence.repository;
 
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
 import org.springframework.data.domain.Page;
@@ -9,7 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> {
-    Optional<UserProfile> findByUserId(UUID userId);
+
+    Optional<UserProfile> findByIdentityAccountId(UUID identityAccountId);
 
     Page<UserProfile> findByNicknameContaining(String nickname, Pageable pageable);
 

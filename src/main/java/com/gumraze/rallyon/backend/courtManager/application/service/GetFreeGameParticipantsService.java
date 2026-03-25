@@ -49,11 +49,11 @@ public class GetFreeGameParticipantsService implements GetFreeGameParticipantsUs
 
         MatchRecordMode matchRecordMode = freeGame.getMatchRecordMode();
         if (!query.includeStats() || participants.isEmpty()) {
-            return FreeGameParticipantsResponse.builder()
-                    .gameId(query.gameId())
-                    .matchRecordMode(matchRecordMode)
-                    .participants(participants.stream().map(this::toBasicResponse).toList())
-                    .build();
+            return new FreeGameParticipantsResponse(
+                    query.gameId(),
+                    matchRecordMode,
+                    participants.stream().map(this::toBasicResponse).toList()
+            );
         }
 
         List<FreeGameRound> rounds = loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(query.gameId());
@@ -67,24 +67,28 @@ public class GetFreeGameParticipantsService implements GetFreeGameParticipantsUs
                         roundIds.isEmpty() ? List.of() : loadFreeGameMatchPort.loadMatchesByRoundIdsOrderByCourtNumber(roundIds)
                 );
 
-        return FreeGameParticipantsResponse.builder()
-                .gameId(query.gameId())
-                .matchRecordMode(matchRecordMode)
-                .participants(participants.stream()
+        return new FreeGameParticipantsResponse(
+                query.gameId(),
+                matchRecordMode,
+                participants.stream()
                         .map(participant -> toResponse(participant, matchRecordMode, statsByParticipantId.get(participant.getId())))
-                        .toList())
-                .build();
+                        .toList()
+        );
     }
 
     private FreeGameParticipantResponse toBasicResponse(GameParticipant participant) {
-        return FreeGameParticipantResponse.builder()
-                .participantId(participant.getId())
-                .userId(participant.getUser() != null ? participant.getUser().getId() : null)
-                .displayName(participant.getDisplayName())
-                .gender(participant.getGender())
-                .grade(participant.getGrade())
-                .ageGroup(participant.getAgeGroup())
-                .build();
+        return new FreeGameParticipantResponse(
+                participant.getId(),
+                participant.getIdentityAccountId(),
+                participant.getDisplayName(),
+                participant.getGender(),
+                participant.getGrade(),
+                participant.getAgeGroup(),
+                null,
+                null,
+                null,
+                null
+        );
     }
 
     private FreeGameParticipantResponse toResponse(
@@ -95,17 +99,17 @@ public class GetFreeGameParticipantsService implements GetFreeGameParticipantsUs
         Integer winCount = matchRecordMode == MatchRecordMode.RESULT ? stats.winCount() : null;
         Integer lossCount = matchRecordMode == MatchRecordMode.RESULT ? stats.lossCount() : null;
 
-        return FreeGameParticipantResponse.builder()
-                .participantId(participant.getId())
-                .userId(participant.getUser() != null ? participant.getUser().getId() : null)
-                .displayName(participant.getDisplayName())
-                .gender(participant.getGender())
-                .grade(participant.getGrade())
-                .ageGroup(participant.getAgeGroup())
-                .assignedMatchCount(stats.assignedMatchCount())
-                .completedMatchCount(stats.completedMatchCount())
-                .winCount(winCount)
-                .lossCount(lossCount)
-                .build();
+        return new FreeGameParticipantResponse(
+                participant.getId(),
+                participant.getIdentityAccountId(),
+                participant.getDisplayName(),
+                participant.getGender(),
+                participant.getGrade(),
+                participant.getAgeGroup(),
+                stats.assignedMatchCount(),
+                stats.completedMatchCount(),
+                winCount,
+                lossCount
+        );
     }
 }

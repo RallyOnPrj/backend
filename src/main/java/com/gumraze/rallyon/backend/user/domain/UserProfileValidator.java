@@ -1,7 +1,7 @@
-package com.gumraze.rallyon.backend.user.service;
+package com.gumraze.rallyon.backend.user.domain;
 
+import com.gumraze.rallyon.backend.user.application.port.in.command.CreateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
-import com.gumraze.rallyon.backend.user.dto.UserProfileCreateRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -13,13 +13,12 @@ import java.util.Locale;
 @Component
 public class UserProfileValidator {
 
-    // 프로필 생성 시 검증 메서드
-    public void validateForCreate(UserProfileCreateRequest request) {
-        validateRequiredNickname(request.getNickname());
-        validateRequiredBirth(request.getBirth());
-        validateBirthFormat(request.getBirth());
-        validateRequiredGender(request.getGender());
-        validateRequiredDistrictId(request.getDistrictId());
+    public void validateForCreate(CreateMyProfileCommand command) {
+        validateRequiredNickname(command.nickname());
+        validateRequiredBirth(command.birth());
+        validateBirthFormat(command.birth());
+        validateRequiredGender(command.gender());
+        validateRequiredDistrictId(command.districtId());
     }
 
     public void validateForUpdate(UpdateMyProfileCommand command) {

@@ -105,20 +105,20 @@ class CourtManagerControllerAuthTest {
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
         UUID gameId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        UpdateFreeGameRoundMatchRequest request = UpdateFreeGameRoundMatchRequest.builder()
-                .rounds(List.of(
-                        RoundRequest.builder()
-                                .roundNumber(1)
-                                .matches(List.of(
-                                        MatchRequest.builder()
-                                                .courtNumber(1)
-                                                .teamAIds(List.of(UUID.randomUUID(), UUID.randomUUID()))
-                                                .teamBIds(List.of(UUID.randomUUID(), UUID.randomUUID()))
-                                                .build()
-                                ))
-                                .build()
-                ))
-                .build();
+        UpdateFreeGameRoundMatchRequest request = new UpdateFreeGameRoundMatchRequest(
+                List.of(
+                        new RoundRequest(
+                                1,
+                                List.of(
+                                        new MatchRequest(
+                                                1,
+                                                List.of(UUID.randomUUID(), UUID.randomUUID()),
+                                                List.of(UUID.randomUUID(), UUID.randomUUID())
+                                        )
+                                )
+                        )
+                )
+        );
         UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(userId, gameId, List.of());
 
         when(updateFreeGameRoundsAndMatchesCommandMapper.toCommand(
@@ -163,6 +163,6 @@ class CourtManagerControllerAuthTest {
         mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(response.getGameId().toString()));
+                .andExpect(jsonPath("$.gameId").value(response.gameId().toString()));
     }
 }

@@ -1,11 +1,10 @@
 package com.gumraze.rallyon.backend.user.application.service;
 
+import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyUserSummaryQuery;
-import com.gumraze.rallyon.backend.user.application.port.out.LoadIdentityUserPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import com.gumraze.rallyon.backend.user.dto.UserMeResponse;
-import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 class GetMyUserSummaryServiceTest {
 
     @Mock
-    private LoadIdentityUserPort loadIdentityUserPort;
+    private LoadUserOnboardingStatusUseCase loadUserOnboardingStatusUseCase;
 
     @Mock
     private LoadUserProfilePort loadUserProfilePort;
@@ -33,41 +33,50 @@ class GetMyUserSummaryServiceTest {
     @Test
     @DisplayName("PENDING 사용자는 프로필 조회 없이 status만 반환한다")
     void get_summary_returns_status_only_for_pending_user() {
-        var userId = uuid(1);
-        GetMyUserSummaryService service = new GetMyUserSummaryService(loadIdentityUserPort, loadUserProfilePort);
+        var identityAccountId = uuid(1);
+        GetMyUserSummaryService service = new GetMyUserSummaryService(
+                loadUserOnboardingStatusUseCase,
+                loadUserProfilePort
+        );
 
-        when(loadIdentityUserPort.loadById(userId)).thenReturn(Optional.of(
-                User.builder().id(userId).status(UserStatus.PENDING).build()
-        ));
+        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.PENDING);
 
-        UserMeResponse result = service.get(new GetMyUserSummaryQuery(userId));
+        UserMeResponse result = service.get(new GetMyUserSummaryQuery(identityAccountId));
 
-        assertThat(result.getStatus()).isEqualTo(UserStatus.PENDING);
-        assertThat(result.getNickname()).isNull();
-        verify(loadUserProfilePort, never()).loadByUserId(userId);
+        assertThat(result.status()).isEqualTo(UserStatus.PENDING);
+        assertThat(result.nickname()).isNull();
+        verify(loadUserProfilePort, never()).loadByIdentityAccountId(identityAccountId);
     }
 
     @Test
     @DisplayName("ACTIVE 사용자는 프로필 정보를 포함한다")
     void get_summary_returns_profile_for_active_user() {
-        var userId = uuid(1);
-        GetMyUserSummaryService service = new GetMyUserSummaryService(loadIdentityUserPort, loadUserProfilePort);
+        var identityAccountId = uuid(1);
+        UserProfile profile = UserProfile.create(
+                identityAccountId,
+                "테스트 닉네임",
+                null,
+                null,
+                null,
+                LocalDateTime.of(1998, 9, 25, 0, 0),
+                null,
+                "AB12",
+                LocalDateTime.now()
+        );
+        profile.changeProfileImageUrl("https://example.com/profile.png");
 
-        when(loadIdentityUserPort.loadById(userId)).thenReturn(Optional.of(
-                User.builder().id(userId).status(UserStatus.ACTIVE).build()
-        ));
-        when(loadUserProfilePort.loadByUserId(userId)).thenReturn(Optional.of(
-                UserProfile.builder()
-                        .user(User.builder().id(userId).build())
-                        .nickname("테스트 닉네임")
-                        .profileImageUrl("https://example.com/profile.png")
-                        .build()
-        ));
+        GetMyUserSummaryService service = new GetMyUserSummaryService(
+                loadUserOnboardingStatusUseCase,
+                loadUserProfilePort
+        );
 
-        UserMeResponse result = service.get(new GetMyUserSummaryQuery(userId));
+        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.ACTIVE);
+        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
 
-        assertThat(result.getStatus()).isEqualTo(UserStatus.ACTIVE);
-        assertThat(result.getNickname()).isEqualTo("테스트 닉네임");
-        assertThat(result.getProfileImageUrl()).isEqualTo("https://example.com/profile.png");
+        UserMeResponse result = service.get(new GetMyUserSummaryQuery(identityAccountId));
+
+        assertThat(result.status()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(result.nickname()).isEqualTo("테스트 닉네임");
+        assertThat(result.profileImageUrl()).isEqualTo("https://example.com/profile.png");
     }
 }

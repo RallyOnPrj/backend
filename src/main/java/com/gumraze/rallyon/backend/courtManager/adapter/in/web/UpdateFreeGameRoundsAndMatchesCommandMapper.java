@@ -17,14 +17,14 @@ public class UpdateFreeGameRoundsAndMatchesCommandMapper {
         return new UpdateFreeGameRoundsAndMatchesCommand(
                 organizerId,
                 gameId,
-                request.getRounds() == null ? null : request.getRounds().stream()
+                request.rounds() == null ? null : request.rounds().stream()
                         .map(round -> new UpdateFreeGameRoundsAndMatchesCommand.Round(
-                                round.getRoundNumber(),
-                                round.getMatches().stream()
+                                round.roundNumber(),
+                                round.matches().stream()
                                         .map(match -> new UpdateFreeGameRoundsAndMatchesCommand.Match(
-                                                match.getCourtNumber(),
-                                                match.getTeamAIds(),
-                                                match.getTeamBIds()
+                                                match.courtNumber(),
+                                                match.teamAIds(),
+                                                match.teamBIds()
                                         ))
                                         .toList()
                         ))

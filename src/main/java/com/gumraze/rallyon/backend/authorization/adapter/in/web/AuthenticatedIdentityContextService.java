@@ -1,8 +1,7 @@
 package com.gumraze.rallyon.backend.authorization.adapter.in.web;
 
 import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.user.constants.UserRole;
-import com.gumraze.rallyon.backend.user.constants.UserStatus;
+import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,17 +51,13 @@ public class AuthenticatedIdentityContextService {
         }
 
         if (authentication.getCredentials() instanceof Jwt jwt) {
-            UserRole role = Optional.ofNullable(jwt.getClaimAsStringList("roles"))
+            IdentityRole role = Optional.ofNullable(jwt.getClaimAsStringList("roles"))
                     .filter(list -> !list.isEmpty())
-                    .map(list -> UserRole.valueOf(list.getFirst()))
-                    .orElse(UserRole.USER);
-            UserStatus status = Optional.ofNullable(jwt.getClaimAsString("status"))
-                    .map(UserStatus::valueOf)
-                    .orElse(UserStatus.ACTIVE);
+                    .map(list -> IdentityRole.valueOf(list.getFirst()))
+                    .orElse(IdentityRole.USER);
             return new AuthenticatedIdentity(
                     UUID.fromString(jwt.getSubject()),
                     role,
-                    status,
                     jwt.getClaimAsString("name")
             );
         }

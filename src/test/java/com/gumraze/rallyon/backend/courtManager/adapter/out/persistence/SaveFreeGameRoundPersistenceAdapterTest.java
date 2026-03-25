@@ -12,6 +12,10 @@ import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameMatchRepository;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameRoundRepository;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.user.constants.Gender;
+import com.gumraze.rallyon.backend.user.constants.Grade;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,10 +64,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         UUID p3Id = UUID.randomUUID();
         UUID p4Id = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .id(gameId)
-                .title("수요 자유게임")
-                .build();
+        FreeGame freeGame = freeGame(gameId);
 
         GameParticipant p1 = participant(p1Id, "서승재");
         GameParticipant p2 = participant(p2Id, "김원호");
@@ -131,10 +132,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         UUID p3Id = UUID.randomUUID();
         UUID unknownParticipantId = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .id(gameId)
-                .title("수요 자유게임")
-                .build();
+        FreeGame freeGame = freeGame(gameId);
 
         GameParticipant p1 = participant(p1Id, "서승재");
         GameParticipant p2 = participant(p2Id, "김원호");
@@ -170,10 +168,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         UUID p2Id = UUID.randomUUID();
         UUID p3Id = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .id(gameId)
-                .title("수요 자유게임")
-                .build();
+        FreeGame freeGame = freeGame(gameId);
 
         List<RoundAssignment> roundAssignments = List.of(
                 new RoundAssignment(
@@ -203,10 +198,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         UUID p6Id = UUID.randomUUID();
         UUID p7Id = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .id(gameId)
-                .title("수요 자유게임")
-                .build();
+        FreeGame freeGame = freeGame(gameId);
 
         List<RoundAssignment> roundAssignments = List.of(
                 new RoundAssignment(
@@ -232,10 +224,7 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
         UUID p1Id = UUID.randomUUID();
         UUID p3Id = UUID.randomUUID();
 
-        FreeGame freeGame = FreeGame.builder()
-                .id(gameId)
-                .title("수요 자유게임")
-                .build();
+        FreeGame freeGame = freeGame(gameId);
 
         GameParticipant p1 = participant(p1Id, "서승재");
         GameParticipant p3 = participant(p3Id, "안세영");
@@ -275,11 +264,29 @@ public class SaveFreeGameRoundPersistenceAdapterTest {
     }
 
     private GameParticipant participant(UUID participantId, String originalName) {
-        GameParticipant participant = GameParticipant.builder()
-                .originalName(originalName)
-                .displayName(originalName)
-                .build();
+        GameParticipant participant = GameParticipant.create(
+                freeGame(UUID.randomUUID()),
+                null,
+                originalName,
+                originalName,
+                Gender.MALE,
+                Grade.A,
+                20
+        );
         ReflectionTestUtils.setField(participant, "id", participantId);
         return participant;
+    }
+
+    private FreeGame freeGame(UUID gameId) {
+        FreeGame freeGame = FreeGame.create(
+                "수요 자유게임",
+                UUID.randomUUID(),
+                GradeType.NATIONAL,
+                MatchRecordMode.STATUS_ONLY,
+                null,
+                null
+        );
+        ReflectionTestUtils.setField(freeGame, "id", gameId);
+        return freeGame;
     }
 }

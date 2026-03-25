@@ -54,13 +54,18 @@ public class AppleOAuthClient implements OAuthProviderPort {
         String email = readStringClaim(claims, "email");
         String nickname = deriveNickname(email);
 
-        return OAuthUserInfo.builder()
-                .providerUserId(claims.getSubject())
-                .email(email)
-                .nickname(nickname)
-                .emailVerified(parseBooleanClaim(claims, "email_verified"))
-                .phoneNumberVerified(false)
-                .build();
+        return new OAuthUserInfo(
+                claims.getSubject(),
+                email,
+                nickname,
+                null,
+                null,
+                null,
+                null,
+                null,
+                parseBooleanClaim(claims, "email_verified"),
+                false
+        );
     }
 
     private AppleTokenResponse requestAccessToken(String authorizationCode, String redirectUri) {

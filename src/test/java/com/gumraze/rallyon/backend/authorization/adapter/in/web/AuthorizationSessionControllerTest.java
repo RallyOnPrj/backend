@@ -17,8 +17,9 @@ import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateOAut
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
 import com.gumraze.rallyon.backend.security.config.SecurityConfig;
-import com.gumraze.rallyon.backend.user.constants.UserRole;
+import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -105,12 +106,16 @@ class AuthorizationSessionControllerTest {
     @MockitoBean
     private OAuthProviderRegistry oAuthProviderRegistry;
 
+    @MockitoBean
+    private LoadUserOnboardingStatusUseCase loadUserOnboardingStatusUseCase;
+
     @Autowired
     void setUpRegistryDefaults() {
         lenient().when(oAuthProviderRegistry.supports(AuthProvider.KAKAO)).thenReturn(true);
         lenient().when(oAuthProviderRegistry.supports(AuthProvider.GOOGLE)).thenReturn(true);
         lenient().when(oAuthProviderRegistry.supports(AuthProvider.APPLE)).thenReturn(true);
         lenient().when(oAuthProviderRegistry.supports(AuthProvider.DUMMY)).thenReturn(true);
+        lenient().when(loadUserOnboardingStatusUseCase.load(any())).thenReturn(UserStatus.ACTIVE);
     }
 
     @Test
@@ -417,8 +422,7 @@ class AuthorizationSessionControllerTest {
     private AuthenticatedIdentity activePrincipal() {
         return new AuthenticatedIdentity(
                 UUID.randomUUID(),
-                UserRole.USER,
-                UserStatus.ACTIVE,
+                IdentityRole.USER,
                 "tester"
         );
     }
@@ -449,9 +453,9 @@ class AuthorizationSessionControllerTest {
 
         @Bean
         OAuthAllowedProvidersProperties oAuthAllowedProvidersProperties() {
-            OAuthAllowedProvidersProperties properties = new OAuthAllowedProvidersProperties();
-            properties.setAllowedProviders(List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.APPLE, AuthProvider.DUMMY));
-            return properties;
+            return new OAuthAllowedProvidersProperties(
+                    List.of(AuthProvider.KAKAO, AuthProvider.GOOGLE, AuthProvider.APPLE, AuthProvider.DUMMY)
+            );
         }
 
         @Bean

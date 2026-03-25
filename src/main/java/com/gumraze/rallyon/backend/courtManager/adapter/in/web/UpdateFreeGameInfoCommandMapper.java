@@ -13,11 +13,11 @@ public class UpdateFreeGameInfoCommandMapper {
         return new UpdateFreeGameInfoCommand(
                 organizerId,
                 gameId,
-                request.getTitle(),
-                request.getMatchRecordMode(),
-                request.getGradeType(),
-                request.getLocation(),
-                request.getManagerIds()
+                request.title(),
+                request.matchRecordMode(),
+                request.gradeType(),
+                request.location(),
+                request.managerIds()
         );
     }
 }

@@ -1,43 +1,35 @@
 package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-public class LoadUserPersistenceAdapterTest {
+class LoadUserPersistenceAdapterTest {
 
-    private UserRepository userRepository;
+    private IdentityAccountRepository identityAccountRepository;
     private LoadUserPersistenceAdapter adapter;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
-        adapter = new LoadUserPersistenceAdapter(userRepository);
+        identityAccountRepository = mock(IdentityAccountRepository.class);
+        adapter = new LoadUserPersistenceAdapter(identityAccountRepository);
     }
 
     @Test
-    @DisplayName("userId로 사용자를 조회한다.")
-    void loadBy_returnsUser() {
-        // given
-        UUID userId = UUID.randomUUID();
-        User user = User.builder().id(userId).build();
+    @DisplayName("identityAccountId로 계정 존재 여부를 조회한다")
+    void existsBy_returnsBoolean() {
+        UUID identityAccountId = UUID.randomUUID();
+        given(identityAccountRepository.existsById(identityAccountId)).willReturn(true);
 
-        given(userRepository.findById(userId)).willReturn(java.util.Optional.of(user));
+        boolean result = adapter.existsById(identityAccountId);
 
-        // when
-        Optional<User> result = adapter.loadById(userId);
-
-        // then
-        assertThat(result).contains(user);
-        assertThat(result.get().getId()).isEqualTo(userId);
+        assertThat(result).isTrue();
     }
 }

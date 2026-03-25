@@ -12,7 +12,7 @@ public interface IdentityOAuthLinkRepository extends JpaRepository<IdentityOAuth
 
     Optional<IdentityOAuthLink> findByProviderAndProviderUserId(AuthProvider provider, String providerUserId);
 
-    Optional<IdentityOAuthLink> findByUser_IdAndProvider(UUID userId, AuthProvider provider);
+    Optional<IdentityOAuthLink> findByIdentityAccount_IdAndProvider(UUID identityAccountId, AuthProvider provider);
 
-    List<IdentityOAuthLink> findByUser_IdOrderByUpdatedAtDesc(UUID userId);
+    List<IdentityOAuthLink> findByIdentityAccount_IdOrderByUpdatedAtDesc(UUID identityAccountId);
 }

@@ -18,6 +18,7 @@ import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIde
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
     private final OAuthAllowedProvidersProperties allowedProviders;
     private final OAuthProviderRegistry oAuthProviderRegistry;
     private final DummyOAuthProperties dummyOAuthProperties;
+    private final LoadUserOnboardingStatusUseCase loadUserOnboardingStatusUseCase;
 
     @Override
     public CurrentSessionView getCurrentSession(BrowserAuthSession currentSession) {
@@ -56,7 +58,7 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
                 currentSession != null,
                 currentSession == null ? "/profile" : currentSession.returnTo(),
                 currentSession == null ? null : currentSession.screen(),
-                allowedProviders.getAllowedProviders().stream()
+                allowedProviders.allowedProviders().stream()
                         .filter(this::isVisibleSocialProvider)
                         .toList(),
                 buildDummyOptions(currentSession)
@@ -261,7 +263,8 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
             );
         }
 
-        String targetPath = command.currentIdentity() != null && command.currentIdentity().status() == UserStatus.PENDING
+        String targetPath = command.currentIdentity() != null
+                && loadUserOnboardingStatusUseCase.load(command.currentIdentity().identityAccountId()) == UserStatus.PENDING
                 ? "/profile/setup"
                 : command.authSession().returnTo();
 
@@ -365,19 +368,19 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
 
     private boolean isVisibleSocialProvider(AuthProvider provider) {
         return provider != AuthProvider.DUMMY
-                && allowedProviders.getAllowedProviders().contains(provider)
+                && allowedProviders.allowedProviders().contains(provider)
                 && oAuthProviderRegistry.supports(provider);
     }
 
     private boolean isDummyLoginVisible() {
         return dummyOAuthProperties.enabled()
                 && dummyOAuthProperties.loginPageVisible()
-                && allowedProviders.getAllowedProviders().contains(AuthProvider.DUMMY)
+                && allowedProviders.allowedProviders().contains(AuthProvider.DUMMY)
                 && oAuthProviderRegistry.supports(AuthProvider.DUMMY);
     }
 
     private void validateRequestedProvider(AuthProvider provider) {
-        if (!allowedProviders.getAllowedProviders().contains(provider)) {
+        if (!allowedProviders.allowedProviders().contains(provider)) {
             throw new UnauthorizedException("허용되지 않는 로그인 수단입니다.");
         }
 

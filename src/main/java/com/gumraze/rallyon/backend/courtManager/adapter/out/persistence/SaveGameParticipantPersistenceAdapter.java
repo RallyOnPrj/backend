@@ -6,8 +6,7 @@ import com.gumraze.rallyon.backend.courtManager.domain.ParticipantDisplayNamePol
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,7 @@ import java.util.Map;
 public class SaveGameParticipantPersistenceAdapter implements SaveGameParticipantPort {
 
     private final GameParticipantRepository gameParticipantRepository;
-    private final UserRepository userRepository;
+    private final IdentityAccountRepository identityAccountRepository;
 
     @Override
     public Map<String, GameParticipant> saveAll(
@@ -34,28 +33,27 @@ public class SaveGameParticipantPersistenceAdapter implements SaveGameParticipan
         Map<String, GameParticipant> participantsByClientId = new LinkedHashMap<>();
 
         for (CreateFreeGameCommand.Participant participant : participants) {
-            User participantUser = null;
             if (participant.userId() != null) {
-                participantUser = userRepository.findById(participant.userId())
+                identityAccountRepository.findById(participant.userId())
                         .orElseThrow(() ->
-                                new IllegalArgumentException("존재하지 않는 userId입니다. :" + participant.userId()));
+                                new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + participant.userId()));
             }
 
-            GameParticipant toSave = GameParticipant.builder()
-                    .freeGame(freeGame)
-                    .user(participantUser)
-                    .originalName(participant.originalName())
-                    .displayName(ParticipantDisplayNamePolicy.resolve(
+            GameParticipant toSave = GameParticipant.create(
+                    freeGame,
+                    participant.userId(),
+                    participant.originalName(),
+                    ParticipantDisplayNamePolicy.resolve(
                             participant.originalName(),
                             participant.gender(),
                             participant.grade(),
                             participant.ageGroup(),
                             participantsByClientId.values()
-                    ))
-                    .gender(participant.gender())
-                    .grade(participant.grade())
-                    .ageGroup(participant.ageGroup())
-                    .build();
+                    ),
+                    participant.gender(),
+                    participant.grade(),
+                    participant.ageGroup()
+            );
 
             GameParticipant savedParticipant = gameParticipantRepository.save(toSave);
             participantsByClientId.put(participant.clientId(), savedParticipant);

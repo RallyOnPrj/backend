@@ -13,7 +13,6 @@ import com.gumraze.rallyon.backend.courtManager.domain.assignment.CourtAssignmen
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.RoundAssignment;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Map;
@@ -33,8 +32,9 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
 
     @Override
     public UUID create(UUID organizerId, CreateFreeGameCommand command) {
-        User organizer = loadUserPort.loadById(organizerId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 organizer 입니다."));
+        if (!loadUserPort.existsById(organizerId)) {
+            throw new IllegalArgumentException("존재하지 않는 organizer 입니다.");
+        }
 
         MatchRecordMode matchRecordMode = command.matchRecordMode() == null
                 ? MatchRecordMode.STATUS_ONLY
@@ -45,7 +45,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
 
         FreeGame freeGame = FreeGame.create(
                 command.title(),
-                organizer,
+                organizerId,
                 command.gradeType(),
                 matchRecordMode,
                 shareCode,
@@ -82,7 +82,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
         }
 
         for (UUID managerId : managerIds) {
-            if (loadUserPort.loadById(managerId).isEmpty()) {
+            if (!loadUserPort.existsById(managerId)) {
                 throw new IllegalArgumentException("존재하지 않는 managerId입니다. :" + managerId);
             }
         }

@@ -1,11 +1,13 @@
-package com.gumraze.rallyon.backend.user.service;
+package com.gumraze.rallyon.backend.user.domain;
 
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
-import com.gumraze.rallyon.backend.user.dto.UserProfileCreateRequest;
+import com.gumraze.rallyon.backend.user.application.port.in.command.CreateMyProfileCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -22,7 +24,8 @@ class UserProfileValidatorTest {
     @DisplayName("프로필 생성 시 최종 닉네임이 null이면 예외가 발생함.")
     void validate_for_create_throws_when_resolved_nickname_is_null() {
         // given: 사용자 생성
-        UserProfileCreateRequest request = new UserProfileCreateRequest(
+        CreateMyProfileCommand request = new CreateMyProfileCommand(
+                UUID.randomUUID(),
                 null,
                 null,
                 null,
@@ -42,7 +45,8 @@ class UserProfileValidatorTest {
     @DisplayName("프로필 생성 시 최종 닉네임이 공백이면 예외가 발생함.")
     void validate_for_create_throes_when_resolved_nickname_is_blank() {
         // given
-        UserProfileCreateRequest request = new UserProfileCreateRequest(
+        CreateMyProfileCommand request = new CreateMyProfileCommand(
+                UUID.randomUUID(),
                 "   ",
                 null,
                 null,
@@ -62,7 +66,8 @@ class UserProfileValidatorTest {
     @DisplayName("프로필 생성 시 birth가 없으면 예외가 발생함")
     void validate_for_create_throws_when_birth_is_missing() {
         // given: 프로필 생성
-        UserProfileCreateRequest request = new UserProfileCreateRequest(
+        CreateMyProfileCommand request = new CreateMyProfileCommand(
+                UUID.randomUUID(),
                 "Kim",
                 null,
                 null,
@@ -83,7 +88,8 @@ class UserProfileValidatorTest {
     @DisplayName("프로필 생성 시 gender가 없으면 예외가 발생함.")
     void validate_for_create_throws_when_gender_is_missing() {
         // given: 프로필 생성
-        UserProfileCreateRequest request = new UserProfileCreateRequest(
+        CreateMyProfileCommand request = new CreateMyProfileCommand(
+                UUID.randomUUID(),
                 "Kim",
                 null,
                 null,
@@ -112,7 +118,8 @@ class UserProfileValidatorTest {
     @DisplayName("birth의 값이 blank이면 예외가 발생한다.")
     void validate_for_create_throws_when_birth_is_blank() {
         // given & when: birth가 blank인 프로필 생성
-        UserProfileCreateRequest request = new UserProfileCreateRequest(
+        CreateMyProfileCommand request = new CreateMyProfileCommand(
+                UUID.randomUUID(),
                 "Kim",
                 null,
                 null,

@@ -40,11 +40,11 @@ public class SaveFreeGameRoundPersistenceAdapter implements SaveFreeGameRoundPor
             validateRoundAssignment(roundAssignment);
 
             FreeGameRound savedRound = freeGameRoundRepository.save(
-                    FreeGameRound.builder()
-                            .freeGame(freeGame)
-                            .roundNumber(roundAssignment.roundNumber())
-                            .roundStatus(RoundStatus.NOT_STARTED)
-                            .build()
+                    FreeGameRound.create(
+                            freeGame,
+                            roundAssignment.roundNumber(),
+                            RoundStatus.NOT_STARTED
+                    )
             );
 
             for (CourtAssignment courtAssignment : roundAssignment.courts()) {
@@ -54,17 +54,18 @@ public class SaveFreeGameRoundPersistenceAdapter implements SaveFreeGameRoundPor
                 GameParticipant slot4 = loadParticipant(courtAssignment.slot4ParticipantId());
 
                 freeGameMatchRepository.save(
-                        FreeGameMatch.builder()
-                                .round(savedRound)
-                                .courtNumber(courtAssignment.courtNumber())
-                                .teamAPlayer1(slot1)
-                                .teamAPlayer2(slot3)
-                                .teamBPlayer1(slot2)
-                                .teamBPlayer2(slot4)
-                                .matchStatus(MatchStatus.NOT_STARTED)
-                                .matchResult(MatchResult.NULL)
-                                .isActive(true)
-                                .build()
+                        FreeGameMatch.create(
+                                savedRound,
+                                courtAssignment.courtNumber(),
+                                slot1,
+                                slot3,
+                                slot2,
+                                slot4,
+                                null,
+                                MatchStatus.NOT_STARTED,
+                                MatchResult.NULL,
+                                true
+                        )
                 );
             }
         }

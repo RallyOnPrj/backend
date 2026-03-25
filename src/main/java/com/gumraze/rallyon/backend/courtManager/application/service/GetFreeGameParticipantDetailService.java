@@ -32,14 +32,14 @@ public class GetFreeGameParticipantDetailService implements GetFreeGameParticipa
             throw new NotFoundException("참가자가 다른 게임에 속해 있습니다. participantId: " + query.participantId());
         }
 
-        return FreeGameParticipantDetailResponse.builder()
-                .gameId(query.gameId())
-                .participantId(participant.getId())
-                .userId(participant.getUser() != null ? participant.getUser().getId() : null)
-                .displayName(participant.getDisplayName())
-                .gender(participant.getGender())
-                .grade(participant.getGrade())
-                .ageGroup(participant.getAgeGroup())
-                .build();
+        return new FreeGameParticipantDetailResponse(
+                query.gameId(),
+                participant.getId(),
+                participant.getIdentityAccountId(),
+                participant.getDisplayName(),
+                participant.getGender(),
+                participant.getGrade(),
+                participant.getAgeGroup()
+        );
     }
 }

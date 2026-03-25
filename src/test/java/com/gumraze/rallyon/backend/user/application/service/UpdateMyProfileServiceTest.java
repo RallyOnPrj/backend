@@ -1,16 +1,15 @@
 package com.gumraze.rallyon.backend.user.application.service;
 
-import com.gumraze.rallyon.backend.region.RegionDistrictReference;
 import com.gumraze.rallyon.backend.common.exception.UnprocessableEntityException;
+import com.gumraze.rallyon.backend.region.RegionDistrictReference;
 import com.gumraze.rallyon.backend.user.application.port.in.command.UpdateMyProfileCommand;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadRegionPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.application.port.out.SaveUserProfilePort;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
-import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
-import com.gumraze.rallyon.backend.user.service.UserProfileValidator;
+import com.gumraze.rallyon.backend.user.domain.UserProfileValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.gumraze.rallyon.backend.support.UuidTestFixtures.uuid;
@@ -41,19 +41,19 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("프로필 수정 시 districtId를 새 snapshot 기준으로 갱신한다")
     void update_profile_updates_requested_fields() {
-        var userId = uuid(1);
+        var identityAccountId = uuid(1);
         var newDistrictId = uuid(2);
-        var profile = UserProfile.builder()
-                .user(User.builder().id(userId).build())
-                .nickname("oldNickname")
-                .tag("AB12")
-                .districtId(uuid(99))
-                .birth(LocalDate.of(1998, 9, 25).atStartOfDay())
-                .birthVisible(true)
-                .gender(Gender.MALE)
-                .regionalGrade(Grade.D)
-                .nationalGrade(Grade.D)
-                .build();
+        var profile = UserProfile.create(
+                identityAccountId,
+                "oldNickname",
+                uuid(99),
+                Grade.D,
+                Grade.D,
+                LocalDate.of(1998, 9, 25).atStartOfDay(),
+                Gender.MALE,
+                "AB12",
+                LocalDateTime.now().minusDays(120)
+        );
 
         UpdateMyProfileService service = new UpdateMyProfileService(
                 loadUserProfilePort,
@@ -62,14 +62,14 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByUserId(userId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(newDistrictId)).thenReturn(Optional.of(
                 new RegionDistrictReference(newDistrictId, "권선구", "41113", uuid(3), "경기도", "41")
         ));
         when(loadUserProfilePort.loadByNicknameAndTag("newNickname", "SON7")).thenReturn(Optional.empty());
 
         service.update(new UpdateMyProfileCommand(
-                userId,
+                identityAccountId,
                 "newNickname",
                 "son7",
                 Grade.B,
@@ -94,13 +94,19 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("존재하지 않는 districtId면 프로필 수정이 실패한다")
     void update_profile_throws_when_district_missing() {
-        var userId = uuid(1);
+        var identityAccountId = uuid(1);
         var districtId = uuid(2);
-        var profile = UserProfile.builder()
-                .user(User.builder().id(userId).build())
-                .tag("AB12")
-                .tagChangedAt(java.time.LocalDateTime.now())
-                .build();
+        var profile = UserProfile.create(
+                identityAccountId,
+                "tester",
+                null,
+                null,
+                null,
+                LocalDateTime.of(1998, 9, 25, 0, 0),
+                Gender.MALE,
+                "AB12",
+                LocalDateTime.now().minusDays(120)
+        );
 
         UpdateMyProfileService service = new UpdateMyProfileService(
                 loadUserProfilePort,
@@ -109,11 +115,11 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByUserId(userId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.update(new UpdateMyProfileCommand(
-                userId,
+                identityAccountId,
                 null,
                 null,
                 null,
@@ -130,13 +136,18 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("태그 변경은 90일 이내에 한 번만 가능하다")
     void update_profile_throws_when_tag_changed_too_soon() {
-        var userId = uuid(1);
-        var profile = UserProfile.builder()
-                .user(User.builder().id(userId).build())
-                .nickname("oldNickname")
-                .tag("AB12")
-                .tagChangedAt(java.time.LocalDateTime.now().minusDays(30))
-                .build();
+        var identityAccountId = uuid(1);
+        var profile = UserProfile.create(
+                identityAccountId,
+                "oldNickname",
+                null,
+                null,
+                null,
+                LocalDateTime.of(1998, 9, 25, 0, 0),
+                Gender.MALE,
+                "AB12",
+                LocalDateTime.now().minusDays(30)
+        );
 
         UpdateMyProfileService service = new UpdateMyProfileService(
                 loadUserProfilePort,
@@ -145,10 +156,10 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByUserId(userId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
 
         assertThatThrownBy(() -> service.update(new UpdateMyProfileCommand(
-                userId,
+                identityAccountId,
                 null,
                 "new1",
                 null,

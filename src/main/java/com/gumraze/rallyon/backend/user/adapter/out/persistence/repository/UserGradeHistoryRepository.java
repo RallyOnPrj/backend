@@ -1,4 +1,4 @@
-package com.gumraze.rallyon.backend.user.repository;
+package com.gumraze.rallyon.backend.user.adapter.out.persistence.repository;
 
 import com.gumraze.rallyon.backend.user.entity.UserGradeHistory;
 

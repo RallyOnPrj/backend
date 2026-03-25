@@ -37,10 +37,7 @@ public class GetFreeGameRoundsAndMatchesService implements GetFreeGameRoundsAndM
 
         List<FreeGameRound> rounds = loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(query.gameId());
         if (rounds.isEmpty()) {
-            return FreeGameRoundMatchResponse.builder()
-                    .gameId(query.gameId())
-                    .rounds(List.of())
-                    .build();
+            return new FreeGameRoundMatchResponse(query.gameId(), List.of());
         }
 
         List<UUID> roundIds = rounds.stream()
@@ -51,35 +48,32 @@ public class GetFreeGameRoundsAndMatchesService implements GetFreeGameRoundsAndM
                 .collect(Collectors.groupingBy(match -> match.getRound().getId()));
 
         List<FreeGameRoundResponse> roundResponses = rounds.stream()
-                .map(round -> FreeGameRoundResponse.builder()
-                        .roundNumber(round.getRoundNumber())
-                        .roundStatus(round.getRoundStatus())
-                        .matches(matchesByRoundId.getOrDefault(round.getId(), List.of()).stream()
+                .map(round -> new FreeGameRoundResponse(
+                        round.getRoundNumber(),
+                        round.getRoundStatus(),
+                        matchesByRoundId.getOrDefault(round.getId(), List.of()).stream()
                                 .map(this::toMatchResponse)
-                                .toList())
-                        .build())
+                                .toList()
+                ))
                 .toList();
 
-        return FreeGameRoundMatchResponse.builder()
-                .gameId(query.gameId())
-                .rounds(roundResponses)
-                .build();
+        return new FreeGameRoundMatchResponse(query.gameId(), roundResponses);
     }
 
     private FreeGameMatchResponse toMatchResponse(FreeGameMatch match) {
-        return FreeGameMatchResponse.builder()
-                .courtNumber(match.getCourtNumber().longValue())
-                .teamAIds(Arrays.asList(
+        return new FreeGameMatchResponse(
+                match.getCourtNumber().longValue(),
+                Arrays.asList(
                         match.getTeamAPlayer1() != null ? match.getTeamAPlayer1().getId() : null,
                         match.getTeamAPlayer2() != null ? match.getTeamAPlayer2().getId() : null
-                ))
-                .teamBIds(Arrays.asList(
+                ),
+                Arrays.asList(
                         match.getTeamBPlayer1() != null ? match.getTeamBPlayer1().getId() : null,
                         match.getTeamBPlayer2() != null ? match.getTeamBPlayer2().getId() : null
-                ))
-                .matchStatus(match.getMatchStatus())
-                .matchResult(match.getMatchResult() != null ? match.getMatchResult() : MatchResult.NULL)
-                .isActive(match.getIsActive())
-                .build();
+                ),
+                match.getMatchStatus(),
+                match.getMatchResult() != null ? match.getMatchResult() : MatchResult.NULL,
+                match.getIsActive()
+        );
     }
 }

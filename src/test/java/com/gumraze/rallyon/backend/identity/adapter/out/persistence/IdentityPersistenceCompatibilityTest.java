@@ -1,12 +1,13 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.persistence;
 
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
 import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityLocalCredentialRepository;
 import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityOAuthLinkRepository;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
+import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
 import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
 import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
-import com.gumraze.rallyon.backend.user.entity.User;
-import com.gumraze.rallyon.backend.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class IdentityPersistenceCompatibilityTest {
     private RestClient.Builder restClientBuilder;
 
     @Autowired
-    private UserRepository userRepository;
+    private IdentityAccountRepository identityAccountRepository;
 
     @Autowired
     private IdentityOAuthLinkRepository identityOAuthLinkRepository;
@@ -42,15 +43,22 @@ class IdentityPersistenceCompatibilityTest {
     @Test
     @DisplayName("GOOGLE identity_oauth_links row를 저장하고 조회할 수 있다")
     void loads_google_oauth_link_rows() {
-        User user = userRepository.save(User.builder().build());
+        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
+        IdentityOAuthLink link = IdentityOAuthLink.link(identityAccount, AuthProvider.GOOGLE, "google-user-1");
+        link.applySnapshot(new OAuthUserInfo(
+                "google-user-1",
+                "google-user-1@rallyon.test",
+                "google-user-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                false
+        ));
 
-        identityOAuthLinkRepository.save(IdentityOAuthLink.builder()
-                .user(user)
-                .provider(AuthProvider.GOOGLE)
-                .providerUserId("google-user-1")
-                .email("google-user-1@rallyon.test")
-                .nickname("google-user-1")
-                .build());
+        identityOAuthLinkRepository.save(link);
 
         entityManager.flush();
         entityManager.clear();
@@ -61,19 +69,20 @@ class IdentityPersistenceCompatibilityTest {
 
         assertThat(loaded.getProvider()).isEqualTo(AuthProvider.GOOGLE);
         assertThat(loaded.getProviderUserId()).isEqualTo("google-user-1");
-        assertThat(loaded.getUser().getId()).isEqualTo(user.getId());
+        assertThat(loaded.getIdentityAccount().getId()).isEqualTo(identityAccount.getId());
+        assertThat(loaded.getNickname()).isEqualTo("google-user-1");
     }
 
     @Test
     @DisplayName("identity_local_credentials row를 저장하고 이메일로 조회할 수 있다")
     void loads_local_credentials_by_normalized_email() {
-        User user = userRepository.save(User.builder().build());
+        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
 
-        identityLocalCredentialRepository.save(IdentityLocalCredential.builder()
-                .user(user)
-                .emailNormalized("user@rallyon.test")
-                .passwordHash("hashed-password")
-                .build());
+        identityLocalCredentialRepository.save(IdentityLocalCredential.issue(
+                identityAccount,
+                "user@rallyon.test",
+                "hashed-password"
+        ));
 
         entityManager.flush();
         entityManager.clear();
@@ -82,7 +91,7 @@ class IdentityPersistenceCompatibilityTest {
                 .findByEmailNormalized("user@rallyon.test")
                 .orElseThrow();
 
-        assertThat(loaded.getUserId()).isEqualTo(user.getId());
+        assertThat(loaded.getIdentityAccountId()).isEqualTo(identityAccount.getId());
         assertThat(loaded.getPasswordHash()).isEqualTo("hashed-password");
     }
 }

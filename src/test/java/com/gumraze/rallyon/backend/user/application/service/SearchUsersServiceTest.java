@@ -3,7 +3,6 @@ package com.gumraze.rallyon.backend.user.application.service;
 import com.gumraze.rallyon.backend.user.application.port.in.query.SearchUsersQuery;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.dto.UserSearchResponse;
-import com.gumraze.rallyon.backend.user.entity.User;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,12 +32,17 @@ class SearchUsersServiceTest {
     @DisplayName("nickname 포함 검색으로 사용자 검색")
     void search_by_nickname_containing() {
         var pageable = PageRequest.of(0, 20);
-        var user = User.builder().id(uuid(1)).build();
-        var profile = UserProfile.builder()
-                .user(user)
-                .nickname("김대환")
-                .tag("AB12")
-                .build();
+        var profile = UserProfile.create(
+                uuid(1),
+                "김대환",
+                null,
+                null,
+                null,
+                LocalDateTime.of(1998, 9, 25, 0, 0),
+                null,
+                "AB12",
+                LocalDateTime.now()
+        );
 
         SearchUsersService service = new SearchUsersService(loadUserProfilePort);
         when(loadUserProfilePort.loadByNicknameContaining("김대환", pageable))
@@ -47,20 +52,25 @@ class SearchUsersServiceTest {
 
         verify(loadUserProfilePort).loadByNicknameContaining("김대환", pageable);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getUserId()).isEqualTo(uuid(1));
-        assertThat(result.getContent().getFirst().getTag()).isEqualTo("AB12");
+        assertThat(result.getContent().getFirst().identityAccountId()).isEqualTo(uuid(1));
+        assertThat(result.getContent().getFirst().tag()).isEqualTo("AB12");
     }
 
     @Test
     @DisplayName("nickname과 tag로 검색 시 태그를 정규화한다")
     void search_by_nickname_and_tag_normalizes_tag() {
         var pageable = PageRequest.of(0, 20);
-        var user = User.builder().id(uuid(1)).build();
-        var profile = UserProfile.builder()
-                .user(user)
-                .nickname("김대환")
-                .tag("AB12")
-                .build();
+        var profile = UserProfile.create(
+                uuid(1),
+                "김대환",
+                null,
+                null,
+                null,
+                LocalDateTime.of(1998, 9, 25, 0, 0),
+                null,
+                "AB12",
+                LocalDateTime.now()
+        );
 
         SearchUsersService service = new SearchUsersService(loadUserProfilePort);
         when(loadUserProfilePort.loadByNicknameAndTag("김대환", "AB12"))
@@ -70,7 +80,7 @@ class SearchUsersServiceTest {
 
         verify(loadUserProfilePort).loadByNicknameAndTag("김대환", "AB12");
         assertThat(result.getContent()).singleElement()
-                .extracting(UserSearchResponse::getTag)
+                .extracting(UserSearchResponse::tag)
                 .isEqualTo("AB12");
     }
 }

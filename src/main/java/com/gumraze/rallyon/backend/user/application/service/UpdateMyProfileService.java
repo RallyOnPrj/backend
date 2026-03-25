@@ -9,7 +9,7 @@ import com.gumraze.rallyon.backend.user.application.port.out.LoadRegionPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.application.port.out.SaveUserProfilePort;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
-import com.gumraze.rallyon.backend.user.service.UserProfileValidator;
+import com.gumraze.rallyon.backend.user.domain.UserProfileValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,33 +30,33 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
     public void update(UpdateMyProfileCommand command) {
         userProfileValidator.validateForUpdate(command);
 
-        UserProfile profile = loadUserProfilePort.loadByUserId(command.userId())
+        UserProfile profile = loadUserProfilePort.loadByIdentityAccountId(command.userId())
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
 
         applyPublicIdentityChanges(profile, command);
 
         if (command.regionalGrade() != null) {
-            profile.setRegionalGrade(command.regionalGrade());
+            profile.changeRegionalGrade(command.regionalGrade());
         }
         if (command.nationalGrade() != null) {
-            profile.setNationalGrade(command.nationalGrade());
+            profile.changeNationalGrade(command.nationalGrade());
         }
         if (command.birth() != null) {
-            profile.setBirth(userProfileValidator.parseBirthStartOfDay(command.birth()));
+            profile.changeBirth(userProfileValidator.parseBirthStartOfDay(command.birth()));
         }
         if (command.birthVisible() != null) {
-            profile.setBirthVisible(command.birthVisible());
+            profile.changeBirthVisible(command.birthVisible());
         }
         if (command.districtId() != null) {
-            profile.setDistrictId(loadRegionPort.loadDistrictReference(command.districtId())
+            profile.changeDistrictId(loadRegionPort.loadDistrictReference(command.districtId())
                     .orElseThrow(() -> new IllegalArgumentException("지역이 존재하지 않습니다."))
                     .districtId());
         }
         if (command.profileImageUrl() != null) {
-            profile.setProfileImageUrl(command.profileImageUrl());
+            profile.changeProfileImageUrl(command.profileImageUrl());
         }
         if (command.gender() != null) {
-            profile.setGender(command.gender());
+            profile.changeGender(command.gender());
         }
 
         saveUserProfilePort.save(profile);
@@ -84,17 +84,16 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
         }
 
         loadUserProfilePort.loadByNicknameAndTag(finalNickname, finalTag)
-                .filter(existing -> !existing.getUser().getId().equals(command.userId()))
+                .filter(existing -> !existing.getIdentityAccountId().equals(command.userId()))
                 .ifPresent(existing -> {
                     throw new ConflictException("이미 존재하는 닉네임과 태그입니다.");
                 });
 
         if (nicknameRequested && !finalNickname.equals(profile.getNickname())) {
-            profile.setNickname(finalNickname);
+            profile.changeNickname(finalNickname);
         }
         if (tagRequested && !finalTag.equals(profile.getTag())) {
-            profile.setTag(finalTag);
-            profile.setTagChangedAt(LocalDateTime.now());
+            profile.changeTag(finalTag, LocalDateTime.now());
         }
     }
 }

@@ -1,8 +1,7 @@
 package com.gumraze.rallyon.backend.authorization.config;
 
 import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.user.constants.UserRole;
-import com.gumraze.rallyon.backend.user.constants.UserStatus;
+import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ class AuthorizationPersistenceTest {
         database = new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
                 .generateUniqueName(true)
-                .addScript("classpath:db/migration/V15__add_authorization_server_tables.sql")
+                .addScript("classpath:db/migration/V1__init_schema.sql")
                 .build();
 
         JdbcOperations jdbcOperations = new JdbcTemplate(database);
@@ -70,8 +69,7 @@ class AuthorizationPersistenceTest {
 
         AuthenticatedIdentity principal = new AuthenticatedIdentity(
                 UUID.randomUUID(),
-                UserRole.USER,
-                UserStatus.ACTIVE,
+                IdentityRole.USER,
                 "tester"
         );
 

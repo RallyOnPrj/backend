@@ -4,26 +4,27 @@ import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchResult;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchType;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Getter
-@Builder
-@AllArgsConstructor
 @Table(
         name = "free_game_match",
         uniqueConstraints = @UniqueConstraint(columnNames = {"round_id", "court_number"})
 )
-@NoArgsConstructor
 public class FreeGameMatch extends MutableAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -64,11 +65,102 @@ public class FreeGameMatch extends MutableAuditEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;       // 코트 삭제 시 삭제된 코트를 표시하기 위함, 소프트 삭제용
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    protected FreeGameMatch() {
+    }
+
+    public static FreeGameMatch create(
+            FreeGameRound round,
+            Integer courtNumber,
+            GameParticipant teamAPlayer1,
+            GameParticipant teamAPlayer2,
+            GameParticipant teamBPlayer1,
+            GameParticipant teamBPlayer2,
+            MatchType matchType,
+            MatchStatus matchStatus,
+            MatchResult matchResult,
+            boolean isActive
+    ) {
+        FreeGameMatch match = new FreeGameMatch();
+        match.round = round;
+        match.courtNumber = courtNumber;
+        match.teamAPlayer1 = teamAPlayer1;
+        match.teamAPlayer2 = teamAPlayer2;
+        match.teamBPlayer1 = teamBPlayer1;
+        match.teamBPlayer2 = teamBPlayer2;
+        match.matchType = matchType;
+        match.matchStatus = matchStatus;
+        match.matchResult = matchResult;
+        match.isActive = isActive;
+        return match;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public FreeGameRound getRound() {
+        return round;
+    }
+
+    public Integer getCourtNumber() {
+        return courtNumber;
+    }
+
+    public GameParticipant getTeamAPlayer1() {
+        return teamAPlayer1;
+    }
+
+    public GameParticipant getTeamAPlayer2() {
+        return teamAPlayer2;
+    }
+
+    public GameParticipant getTeamBPlayer1() {
+        return teamBPlayer1;
+    }
+
+    public GameParticipant getTeamBPlayer2() {
+        return teamBPlayer2;
+    }
+
+    public MatchType getMatchType() {
+        return matchType;
+    }
+
+    public MatchStatus getMatchStatus() {
+        return matchStatus;
+    }
+
+    public MatchResult getMatchResult() {
+        return matchResult;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    protected void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    protected void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

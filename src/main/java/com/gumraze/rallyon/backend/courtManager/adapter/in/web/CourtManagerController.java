@@ -78,7 +78,7 @@ public class CourtManagerController implements
         CreateFreeGameCommand command = createFreeGameCommandMapper.toCommand(request);
         UUID gameId = createFreeGameUseCase.create(userId, command);
         return ResponseEntity.created(URI.create("/free-games/" + gameId))
-                .body(CreateFreeGameResponse.builder().gameId(gameId).build());
+                .body(new CreateFreeGameResponse(gameId));
     }
 
     @Override

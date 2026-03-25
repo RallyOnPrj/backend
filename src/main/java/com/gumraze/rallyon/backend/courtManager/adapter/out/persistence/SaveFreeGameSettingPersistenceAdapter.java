@@ -16,11 +16,7 @@ public class SaveFreeGameSettingPersistenceAdapter implements SaveFreeGameSettin
     @Override
     public void save(FreeGame freeGame, Integer courtCount, Integer roundCount) {
         freeGameSettingRepository.save(
-                FreeGameSetting.builder()
-                        .freeGame(freeGame)
-                        .courtCount(courtCount)
-                        .roundCount(roundCount)
-                        .build()
+                FreeGameSetting.create(freeGame, courtCount, roundCount)
         );
     }
 }

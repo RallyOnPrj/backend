@@ -2,15 +2,20 @@ package com.gumraze.rallyon.backend.identity.entity;
 
 import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
+import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
 import com.gumraze.rallyon.backend.user.constants.Gender;
-import com.gumraze.rallyon.backend.user.entity.User;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,14 +25,9 @@ import java.util.UUID;
         name = "identity_oauth_links",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_identity_oauth_links_provider_user", columnNames = {"provider", "provider_user_id"}),
-                @UniqueConstraint(name = "uq_identity_oauth_links_user_provider", columnNames = {"user_id", "provider"})
+                @UniqueConstraint(name = "uq_identity_oauth_links_user_provider", columnNames = {"identity_account_id", "provider"})
         }
 )
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IdentityOAuthLink extends MutableAuditEntity {
 
     @Id
@@ -35,8 +35,8 @@ public class IdentityOAuthLink extends MutableAuditEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "identity_account_id", nullable = false)
+    private IdentityAccount identityAccount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -77,4 +77,71 @@ public class IdentityOAuthLink extends MutableAuditEntity {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    protected IdentityOAuthLink() {
+    }
+
+    public static IdentityOAuthLink link(
+            IdentityAccount identityAccount,
+            AuthProvider provider,
+            String providerUserId
+    ) {
+        IdentityOAuthLink link = new IdentityOAuthLink();
+        link.identityAccount = identityAccount;
+        link.provider = provider;
+        link.providerUserId = providerUserId;
+        return link;
+    }
+
+    public void applySnapshot(OAuthUserInfo userInfo) {
+        this.email = userInfo.email();
+        this.nickname = userInfo.nickname();
+        this.profileImageUrl = userInfo.profileImageUrl();
+        this.thumbnailImageUrl = userInfo.thumbnailImageUrl();
+        this.gender = userInfo.gender();
+        this.ageRange = userInfo.ageRange();
+        this.birthday = userInfo.birthday();
+        this.emailVerified = userInfo.emailVerified();
+        this.phoneNumberVerified = userInfo.phoneNumberVerified();
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public IdentityAccount getIdentityAccount() {
+        return identityAccount;
+    }
+
+    public AuthProvider getProvider() {
+        return provider;
+    }
+
+    public String getProviderUserId() {
+        return providerUserId;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    protected void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    protected void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

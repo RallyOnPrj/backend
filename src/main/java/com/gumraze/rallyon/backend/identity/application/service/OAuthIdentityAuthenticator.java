@@ -9,8 +9,8 @@ import com.gumraze.rallyon.backend.identity.application.port.out.SaveOAuthLinkPo
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
 import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
+import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
 import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
-import com.gumraze.rallyon.backend.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,44 +45,27 @@ public class OAuthIdentityAuthenticator implements AuthenticateOAuthIdentityUseC
         OAuthUserInfo userInfo = oAuthProviderRegistry.resolve(provider)
                 .getOAuthUserInfo(authorizationCode, redirectUri);
 
-        IdentityOAuthLink link = loadOAuthLinkPort.loadByProviderAndProviderUserId(provider, userInfo.getProviderUserId())
+        IdentityOAuthLink link = loadOAuthLinkPort.loadByProviderAndProviderUserId(provider, userInfo.providerUserId())
                 .orElseGet(() -> createNewLink(provider, userInfo));
 
-        applySnapshot(link, userInfo);
+        link.applySnapshot(userInfo);
         IdentityOAuthLink savedLink = saveOAuthLinkPort.save(link);
 
         return new AuthenticatedIdentity(
-                savedLink.getUser().getId(),
-                savedLink.getUser().getRole(),
-                savedLink.getUser().getStatus(),
+                savedLink.getIdentityAccount().getId(),
+                savedLink.getIdentityAccount().getRole(),
                 savedLink.getNickname()
         );
     }
 
     private void validateAllowedProvider(AuthProvider provider) {
-        if (!allowedProviders.getAllowedProviders().contains(provider)) {
+        if (!allowedProviders.allowedProviders().contains(provider)) {
             throw new IllegalArgumentException("허용되지 않는 provider: " + provider);
         }
     }
 
     private IdentityOAuthLink createNewLink(AuthProvider provider, OAuthUserInfo userInfo) {
-        User user = saveIdentityAccountPort.save(User.builder().build());
-        return IdentityOAuthLink.builder()
-                .user(user)
-                .provider(provider)
-                .providerUserId(userInfo.getProviderUserId())
-                .build();
-    }
-
-    private void applySnapshot(IdentityOAuthLink link, OAuthUserInfo userInfo) {
-        link.setEmail(userInfo.getEmail());
-        link.setNickname(userInfo.getNickname());
-        link.setProfileImageUrl(userInfo.getProfileImageUrl());
-        link.setThumbnailImageUrl(userInfo.getThumbnailImageUrl());
-        link.setGender(userInfo.getGender());
-        link.setAgeRange(userInfo.getAgeRange());
-        link.setBirthday(userInfo.getBirthday());
-        link.setEmailVerified(userInfo.getEmailVerified());
-        link.setPhoneNumberVerified(userInfo.getPhoneNumberVerified());
+        IdentityAccount identityAccount = saveIdentityAccountPort.save(IdentityAccount.create());
+        return IdentityOAuthLink.link(identityAccount, provider, userInfo.providerUserId());
     }
 }

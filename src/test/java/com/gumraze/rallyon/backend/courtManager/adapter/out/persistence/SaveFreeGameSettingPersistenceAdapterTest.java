@@ -3,10 +3,13 @@ package com.gumraze.rallyon.backend.courtManager.adapter.out.persistence;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameSetting;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.FreeGameSettingRepository;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.UUID;
 
@@ -29,11 +32,15 @@ class SaveFreeGameSettingPersistenceAdapterTest {
     @Test
     @DisplayName("자유게임 setting을 저장한다")
     void save_persistsFreeGameSetting() {
-        // given
-        FreeGame freeGame = FreeGame.builder()
-                .id(UUID.randomUUID())
-                .title("자유게임")
-                .build();
+        FreeGame freeGame = FreeGame.create(
+                "자유게임",
+                UUID.randomUUID(),
+                GradeType.NATIONAL,
+                MatchRecordMode.STATUS_ONLY,
+                null,
+                null
+        );
+        ReflectionTestUtils.setField(freeGame, "id", UUID.randomUUID());
         given(freeGameSettingRepository.save(org.mockito.ArgumentMatchers.any(FreeGameSetting.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 

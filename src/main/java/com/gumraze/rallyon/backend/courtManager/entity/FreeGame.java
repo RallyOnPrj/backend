@@ -5,21 +5,19 @@ import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
-import com.gumraze.rallyon.backend.user.entity.User;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
 @Entity
-@Builder
-@AllArgsConstructor
 @Table(name = "free_games")
 public class FreeGame extends MutableAuditEntity {
 
@@ -30,29 +28,24 @@ public class FreeGame extends MutableAuditEntity {
     @Column(nullable = false)
     private String title;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id", nullable = false)
-    private User organizer;     // 게임을 생성한 유저(FK)
+    @Column(name = "organizer_identity_account_id", nullable = false)
+    private UUID organizerIdentityAccountId;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_type", nullable = false)
-    private GradeType gradeType = GradeType.NATIONAL;        // 참가자들의 급수 형식
+    private GradeType gradeType;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "game_type", nullable = false)
-    private GameType gameType = GameType.FREE;
+    private GameType gameType;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "game_status", nullable = false)
-    private GameStatus gameStatus = GameStatus.NOT_STARTED;
+    private GameStatus gameStatus;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "match_record_mode", nullable = false)
-    private MatchRecordMode matchRecordMode = MatchRecordMode.STATUS_ONLY;
+    private MatchRecordMode matchRecordMode;
 
     @Column(name = "share_code", length = 64)
     private String shareCode;
@@ -60,19 +53,18 @@ public class FreeGame extends MutableAuditEntity {
     @Column(name = "location", length = 255)
     private String location;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Setter(AccessLevel.PROTECTED)
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected FreeGame() {}
+    protected FreeGame() {
+    }
 
     public static FreeGame create(
             String title,
-            User organizer,
+            UUID organizerIdentityAccountId,
             GradeType gradeType,
             MatchRecordMode matchRecordMode,
             String shareCode,
@@ -80,7 +72,7 @@ public class FreeGame extends MutableAuditEntity {
     ) {
         FreeGame freeGame = new FreeGame();
         freeGame.title = title;
-        freeGame.organizer = organizer;
+        freeGame.organizerIdentityAccountId = organizerIdentityAccountId;
         freeGame.gradeType = gradeType;
         freeGame.matchRecordMode = matchRecordMode;
         freeGame.shareCode = shareCode;
@@ -89,7 +81,6 @@ public class FreeGame extends MutableAuditEntity {
         freeGame.gameStatus = GameStatus.NOT_STARTED;
         return freeGame;
     }
-
 
     public void update(
             String title,
@@ -101,5 +92,61 @@ public class FreeGame extends MutableAuditEntity {
         this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
         this.gradeType = gradeType != null ? gradeType : this.gradeType;
         this.location = location != null ? location : this.location;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public UUID getOrganizerIdentityAccountId() {
+        return organizerIdentityAccountId;
+    }
+
+    public GradeType getGradeType() {
+        return gradeType;
+    }
+
+    public GameType getGameType() {
+        return gameType;
+    }
+
+    public GameStatus getGameStatus() {
+        return gameStatus;
+    }
+
+    public MatchRecordMode getMatchRecordMode() {
+        return matchRecordMode;
+    }
+
+    public String getShareCode() {
+        return shareCode;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    protected void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    protected void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
