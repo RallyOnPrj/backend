@@ -4,7 +4,7 @@ import com.gumraze.rallyon.backend.authorization.adapter.out.session.BrowserAuth
 import com.gumraze.rallyon.backend.authorization.application.port.in.BrowserAuthorizationUseCase;
 import com.gumraze.rallyon.backend.authorization.domain.BrowserAuthSession;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,16 +26,16 @@ public class OAuthAuthorizationController {
 
     private final BrowserAuthorizationUseCase browserAuthorizationUseCase;
     private final BrowserAuthSessionRepository browserAuthSessionRepository;
-    private final AuthenticatedIdentityContextService authenticatedIdentityContextService;
+    private final AuthenticatedAccountContextService authenticatedAccountContextService;
 
     public OAuthAuthorizationController(
             BrowserAuthorizationUseCase browserAuthorizationUseCase,
             BrowserAuthSessionRepository browserAuthSessionRepository,
-            AuthenticatedIdentityContextService authenticatedIdentityContextService
+            AuthenticatedAccountContextService authenticatedAccountContextService
     ) {
         this.browserAuthorizationUseCase = browserAuthorizationUseCase;
         this.browserAuthSessionRepository = browserAuthSessionRepository;
-        this.authenticatedIdentityContextService = authenticatedIdentityContextService;
+        this.authenticatedAccountContextService = authenticatedAccountContextService;
     }
 
     @GetMapping("/oauth/{provider}")
@@ -55,7 +55,7 @@ public class OAuthAuthorizationController {
                         )
                 );
 
-        persistAuthenticatedIdentity(result.authenticatedIdentity(), request, response);
+        persistAuthenticatedAccount(result.authenticatedAccount(), request, response);
         return redirect(result.redirectLocation());
     }
 
@@ -103,7 +103,7 @@ public class OAuthAuthorizationController {
                         )
                 );
 
-        persistAuthenticatedIdentity(result.authenticatedIdentity(), request, response);
+        persistAuthenticatedAccount(result.authenticatedAccount(), request, response);
         return redirect(result.redirectLocation());
     }
 
@@ -115,13 +115,13 @@ public class OAuthAuthorizationController {
         return browserAuthSessionRepository.load(session).orElse(null);
     }
 
-    private void persistAuthenticatedIdentity(
-            AuthenticatedIdentity authenticatedIdentity,
+    private void persistAuthenticatedAccount(
+            AuthenticatedAccount authenticatedAccount,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        if (authenticatedIdentity != null) {
-            authenticatedIdentityContextService.save(authenticatedIdentity, request, response);
+        if (authenticatedAccount != null) {
+            authenticatedAccountContextService.save(authenticatedAccount, request, response);
         }
     }
 

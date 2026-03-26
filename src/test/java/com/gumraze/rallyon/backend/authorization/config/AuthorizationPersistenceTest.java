@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.authorization.config;
 
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
+import com.gumraze.rallyon.backend.identity.domain.AccountRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,8 +38,8 @@ class AuthorizationPersistenceTest {
     }
 
     @Test
-    @DisplayName("authorization 저장소는 AuthenticatedIdentity 속성을 round-trip 할 수 있다")
-    void authorizationService_roundTripsAuthenticatedIdentity() {
+    @DisplayName("authorization 저장소는 AuthenticatedAccount 속성을 round-trip 할 수 있다")
+    void authorizationService_roundTripsAuthenticatedAccount() {
         database = new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
                 .generateUniqueName(true)
@@ -67,9 +67,9 @@ class AuthorizationPersistenceTest {
                 .build();
         registeredClientRepository.save(registeredClient);
 
-        AuthenticatedIdentity principal = new AuthenticatedIdentity(
+        AuthenticatedAccount principal = new AuthenticatedAccount(
                 UUID.randomUUID(),
-                IdentityRole.USER,
+                AccountRole.USER,
                 "tester"
         );
 

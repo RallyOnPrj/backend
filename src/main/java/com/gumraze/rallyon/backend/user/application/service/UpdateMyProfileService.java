@@ -30,7 +30,7 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
     public void update(UpdateMyProfileCommand command) {
         userProfileValidator.validateForUpdate(command);
 
-        UserProfile profile = loadUserProfilePort.loadByIdentityAccountId(command.userId())
+        UserProfile profile = loadUserProfilePort.loadByAccountId(command.accountId())
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
 
         applyPublicIdentityChanges(profile, command);
@@ -84,7 +84,7 @@ public class UpdateMyProfileService implements UpdateMyProfileUseCase {
         }
 
         loadUserProfilePort.loadByNicknameAndTag(finalNickname, finalTag)
-                .filter(existing -> !existing.getIdentityAccountId().equals(command.userId()))
+                .filter(existing -> !existing.getAccountId().equals(command.accountId()))
                 .ifPresent(existing -> {
                     throw new ConflictException("이미 존재하는 닉네임과 태그입니다.");
                 });

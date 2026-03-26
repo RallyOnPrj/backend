@@ -3,7 +3,7 @@ package com.gumraze.rallyon.backend.authorization.application.port.in;
 import com.gumraze.rallyon.backend.authorization.domain.BrowserAuthSession;
 import com.gumraze.rallyon.backend.authorization.domain.TokenResponse;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 
 import java.util.List;
 
@@ -32,14 +32,14 @@ public interface BrowserAuthorizationUseCase {
             String dummyCode,
             String screen,
             String returnTo,
-            AuthenticatedIdentity currentIdentity
+            AuthenticatedAccount currentIdentity
     ) {
     }
 
     record SessionStartResult(
             BrowserAuthSession authSession,
             String nextUrl,
-            AuthenticatedIdentity authenticatedIdentity
+            AuthenticatedAccount authenticatedAccount
     ) {
     }
 
@@ -92,7 +92,7 @@ public interface BrowserAuthorizationUseCase {
 
     record AuthorizationStepResult(
             String redirectLocation,
-            AuthenticatedIdentity authenticatedIdentity
+            AuthenticatedAccount authenticatedAccount
     ) {
     }
 
@@ -101,7 +101,7 @@ public interface BrowserAuthorizationUseCase {
             String state,
             String error,
             BrowserAuthSession authSession,
-            AuthenticatedIdentity currentIdentity
+            AuthenticatedAccount currentIdentity
     ) {
     }
 

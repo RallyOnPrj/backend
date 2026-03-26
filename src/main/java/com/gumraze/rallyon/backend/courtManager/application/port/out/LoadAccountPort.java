@@ -2,7 +2,7 @@ package com.gumraze.rallyon.backend.courtManager.application.port.out;
 
 import java.util.UUID;
 
-public interface LoadUserPort {
+public interface LoadAccountPort {
 
-    boolean existsById(UUID identityAccountId);
+    boolean existsById(UUID accountId);
 }

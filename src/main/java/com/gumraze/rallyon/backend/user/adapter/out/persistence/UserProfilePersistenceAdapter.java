@@ -19,13 +19,13 @@ public class UserProfilePersistenceAdapter implements LoadUserProfilePort, SaveU
     private final UserProfileRepository userProfileRepository;
 
     @Override
-    public boolean existsByIdentityAccountId(UUID identityAccountId) {
-        return userProfileRepository.existsById(identityAccountId);
+    public boolean existsByAccountId(UUID accountId) {
+        return userProfileRepository.existsById(accountId);
     }
 
     @Override
-    public Optional<UserProfile> loadByIdentityAccountId(UUID identityAccountId) {
-        return userProfileRepository.findByIdentityAccountId(identityAccountId);
+    public Optional<UserProfile> loadByAccountId(UUID accountId) {
+        return userProfileRepository.findByAccountId(accountId);
     }
 
     @Override

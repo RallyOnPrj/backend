@@ -18,7 +18,7 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "game_managers",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "identity_account_id"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "account_id"})
 )
 public class GameManager extends CreatedAtEntity {
 
@@ -30,8 +30,8 @@ public class GameManager extends CreatedAtEntity {
     @JoinColumn(name = "freegame_id", nullable = false)
     private FreeGame freeGame;
 
-    @Column(name = "identity_account_id", nullable = false)
-    private UUID identityAccountId;
+    @Column(name = "account_id", nullable = false)
+    private UUID accountId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -39,10 +39,10 @@ public class GameManager extends CreatedAtEntity {
     protected GameManager() {
     }
 
-    public static GameManager assign(FreeGame freeGame, UUID identityAccountId) {
+    public static GameManager assign(FreeGame freeGame, UUID accountId) {
         GameManager manager = new GameManager();
         manager.freeGame = freeGame;
-        manager.identityAccountId = identityAccountId;
+        manager.accountId = accountId;
         return manager;
     }
 

@@ -1,8 +1,8 @@
 package com.gumraze.rallyon.backend.identity.application.port.in;
 
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 
 public interface AuthenticateLocalIdentityUseCase {
 
-    AuthenticatedIdentity authenticate(String email, String password);
+    AuthenticatedAccount authenticate(String email, String password);
 }

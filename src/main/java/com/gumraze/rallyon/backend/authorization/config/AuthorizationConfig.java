@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.authorization.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 import com.gumraze.rallyon.backend.security.resourceserver.ApiAudienceValidator;
 import com.gumraze.rallyon.backend.security.resourceserver.ResourceServerProperties;
 import com.gumraze.rallyon.backend.security.web.HostRequestMatchers;
@@ -233,7 +233,7 @@ public class AuthorizationConfig {
         return context -> {
             Authentication authentication = context.getPrincipal();
             Object principal = authentication == null ? null : authentication.getPrincipal();
-            if (!(principal instanceof AuthenticatedIdentity identityPrincipal)) {
+            if (!(principal instanceof AuthenticatedAccount identityPrincipal)) {
                 return;
             }
 
@@ -335,18 +335,18 @@ public class AuthorizationConfig {
 
     private JsonMapper authorizationJsonMapper() {
         BasicPolymorphicTypeValidator.Builder validatorBuilder = BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType(AuthenticatedIdentity.class);
+                .allowIfSubType(AuthenticatedAccount.class);
 
         return JsonMapper.builder()
                 .addModules(SecurityJacksonModules.getModules(
                         AuthorizationConfig.class.getClassLoader(),
                         validatorBuilder
                 ))
-                .addMixIn(AuthenticatedIdentity.class, AuthenticatedIdentityMixin.class)
+                .addMixIn(AuthenticatedAccount.class, AuthenticatedAccountMixin.class)
                 .build();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private abstract static class AuthenticatedIdentityMixin {
+    private abstract static class AuthenticatedAccountMixin {
     }
 }

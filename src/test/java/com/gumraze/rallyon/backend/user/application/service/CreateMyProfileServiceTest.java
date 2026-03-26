@@ -49,9 +49,9 @@ class CreateMyProfileServiceTest {
     private final UserProfileValidator userProfileValidator = new UserProfileValidator();
 
     @Test
-    @DisplayName("프로필 생성 시 districtId와 identityAccountId를 저장한다")
-    void create_profile_saves_district_id_and_identity_account_id() {
-        UUID identityAccountId = uuid(1);
+    @DisplayName("프로필 생성 시 districtId와 accountId를 저장한다")
+    void create_profile_saves_district_id_and_account_id() {
+        UUID accountId = uuid(1);
         UUID districtId = uuid(2);
 
         CreateMyProfileService service = new CreateMyProfileService(
@@ -63,14 +63,14 @@ class CreateMyProfileServiceTest {
                 userProfileTagGenerator
         );
 
-        when(loadUserProfilePort.existsByIdentityAccountId(identityAccountId)).thenReturn(false);
+        when(loadUserProfilePort.existsByAccountId(accountId)).thenReturn(false);
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.of(
                 new RegionDistrictReference(districtId, "권선구", "41113", uuid(3), "경기도", "41")
         ));
         when(userProfileTagGenerator.generate()).thenReturn("AB12");
 
         service.create(new CreateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 "kim",
                 districtId,
                 Grade.B,
@@ -80,7 +80,7 @@ class CreateMyProfileServiceTest {
         ));
 
         verify(saveUserProfilePort).save(argThat(profile ->
-                profile.getIdentityAccountId().equals(identityAccountId)
+                profile.getAccountId().equals(accountId)
                         && profile.getDistrictId().equals(districtId)
                         && profile.getTag().equals("AB12")
         ));
@@ -90,7 +90,7 @@ class CreateMyProfileServiceTest {
     @Test
     @DisplayName("존재하지 않는 districtId면 프로필 생성이 실패한다")
     void create_profile_throws_when_district_missing() {
-        UUID identityAccountId = uuid(1);
+        UUID accountId = uuid(1);
         UUID districtId = uuid(2);
 
         CreateMyProfileService service = new CreateMyProfileService(
@@ -102,11 +102,11 @@ class CreateMyProfileServiceTest {
                 userProfileTagGenerator
         );
 
-        when(loadUserProfilePort.existsByIdentityAccountId(identityAccountId)).thenReturn(false);
+        when(loadUserProfilePort.existsByAccountId(accountId)).thenReturn(false);
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.create(new CreateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 "kim",
                 districtId,
                 Grade.B,

@@ -4,7 +4,7 @@ import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.reposito
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
@@ -31,14 +31,14 @@ import static org.mockito.Mockito.verify;
 class SaveGameParticipantPersistenceAdapterTest {
 
     private GameParticipantRepository gameParticipantRepository;
-    private IdentityAccountRepository identityAccountRepository;
+    private AccountRepository accountRepository;
     private SaveGameParticipantPersistenceAdapter adapter;
 
     @BeforeEach
     void setUp() {
         gameParticipantRepository = mock(GameParticipantRepository.class);
-        identityAccountRepository = mock(IdentityAccountRepository.class);
-        adapter = new SaveGameParticipantPersistenceAdapter(gameParticipantRepository, identityAccountRepository);
+        accountRepository = mock(AccountRepository.class);
+        adapter = new SaveGameParticipantPersistenceAdapter(gameParticipantRepository, accountRepository);
     }
 
     @Test
@@ -71,15 +71,15 @@ class SaveGameParticipantPersistenceAdapterTest {
     }
 
     @Test
-    @DisplayName("identityAccountId가 있으면 회원 참가자로 저장한다")
-    void saveAll_withUserId_loadsAndAssignsIdentityAccountId() {
-        UUID identityAccountId = UUID.randomUUID();
+    @DisplayName("accountId가 있으면 회원 참가자로 저장한다")
+    void saveAll_withUserId_loadsAndAssignsAccountId() {
+        UUID accountId = UUID.randomUUID();
         FreeGame freeGame = freeGame();
         List<CreateFreeGameCommand.Participant> participants = List.of(
-                new CreateFreeGameCommand.Participant("p1", identityAccountId, "서승재", Gender.MALE, Grade.A, 20)
+                new CreateFreeGameCommand.Participant("p1", accountId, "서승재", Gender.MALE, Grade.A, 20)
         );
 
-        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.of(mock()));
+        given(accountRepository.findById(accountId)).willReturn(Optional.of(mock()));
         given(gameParticipantRepository.save(any(GameParticipant.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -87,23 +87,23 @@ class SaveGameParticipantPersistenceAdapterTest {
 
         ArgumentCaptor<GameParticipant> captor = ArgumentCaptor.forClass(GameParticipant.class);
         verify(gameParticipantRepository).save(captor.capture());
-        assertThat(captor.getValue().getIdentityAccountId()).isEqualTo(identityAccountId);
+        assertThat(captor.getValue().getAccountId()).isEqualTo(accountId);
     }
 
     @Test
-    @DisplayName("존재하지 않는 identityAccountId면 예외가 발생한다")
+    @DisplayName("존재하지 않는 accountId면 예외가 발생한다")
     void saveAll_withUnknownUserId_throws() {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         FreeGame freeGame = freeGame();
         List<CreateFreeGameCommand.Participant> participants = List.of(
-                new CreateFreeGameCommand.Participant("p1", identityAccountId, "서승재", Gender.MALE, Grade.A, 20)
+                new CreateFreeGameCommand.Participant("p1", accountId, "서승재", Gender.MALE, Grade.A, 20)
         );
 
-        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.empty());
+        given(accountRepository.findById(accountId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> adapter.saveAll(freeGame, participants))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("identityAccountId");
+                .hasMessageContaining("accountId");
     }
 
     @Test

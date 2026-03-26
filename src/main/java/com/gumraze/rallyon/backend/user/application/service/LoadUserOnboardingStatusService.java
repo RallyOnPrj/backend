@@ -15,8 +15,8 @@ public class LoadUserOnboardingStatusService implements LoadUserOnboardingStatus
     private final LoadUserProfilePort loadUserProfilePort;
 
     @Override
-    public UserStatus load(UUID identityAccountId) {
-        return loadUserProfilePort.existsByIdentityAccountId(identityAccountId)
+    public UserStatus load(UUID accountId) {
+        return loadUserProfilePort.existsByAccountId(accountId)
                 ? UserStatus.ACTIVE
                 : UserStatus.PENDING;
     }

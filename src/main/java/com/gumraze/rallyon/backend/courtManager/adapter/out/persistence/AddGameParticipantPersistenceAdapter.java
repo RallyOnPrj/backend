@@ -6,7 +6,7 @@ import com.gumraze.rallyon.backend.courtManager.domain.ParticipantDisplayNamePol
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,18 +15,18 @@ import org.springframework.stereotype.Component;
 public class AddGameParticipantPersistenceAdapter implements AddGameParticipantPort {
 
     private final GameParticipantRepository gameParticipantRepository;
-    private final IdentityAccountRepository identityAccountRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public GameParticipant add(FreeGame freeGame, AddFreeGameParticipantCommand command) {
-        if (command.identityAccountId() != null) {
-            identityAccountRepository.findById(command.identityAccountId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + command.identityAccountId()));
+        if (command.accountId() != null) {
+            accountRepository.findById(command.accountId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 accountId입니다. :" + command.accountId()));
         }
 
         GameParticipant participant = GameParticipant.create(
                 freeGame,
-                command.identityAccountId(),
+                command.accountId(),
                 command.name(),
                 ParticipantDisplayNamePolicy.resolve(
                         command.name(),

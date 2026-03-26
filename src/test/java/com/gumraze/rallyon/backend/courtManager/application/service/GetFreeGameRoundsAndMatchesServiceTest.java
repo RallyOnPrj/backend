@@ -50,13 +50,13 @@ class GetFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("라운드가 없으면 빈 응답을 반환한다")
     void get_returns_empty_response_when_rounds_are_missing() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
 
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(gameId)).willReturn(List.of());
 
-        FreeGameRoundMatchResponse result = service.get(new GetFreeGameRoundsAndMatchesQuery(organizerIdentityAccountId, gameId));
+        FreeGameRoundMatchResponse result = service.get(new GetFreeGameRoundsAndMatchesQuery(organizerAccountId, gameId));
 
         assertThat(result.gameId()).isEqualTo(gameId);
         assertThat(result.rounds()).isEmpty();
@@ -66,8 +66,8 @@ class GetFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("라운드와 매치를 court 순으로 응답으로 변환한다")
     void get_maps_rounds_and_matches_to_response() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
         GameParticipant participant1 = CourtManagerTestFixtures.participant(
                 freeGame,
@@ -108,7 +108,7 @@ class GetFreeGameRoundsAndMatchesServiceTest {
         given(loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(gameId)).willReturn(List.of(round));
         given(loadFreeGameMatchPort.loadMatchesByRoundIdsOrderByCourtNumber(List.of(round.getId()))).willReturn(List.of(match));
 
-        FreeGameRoundMatchResponse result = service.get(new GetFreeGameRoundsAndMatchesQuery(organizerIdentityAccountId, gameId));
+        FreeGameRoundMatchResponse result = service.get(new GetFreeGameRoundsAndMatchesQuery(organizerAccountId, gameId));
 
         assertThat(result.rounds()).hasSize(1);
         assertThat(result.rounds().getFirst().roundNumber()).isEqualTo(1);

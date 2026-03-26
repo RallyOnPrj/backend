@@ -43,18 +43,18 @@ public class UserController implements UserApi {
 
     @Override
     @GetMapping("/me")
-    public ResponseEntity<UserMeResponse> me(@AuthenticationPrincipal UUID identityAccountId) {
-        return ResponseEntity.ok(getMyUserSummaryUseCase.get(new GetMyUserSummaryQuery(identityAccountId)));
+    public ResponseEntity<UserMeResponse> me(@AuthenticationPrincipal UUID accountId) {
+        return ResponseEntity.ok(getMyUserSummaryUseCase.get(new GetMyUserSummaryQuery(accountId)));
     }
 
     @Override
     @PostMapping("/me/profile")
     public ResponseEntity<UserProfileCreateResponseDto> createProfile(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @RequestBody UserProfileCreateRequest request
     ) {
         createMyProfileUseCase.create(new CreateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 request.nickname(),
                 request.districtId(),
                 request.regionalGrade(),
@@ -63,29 +63,29 @@ public class UserController implements UserApi {
                 request.gender()
         ));
         return ResponseEntity.created(URI.create("/users/me/profile"))
-                .body(new UserProfileCreateResponseDto(identityAccountId));
+                .body(new UserProfileCreateResponseDto(accountId));
     }
 
     @Override
     @GetMapping("/me/profile/defaults")
-    public ResponseEntity<UserProfileDefaultsResponse> profileDefaults(@AuthenticationPrincipal UUID identityAccountId) {
-        return ResponseEntity.ok(getMyProfileDefaultsUseCase.get(new GetMyProfileDefaultsQuery(identityAccountId)));
+    public ResponseEntity<UserProfileDefaultsResponse> profileDefaults(@AuthenticationPrincipal UUID accountId) {
+        return ResponseEntity.ok(getMyProfileDefaultsUseCase.get(new GetMyProfileDefaultsQuery(accountId)));
     }
 
     @Override
     @GetMapping("/me/profile")
-    public ResponseEntity<UserProfileResponseDto> getMyProfile(@AuthenticationPrincipal UUID identityAccountId) {
-        return ResponseEntity.ok(getMyProfileUseCase.get(new GetMyProfileQuery(identityAccountId)));
+    public ResponseEntity<UserProfileResponseDto> getMyProfile(@AuthenticationPrincipal UUID accountId) {
+        return ResponseEntity.ok(getMyProfileUseCase.get(new GetMyProfileQuery(accountId)));
     }
 
     @Override
     @PatchMapping("/me/profile")
     public ResponseEntity<Void> updateMyProfile(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @RequestBody UserProfileUpdateRequest request
     ) {
         updateMyProfileUseCase.update(new UpdateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 request.nickname(),
                 request.tag(),
                 request.regionalGrade(),

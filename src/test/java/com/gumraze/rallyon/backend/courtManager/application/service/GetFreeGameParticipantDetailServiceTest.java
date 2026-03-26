@@ -42,13 +42,13 @@ class GetFreeGameParticipantDetailServiceTest {
     @DisplayName("자유게임 참가자 상세를 조회한다")
     void get_returns_participant_detail() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        UUID participantIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         GameParticipant participant = CourtManagerTestFixtures.participant(
                 freeGame,
                 UUID.randomUUID(),
-                participantIdentityAccountId,
+                participantAccountId,
                 "서승재",
                 "서승재",
                 Gender.MALE,
@@ -61,11 +61,11 @@ class GetFreeGameParticipantDetailServiceTest {
         given(loadGameParticipantPort.loadParticipantById(participant.getId())).willReturn(Optional.of(participant));
 
         FreeGameParticipantDetailResponse result = service.get(
-                new GetFreeGameParticipantDetailQuery(organizerIdentityAccountId, gameId, participant.getId())
+                new GetFreeGameParticipantDetailQuery(organizerAccountId, gameId, participant.getId())
         );
 
         assertThat(result.participantId()).isEqualTo(participant.getId());
-        assertThat(result.identityAccountId()).isEqualTo(participantIdentityAccountId);
+        assertThat(result.accountId()).isEqualTo(participantAccountId);
         assertThat(result.displayName()).isEqualTo("서승재");
     }
 
@@ -73,15 +73,15 @@ class GetFreeGameParticipantDetailServiceTest {
     @DisplayName("참가자가 없으면 예외가 발생한다")
     void get_throws_when_participant_is_missing() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
 
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(loadGameParticipantPort.loadParticipantById(participantId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.get(
-                new GetFreeGameParticipantDetailQuery(organizerIdentityAccountId, gameId, participantId)
+                new GetFreeGameParticipantDetailQuery(organizerAccountId, gameId, participantId)
         ))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("존재하지 않는 참가자입니다.");
@@ -90,11 +90,11 @@ class GetFreeGameParticipantDetailServiceTest {
     @Test
     @DisplayName("다른 게임의 참가자는 조회할 수 없다")
     void get_throws_when_participant_belongs_to_another_game() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID anotherGameId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
-        FreeGame anotherFreeGame = CourtManagerTestFixtures.freeGame(anotherGameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
+        FreeGame anotherFreeGame = CourtManagerTestFixtures.freeGame(anotherGameId, organizerAccountId, MatchRecordMode.RESULT);
         GameParticipant participant = CourtManagerTestFixtures.participant(
                 anotherFreeGame,
                 UUID.randomUUID(),
@@ -111,7 +111,7 @@ class GetFreeGameParticipantDetailServiceTest {
         given(loadGameParticipantPort.loadParticipantById(participant.getId())).willReturn(Optional.of(participant));
 
         assertThatThrownBy(() -> service.get(
-                new GetFreeGameParticipantDetailQuery(organizerIdentityAccountId, gameId, participant.getId())
+                new GetFreeGameParticipantDetailQuery(organizerAccountId, gameId, participant.getId())
         ))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("참가자가 다른 게임에 속해 있습니다.");

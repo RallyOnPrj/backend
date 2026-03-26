@@ -2,7 +2,7 @@ package com.gumraze.rallyon.backend.courtManager.application.service;
 
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.IssueShareCodePort;
-import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadUserPort;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadAccountPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameRoundPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameSettingPort;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.never;
 class CreateFreeGameServiceTest {
 
     @Mock
-    private LoadUserPort loadUserPort;
+    private LoadAccountPort loadAccountPort;
 
     @Mock
     private IssueShareCodePort issueShareCodePort;
@@ -65,7 +65,7 @@ class CreateFreeGameServiceTest {
     @Test
     @DisplayName("자유게임 생성 시 shareCode, setting, 참가자, 코트 배정을 함께 처리한다")
     void createFreeGame_savesShareCodeSettingParticipantsAndRoundAssignments() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         String shareCode = "share-code-123";
         UUID gameId = UUID.randomUUID();
         GameParticipant p1 = savedParticipant("서승재");
@@ -82,7 +82,7 @@ class CreateFreeGameServiceTest {
 
         FreeGame savedGame = FreeGame.create(
                 "수요 자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.RESULT,
                 shareCode,
@@ -90,7 +90,7 @@ class CreateFreeGameServiceTest {
         );
         ReflectionTestUtils.setField(savedGame, "id", gameId);
 
-        given(loadUserPort.existsById(organizerIdentityAccountId)).willReturn(true);
+        given(loadAccountPort.existsById(organizerAccountId)).willReturn(true);
         given(issueShareCodePort.issue()).willReturn(shareCode);
         given(saveFreeGamePort.save(any())).willReturn(savedGame);
         given(saveGameParticipantPort.saveAll(any(), any())).willReturn(Map.of(
@@ -100,7 +100,7 @@ class CreateFreeGameServiceTest {
                 "p4", p4
         ));
 
-        UUID createdGameId = createFreeGameService.create(organizerIdentityAccountId, command);
+        UUID createdGameId = createFreeGameService.create(organizerAccountId, command);
 
         assertThat(createdGameId).isEqualTo(gameId);
         then(issueShareCodePort).should().issue();
@@ -108,7 +108,7 @@ class CreateFreeGameServiceTest {
         ArgumentCaptor<FreeGame> freeGameCaptor = ArgumentCaptor.forClass(FreeGame.class);
         then(saveFreeGamePort).should().save(freeGameCaptor.capture());
         FreeGame freeGame = freeGameCaptor.getValue();
-        assertThat(freeGame.getOrganizerIdentityAccountId()).isEqualTo(organizerIdentityAccountId);
+        assertThat(freeGame.getOrganizerAccountId()).isEqualTo(organizerAccountId);
         assertThat(freeGame.getShareCode()).isEqualTo(shareCode);
         assertThat(freeGame.getGameType()).isEqualTo(GameType.FREE);
         assertThat(freeGame.getGameStatus()).isEqualTo(GameStatus.NOT_STARTED);
@@ -131,8 +131,8 @@ class CreateFreeGameServiceTest {
     @Test
     @DisplayName("managerIds가 2명을 초과하면 예외가 발생한다")
     void createFreeGame_withTooManyManagers_throws() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        given(loadUserPort.existsById(organizerIdentityAccountId)).willReturn(true);
+        UUID organizerAccountId = UUID.randomUUID();
+        given(loadAccountPort.existsById(organizerAccountId)).willReturn(true);
 
         CreateFreeGameCommand command = createCommand(
                 MatchRecordMode.STATUS_ONLY,
@@ -141,7 +141,7 @@ class CreateFreeGameServiceTest {
                 null
         );
 
-        assertThatThrownBy(() -> createFreeGameService.create(organizerIdentityAccountId, command))
+        assertThatThrownBy(() -> createFreeGameService.create(organizerAccountId, command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("managerIds");
 
@@ -151,7 +151,7 @@ class CreateFreeGameServiceTest {
     @Test
     @DisplayName("slot에 null이 있어도 라운드 배정을 생성할 수 있다")
     void createFreeGame_withNullSlots_allowsSparseRoundAssignment() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         String shareCode = "share-code-123";
         UUID gameId = UUID.randomUUID();
         GameParticipant p1 = savedParticipant("서승재");
@@ -165,7 +165,7 @@ class CreateFreeGameServiceTest {
 
         FreeGame savedGame = FreeGame.create(
                 "수요 자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.STATUS_ONLY,
                 shareCode,
@@ -173,12 +173,12 @@ class CreateFreeGameServiceTest {
         );
         ReflectionTestUtils.setField(savedGame, "id", gameId);
 
-        given(loadUserPort.existsById(organizerIdentityAccountId)).willReturn(true);
+        given(loadAccountPort.existsById(organizerAccountId)).willReturn(true);
         given(issueShareCodePort.issue()).willReturn(shareCode);
         given(saveFreeGamePort.save(any())).willReturn(savedGame);
         given(saveGameParticipantPort.saveAll(any(), any())).willReturn(Map.of("p1", p1));
 
-        createFreeGameService.create(organizerIdentityAccountId, command);
+        createFreeGameService.create(organizerAccountId, command);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<RoundAssignment>> roundAssignmentsCaptor =
@@ -195,7 +195,7 @@ class CreateFreeGameServiceTest {
             MatchRecordMode matchRecordMode,
             List<UUID> managerIds,
             List<String> slots,
-            UUID participantIdentityAccountId
+            UUID participantAccountId
     ) {
         return new CreateFreeGameCommand(
                 "수요 자유게임",
@@ -206,7 +206,7 @@ class CreateFreeGameServiceTest {
                 "잠실 배드민턴장",
                 managerIds,
                 List.of(
-                        new CreateFreeGameCommand.Participant("p1", participantIdentityAccountId, "서승재", Gender.MALE, Grade.A, 20),
+                        new CreateFreeGameCommand.Participant("p1", participantAccountId, "서승재", Gender.MALE, Grade.A, 20),
                         new CreateFreeGameCommand.Participant("p2", null, "김원호", Gender.MALE, Grade.A, 20),
                         new CreateFreeGameCommand.Participant("p3", null, "안세영", Gender.FEMALE, Grade.A, 20),
                         new CreateFreeGameCommand.Participant("p4", null, "정나은", Gender.FEMALE, Grade.A, 20)

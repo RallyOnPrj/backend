@@ -60,13 +60,13 @@ class UpdateFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("COMPLETED 게임은 라운드/매치 수정을 허용하지 않는다")
     void update_throws_when_game_is_completed() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         ReflectionTestUtils.setField(freeGame, "gameStatus", GameStatus.COMPLETED);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         assertThatThrownBy(() -> service.update(new UpdateFreeGameRoundsAndMatchesCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 List.of()
         )))
@@ -78,12 +78,12 @@ class UpdateFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("rounds가 null이면 변경 없이 응답만 반환한다")
     void update_returns_early_when_rounds_are_null() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         UpdateFreeGameRoundMatchResponse result = service.update(new UpdateFreeGameRoundsAndMatchesCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 null
         ));
@@ -97,13 +97,13 @@ class UpdateFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("없는 라운드는 새로 생성하고 매치를 교체 저장한다")
     void update_creates_new_round_and_replaces_matches() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         GameParticipant participant1 = participant(freeGame, "서승재");
         GameParticipant participant2 = participant(freeGame, "김원호");
 
         UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 List.of(
                         new UpdateFreeGameRoundsAndMatchesCommand.Round(
@@ -145,14 +145,14 @@ class UpdateFreeGameRoundsAndMatchesServiceTest {
     @DisplayName("기존 라운드는 새로 만들지 않고 매치만 교체한다")
     void update_replaces_matches_for_existing_round() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         FreeGameRound existingRound = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
         GameParticipant participant1 = participant(freeGame, "서승재");
         GameParticipant participant2 = participant(freeGame, "김원호");
 
         UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 List.of(
                         new UpdateFreeGameRoundsAndMatchesCommand.Round(

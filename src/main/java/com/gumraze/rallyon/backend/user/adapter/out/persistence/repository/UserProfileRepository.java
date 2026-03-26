@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> {
 
-    Optional<UserProfile> findByIdentityAccountId(UUID identityAccountId);
+    Optional<UserProfile> findByAccountId(UUID accountId);
 
     Page<UserProfile> findByNicknameContaining(String nickname, Pageable pageable);
 

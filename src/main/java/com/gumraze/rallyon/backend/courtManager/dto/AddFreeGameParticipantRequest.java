@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 
 public record AddFreeGameParticipantRequest(
-        UUID identityAccountId,
+        UUID accountId,
 
         @NotBlank
         @Pattern(

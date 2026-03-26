@@ -40,10 +40,10 @@ class GetMyProfileServiceTest {
     @Test
     @DisplayName("내 프로필 조회 시 region snapshot으로 district/province 이름을 채운다")
     void get_profile_resolves_region_snapshot() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         var districtId = uuid(2);
         UserProfile profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "테스트 닉네임",
                 districtId,
                 Grade.D,
@@ -60,13 +60,13 @@ class GetMyProfileServiceTest {
                 loadRegionPort
         );
 
-        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.ACTIVE);
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.ACTIVE);
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.of(
                 new RegionDistrictReference(districtId, "권선구", "41113", uuid(3), "경기도", "41")
         ));
 
-        UserProfileResponseDto result = service.get(new GetMyProfileQuery(identityAccountId));
+        UserProfileResponseDto result = service.get(new GetMyProfileQuery(accountId));
 
         assertThat(result.nickname()).isEqualTo("테스트 닉네임");
         assertThat(result.districtName()).isEqualTo("권선구");
@@ -77,10 +77,10 @@ class GetMyProfileServiceTest {
     @Test
     @DisplayName("프로필의 districtId가 유효하지 않으면 예외를 던진다")
     void get_profile_throws_when_district_reference_missing() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         var districtId = uuid(2);
         UserProfile profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "테스트 닉네임",
                 districtId,
                 null,
@@ -97,11 +97,11 @@ class GetMyProfileServiceTest {
                 loadRegionPort
         );
 
-        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.ACTIVE);
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.ACTIVE);
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.get(new GetMyProfileQuery(identityAccountId)))
+        assertThatThrownBy(() -> service.get(new GetMyProfileQuery(accountId)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("지역 정보를 찾을 수 없습니다.");
     }

@@ -7,14 +7,14 @@ import java.security.Principal;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record AuthenticatedIdentity(
-        UUID identityAccountId,
-        IdentityRole role,
+public record AuthenticatedAccount(
+        UUID accountId,
+        AccountRole role,
         String displayName
 ) implements Principal, Serializable {
 
     @Override
     public String getName() {
-        return identityAccountId.toString();
+        return accountId.toString();
     }
 }

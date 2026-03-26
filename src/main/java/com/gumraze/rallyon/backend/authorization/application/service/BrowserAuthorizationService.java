@@ -17,7 +17,7 @@ import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateOAut
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import lombok.RequiredArgsConstructor;
@@ -90,12 +90,12 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
             if (command.dummyCode() == null || command.dummyCode().isBlank()) {
                 throw new UnauthorizedException("DUMMY 로그인 코드는 필수입니다.");
             }
-            AuthenticatedIdentity authenticatedIdentity = authenticateOAuthIdentityUseCase.authenticate(
+            AuthenticatedAccount authenticatedAccount = authenticateOAuthIdentityUseCase.authenticate(
                     command.provider(),
                     command.dummyCode(),
                     buildProviderCallbackUri(buildCanonicalCallbackPath(command.provider()))
             );
-            return new SessionStartResult(authSession, buildAuthorizationUri(authSession), authenticatedIdentity);
+            return new SessionStartResult(authSession, buildAuthorizationUri(authSession), authenticatedAccount);
         }
 
         return new SessionStartResult(authSession, buildCanonicalOAuthStartPath(command.provider()), null);
@@ -111,9 +111,9 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
         }
 
         try {
-            AuthenticatedIdentity authenticatedIdentity =
+            AuthenticatedAccount authenticatedAccount =
                     authenticateLocalIdentityUseCase.authenticate(command.email(), command.password());
-            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedIdentity);
+            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedAccount);
         } catch (UnauthorizedException ex) {
             return new AuthorizationStepResult(
                     authPageWithError(command.authSession().screen(), "local_login_failed", command.authSession().returnTo()),
@@ -153,9 +153,9 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
         }
 
         try {
-            AuthenticatedIdentity authenticatedIdentity =
+            AuthenticatedAccount authenticatedAccount =
                     authenticateLocalIdentityUseCase.authenticate(command.email(), command.password());
-            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedIdentity);
+            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedAccount);
         } catch (UnauthorizedException ex) {
             return new AuthorizationStepResult(
                     authPageWithError(command.authSession().screen(), "local_login_failed", command.authSession().returnTo()),
@@ -177,12 +177,12 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
                 throw new UnauthorizedException("DUMMY 로그인 코드는 필수입니다.");
             }
 
-            AuthenticatedIdentity authenticatedIdentity = authenticateOAuthIdentityUseCase.authenticate(
+            AuthenticatedAccount authenticatedAccount = authenticateOAuthIdentityUseCase.authenticate(
                     command.provider(),
                     command.dummyCode(),
                     buildProviderCallbackUri(command.callbackPath())
             );
-            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedIdentity);
+            return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedAccount);
         }
 
         String redirectUri = buildProviderCallbackUri(command.callbackPath());
@@ -218,12 +218,12 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
         }
 
         String redirectUri = buildProviderCallbackUri(command.callbackPath());
-        AuthenticatedIdentity authenticatedIdentity = authenticateOAuthIdentityUseCase.authenticate(
+        AuthenticatedAccount authenticatedAccount = authenticateOAuthIdentityUseCase.authenticate(
                 command.provider(),
                 command.code(),
                 redirectUri
         );
-        return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedIdentity);
+        return new AuthorizationStepResult(buildAuthorizationUri(command.authSession()), authenticatedAccount);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
         }
 
         String targetPath = command.currentIdentity() != null
-                && loadUserOnboardingStatusUseCase.load(command.currentIdentity().identityAccountId()) == UserStatus.PENDING
+                && loadUserOnboardingStatusUseCase.load(command.currentIdentity().accountId()) == UserStatus.PENDING
                 ? "/profile/setup"
                 : command.authSession().returnTo();
 

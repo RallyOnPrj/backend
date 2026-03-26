@@ -17,19 +17,19 @@ import java.util.UUID;
 public interface FreeGameParticipantApi {
 
     ResponseEntity<AddFreeGameParticipantResponse> addFreeGameParticipant(
-            UUID identityAccountId,
+            UUID accountId,
             UUID gameId,
             AddFreeGameParticipantRequest request
     );
 
     ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
-            UUID identityAccountId,
+            UUID accountId,
             UUID gameId,
             String include
     );
 
     ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
-            UUID identityAccountId,
+            UUID accountId,
             UUID gameId,
             UUID participantId
     );

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record FreeGameParticipantResponse(
         UUID participantId,
-        UUID identityAccountId,
+        UUID accountId,
         String displayName,
         Gender gender,
         Grade grade,

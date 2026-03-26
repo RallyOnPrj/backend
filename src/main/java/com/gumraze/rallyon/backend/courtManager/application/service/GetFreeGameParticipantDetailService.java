@@ -35,7 +35,7 @@ public class GetFreeGameParticipantDetailService implements GetFreeGameParticipa
         return new FreeGameParticipantDetailResponse(
                 query.gameId(),
                 participant.getId(),
-                participant.getIdentityAccountId(),
+                participant.getAccountId(),
                 participant.getDisplayName(),
                 participant.getGender(),
                 participant.getGrade(),

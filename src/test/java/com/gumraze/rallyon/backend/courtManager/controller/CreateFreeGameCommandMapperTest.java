@@ -25,7 +25,7 @@ class CreateFreeGameCommandMapperTest {
         // given
         UUID managerId1 = UUID.randomUUID();
         UUID managerId2 = UUID.randomUUID();
-        UUID participantIdentityAccountId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
         CreateFreeGameRequest request = new CreateFreeGameRequest(
                 "수요 자유게임",
                 MatchRecordMode.STATUS_ONLY,
@@ -37,7 +37,7 @@ class CreateFreeGameCommandMapperTest {
                 List.of(
                         new CreateFreeGameRequest.ParticipantRequest(
                                 "p1",
-                                participantIdentityAccountId,
+                                participantAccountId,
                                 "김대환",
                                 Gender.MALE,
                                 Grade.C,
@@ -71,7 +71,7 @@ class CreateFreeGameCommandMapperTest {
 
         assertThat(command.participants()).hasSize(1);
         assertThat(command.participants().getFirst().clientId()).isEqualTo("p1");
-        assertThat(command.participants().getFirst().identityAccountId()).isEqualTo(participantIdentityAccountId);
+        assertThat(command.participants().getFirst().accountId()).isEqualTo(participantAccountId);
         assertThat(command.participants().getFirst().originalName()).isEqualTo("김대환");
 
         assertThat(command.rounds()).hasSize(1);

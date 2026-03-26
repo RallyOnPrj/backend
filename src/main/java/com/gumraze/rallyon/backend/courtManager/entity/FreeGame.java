@@ -28,8 +28,8 @@ public class FreeGame extends MutableAuditEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "organizer_identity_account_id", nullable = false)
-    private UUID organizerIdentityAccountId;
+    @Column(name = "organizer_account_id", nullable = false)
+    private UUID organizerAccountId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_type", nullable = false)
@@ -64,7 +64,7 @@ public class FreeGame extends MutableAuditEntity {
 
     public static FreeGame create(
             String title,
-            UUID organizerIdentityAccountId,
+            UUID organizerAccountId,
             GradeType gradeType,
             MatchRecordMode matchRecordMode,
             String shareCode,
@@ -72,7 +72,7 @@ public class FreeGame extends MutableAuditEntity {
     ) {
         FreeGame freeGame = new FreeGame();
         freeGame.title = title;
-        freeGame.organizerIdentityAccountId = organizerIdentityAccountId;
+        freeGame.organizerAccountId = organizerAccountId;
         freeGame.gradeType = gradeType;
         freeGame.matchRecordMode = matchRecordMode;
         freeGame.shareCode = shareCode;
@@ -102,8 +102,8 @@ public class FreeGame extends MutableAuditEntity {
         return title;
     }
 
-    public UUID getOrganizerIdentityAccountId() {
-        return organizerIdentityAccountId;
+    public UUID getOrganizerAccountId() {
+        return organizerAccountId;
     }
 
     public GradeType getGradeType() {

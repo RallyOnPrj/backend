@@ -100,7 +100,7 @@
 - `Participant`: 게임 참가자
 - `Round`: 한 차수의 경기 편성
 - `Match`: 특정 코트에서 열리는 경기
-- `Organizer`, `Participant`, `Manager`는 모두 `identityAccountId`로 식별한다
+- `Organizer`, `Participant`, `Manager`는 모두 `accountId`로 식별한다
 
 ### 용어 규칙
 

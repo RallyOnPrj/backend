@@ -24,10 +24,10 @@ public final class CourtManagerControllerFixtures {
     private CourtManagerControllerFixtures() {
     }
 
-    public static RequestPostProcessor authenticatedUser(UUID userId) {
+    public static RequestPostProcessor authenticatedUser(UUID accountId) {
         return authentication(
                 new UsernamePasswordAuthenticationToken(
-                        userId,
+                        accountId,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_USER"))
                 )
@@ -50,10 +50,10 @@ public final class CourtManagerControllerFixtures {
         );
     }
 
-    public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID identityAccountId, String displayName) {
+    public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID accountId, String displayName) {
         return new FreeGameParticipantResponse(
                 participantId,
-                identityAccountId,
+                accountId,
                 displayName,
                 Gender.MALE,
                 Grade.ROOKIE,
@@ -74,7 +74,7 @@ public final class CourtManagerControllerFixtures {
     ) {
         return new FreeGameParticipantResponse(
                 participant.participantId(),
-                participant.identityAccountId(),
+                participant.accountId(),
                 participant.displayName(),
                 participant.gender(),
                 participant.grade(),
@@ -96,13 +96,13 @@ public final class CourtManagerControllerFixtures {
     public static FreeGameParticipantDetailResponse participantDetailResponse(
             UUID gameId,
             UUID participantId,
-            UUID identityAccountId,
+            UUID accountId,
             String displayName
     ) {
         return new FreeGameParticipantDetailResponse(
                 gameId,
                 participantId,
-                identityAccountId,
+                accountId,
                 displayName,
                 Gender.MALE,
                 Grade.ROOKIE,

@@ -4,10 +4,10 @@ import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.reposito
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameManager;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityLocalCredentialRepository;
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
-import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.LocalCredentialRepository;
+import com.gumraze.rallyon.backend.identity.entity.Account;
+import com.gumraze.rallyon.backend.identity.entity.LocalCredential;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 import com.gumraze.rallyon.backend.user.entity.UserProfile;
@@ -35,13 +35,13 @@ class AuditPersistenceCompatibilityTest {
     private RestClient.Builder restClientBuilder;
 
     @Autowired
-    private IdentityAccountRepository identityAccountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private UserProfileRepository userProfileRepository;
 
     @Autowired
-    private IdentityLocalCredentialRepository identityLocalCredentialRepository;
+    private LocalCredentialRepository localCredentialRepository;
 
     @Autowired
     private GameRepository gameRepository;
@@ -52,9 +52,9 @@ class AuditPersistenceCompatibilityTest {
     @Test
     @DisplayName("UserProfile 저장/수정 시 audit timestamp가 자동으로 관리된다")
     void userProfile_managesAuditTimestampsAutomatically() {
-        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
+        Account account = accountRepository.save(Account.create());
         UserProfile profile = userProfileRepository.save(UserProfile.create(
-                identityAccount.getId(),
+                account.getId(),
                 "initial",
                 null,
                 null,
@@ -68,7 +68,7 @@ class AuditPersistenceCompatibilityTest {
         entityManager.flush();
         entityManager.clear();
 
-        UserProfile persisted = userProfileRepository.findById(identityAccount.getId()).orElseThrow();
+        UserProfile persisted = userProfileRepository.findById(account.getId()).orElseThrow();
         LocalDateTime createdAt = persisted.getCreatedAt();
         LocalDateTime updatedAt = persisted.getUpdatedAt();
 
@@ -79,17 +79,17 @@ class AuditPersistenceCompatibilityTest {
         entityManager.flush();
         entityManager.clear();
 
-        UserProfile updatedProfile = userProfileRepository.findById(identityAccount.getId()).orElseThrow();
+        UserProfile updatedProfile = userProfileRepository.findById(account.getId()).orElseThrow();
         assertThat(updatedProfile.getCreatedAt()).isEqualTo(createdAt);
         assertThat(updatedProfile.getUpdatedAt()).isAfterOrEqualTo(updatedAt);
     }
 
     @Test
-    @DisplayName("IdentityLocalCredential 저장/수정 시 audit timestamp가 자동으로 관리된다")
-    void identityLocalCredential_managesAuditTimestampsAutomatically() {
-        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
-        IdentityLocalCredential credential = identityLocalCredentialRepository.save(IdentityLocalCredential.issue(
-                identityAccount,
+    @DisplayName("LocalCredential 저장/수정 시 audit timestamp가 자동으로 관리된다")
+    void localCredential_managesAuditTimestampsAutomatically() {
+        Account account = accountRepository.save(Account.create());
+        LocalCredential credential = localCredentialRepository.save(LocalCredential.issue(
+                account,
                 "audit@rallyon.local",
                 "hashed-password"
         ));
@@ -97,7 +97,7 @@ class AuditPersistenceCompatibilityTest {
         entityManager.flush();
         entityManager.clear();
 
-        IdentityLocalCredential persisted = identityLocalCredentialRepository.findById(identityAccount.getId()).orElseThrow();
+        LocalCredential persisted = localCredentialRepository.findById(account.getId()).orElseThrow();
         LocalDateTime createdAt = persisted.getCreatedAt();
         LocalDateTime updatedAt = persisted.getUpdatedAt();
 
@@ -108,7 +108,7 @@ class AuditPersistenceCompatibilityTest {
         entityManager.flush();
         entityManager.clear();
 
-        IdentityLocalCredential updated = identityLocalCredentialRepository.findById(identityAccount.getId()).orElseThrow();
+        LocalCredential updated = localCredentialRepository.findById(account.getId()).orElseThrow();
         assertThat(updated.getCreatedAt()).isEqualTo(createdAt);
         assertThat(updated.getUpdatedAt()).isAfterOrEqualTo(updatedAt);
     }
@@ -116,8 +116,8 @@ class AuditPersistenceCompatibilityTest {
     @Test
     @DisplayName("GameManager 저장 시 createdAt이 자동으로 세팅된다")
     void gameManager_setsCreatedAtAutomatically() {
-        IdentityAccount organizer = identityAccountRepository.save(IdentityAccount.create());
-        IdentityAccount manager = identityAccountRepository.save(IdentityAccount.create());
+        Account organizer = accountRepository.save(Account.create());
+        Account manager = accountRepository.save(Account.create());
         FreeGame freeGame = gameRepository.save(FreeGame.create(
                 "audit-game",
                 organizer.getId(),

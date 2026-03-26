@@ -40,16 +40,16 @@ class GetFreeGameDetailServiceTest {
     @DisplayName("organizer는 자유게임 상세와 세팅을 조회할 수 있다")
     void get_returns_game_detail_for_organizer() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         FreeGameSetting setting = CourtManagerTestFixtures.setting(freeGame, 2, 4);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(loadFreeGameSettingPort.loadSettingByGameId(gameId)).willReturn(Optional.of(setting));
 
-        FreeGameDetailResponse result = service.get(new GetFreeGameDetailQuery(organizerIdentityAccountId, gameId));
+        FreeGameDetailResponse result = service.get(new GetFreeGameDetailQuery(organizerAccountId, gameId));
 
         assertThat(result.gameId()).isEqualTo(gameId);
-        assertThat(result.organizerIdentityAccountId()).isEqualTo(organizerIdentityAccountId);
+        assertThat(result.organizerAccountId()).isEqualTo(organizerAccountId);
         assertThat(result.courtCount()).isEqualTo(2);
         assertThat(result.roundCount()).isEqualTo(4);
     }
@@ -58,8 +58,8 @@ class GetFreeGameDetailServiceTest {
     @DisplayName("organizer가 아니면 상세 조회가 거부된다")
     void get_throws_when_requester_is_not_organizer() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         assertThatThrownBy(() -> service.get(new GetFreeGameDetailQuery(UUID.randomUUID(), gameId)))
@@ -70,12 +70,12 @@ class GetFreeGameDetailServiceTest {
     @DisplayName("세팅이 없으면 상세 조회가 실패한다")
     void get_throws_when_setting_is_missing() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(loadFreeGameSettingPort.loadSettingByGameId(gameId)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.get(new GetFreeGameDetailQuery(organizerIdentityAccountId, gameId)))
+        assertThatThrownBy(() -> service.get(new GetFreeGameDetailQuery(organizerAccountId, gameId)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("존재하지 않는 게임 세팅입니다.");
     }

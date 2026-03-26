@@ -52,7 +52,7 @@ class SearchUsersServiceTest {
 
         verify(loadUserProfilePort).loadByNicknameContaining("김대환", pageable);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().identityAccountId()).isEqualTo(uuid(1));
+        assertThat(result.getContent().getFirst().accountId()).isEqualTo(uuid(1));
         assertThat(result.getContent().getFirst().tag()).isEqualTo("AB12");
     }
 

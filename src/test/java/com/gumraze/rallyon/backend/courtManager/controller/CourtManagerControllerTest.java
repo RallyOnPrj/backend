@@ -105,7 +105,7 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("자유게임 생성 요청을 create use case로 전달한다")
     void createFreeGame_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         CreateFreeGameRequest request = new CreateFreeGameRequest(
                 "자유게임1",
@@ -131,32 +131,32 @@ class CourtManagerControllerTest {
         );
 
         given(createFreeGameCommandMapper.toCommand(request)).willReturn(command);
-        given(createFreeGameUseCase.create(userId, command)).willReturn(gameId);
+        given(createFreeGameUseCase.create(accountId, command)).willReturn(gameId);
 
         mockMvc.perform(post("/free-games")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/free-games/" + gameId))
                 .andExpect(jsonPath("$.gameId").value(gameId.toString()));
 
         verify(createFreeGameCommandMapper).toCommand(request);
-        verify(createFreeGameUseCase).create(userId, command);
+        verify(createFreeGameUseCase).create(accountId, command);
     }
 
     @Test
     @DisplayName("자유게임 상세 조회 성공")
     void getFreeGameDetail_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
-        FreeGameDetailResponse response = freeGameDetailResponse(userId, gameId);
+        FreeGameDetailResponse response = freeGameDetailResponse(accountId, gameId);
 
-        when(getFreeGameDetailUseCase.get(new GetFreeGameDetailQuery(userId, gameId))).thenReturn(response);
+        when(getFreeGameDetailUseCase.get(new GetFreeGameDetailQuery(accountId, gameId))).thenReturn(response);
 
         mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gameId").value(gameId.toString()))
@@ -166,7 +166,7 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("자유게임 기본 정보 수정 성공")
     void updateFreeGameInfo_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UpdateFreeGameRequest request = new UpdateFreeGameRequest(
                 "수정된 자유게임",
@@ -176,7 +176,7 @@ class CourtManagerControllerTest {
                 null
         );
         UpdateFreeGameInfoCommand command = new UpdateFreeGameInfoCommand(
-                userId,
+                accountId,
                 gameId,
                 request.title(),
                 request.matchRecordMode(),
@@ -186,14 +186,14 @@ class CourtManagerControllerTest {
         );
         UpdateFreeGameResponse response = new UpdateFreeGameResponse(gameId);
 
-        when(updateFreeGameInfoCommandMapper.toCommand(eq(userId), eq(gameId), any(UpdateFreeGameRequest.class)))
+        when(updateFreeGameInfoCommandMapper.toCommand(eq(accountId), eq(gameId), any(UpdateFreeGameRequest.class)))
                 .thenReturn(command);
         when(updateFreeGameInfoUseCase.update(command)).thenReturn(response);
 
         mockMvc.perform(patch("/free-games/{gameId}", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gameId").value(gameId.toString()));
@@ -202,7 +202,7 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("자유게임 라운드/매치 조회 성공")
     void getFreeGameRoundMatch_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID teamA1 = UUID.randomUUID();
         UUID teamA2 = UUID.randomUUID();
@@ -229,11 +229,11 @@ class CourtManagerControllerTest {
                 )
         );
 
-        when(getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(userId, gameId)))
+        when(getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(accountId, gameId)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/free-games/{gameId}/rounds-and-matches", gameId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gameId").value(gameId.toString()))
@@ -244,7 +244,7 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("라운드/매치 수정 PATCH 성공")
     void updateRoundsAndMatches_patch_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID teamA1 = UUID.randomUUID();
         UUID teamA2 = UUID.randomUUID();
@@ -266,7 +266,7 @@ class CourtManagerControllerTest {
                 )
         );
         UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(
-                userId,
+                accountId,
                 gameId,
                 List.of(new UpdateFreeGameRoundsAndMatchesCommand.Round(
                         1,
@@ -279,7 +279,7 @@ class CourtManagerControllerTest {
         );
 
         when(updateFreeGameRoundsAndMatchesCommandMapper.toCommand(
-                eq(userId),
+                eq(accountId),
                 eq(gameId),
                 any(UpdateFreeGameRoundMatchRequest.class)
         )).thenReturn(command);
@@ -287,7 +287,7 @@ class CourtManagerControllerTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
 
@@ -297,7 +297,7 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("참가자 추가 성공")
     void addFreeGameParticipant_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
         AddFreeGameParticipantRequest request = new AddFreeGameParticipantRequest(
@@ -316,12 +316,12 @@ class CourtManagerControllerTest {
         );
 
         when(addFreeGameParticipantCommandMapper.toCommand(request)).thenReturn(command);
-        when(addFreeGameParticipantUseCase.add(userId, gameId, command)).thenReturn(participantId);
+        when(addFreeGameParticipantUseCase.add(accountId, gameId, command)).thenReturn(participantId);
 
         mockMvc.perform(post("/free-games/{gameId}/participants", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/free-games/" + gameId + "/participants/" + participantId))
@@ -332,43 +332,43 @@ class CourtManagerControllerTest {
     @DisplayName("자유게임 참가자 목록 조회 성공")
     void get_free_game_participants_with_stats_success() throws Exception {
         UUID gameId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        UUID participantIdentityAccountId = UUID.randomUUID();
-        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), participantIdentityAccountId, "KimA");
+        UUID accountId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
+        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), participantAccountId, "KimA");
         FreeGameParticipantsResponse response =
                 participantsResponse(gameId, List.of(participantResponseWithStats(participant, 3, 2, 1, 1)));
 
-        when(getFreeGameParticipantsUseCase.get(new GetFreeGameParticipantsQuery(userId, gameId, true)))
+        when(getFreeGameParticipantsUseCase.get(new GetFreeGameParticipantsQuery(accountId, gameId, true)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
                         .queryParam("include", "stats")
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participants[0].identityAccountId").value(participantIdentityAccountId.toString()))
+                .andExpect(jsonPath("$.participants[0].accountId").value(participantAccountId.toString()))
                 .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3));
     }
 
     @Test
     @DisplayName("자유게임 참가자 상세 조회 성공")
     void get_free_game_participant_detail_success() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
-        UUID participantIdentityAccountId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
         FreeGameParticipantDetailResponse response =
-                participantDetailResponse(gameId, participantId, participantIdentityAccountId, "KimA");
+                participantDetailResponse(gameId, participantId, participantAccountId, "KimA");
 
-        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(userId, gameId, participantId)))
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participantId").value(participantId.toString()))
-                .andExpect(jsonPath("$.identityAccountId").value(participantIdentityAccountId.toString()));
+                .andExpect(jsonPath("$.accountId").value(participantAccountId.toString()));
     }
 
     @Test
@@ -390,15 +390,15 @@ class CourtManagerControllerTest {
     @Test
     @DisplayName("참가자 상세 조회 시 존재하지 않는 participantId면 실패")
     void get_free_game_participant_detail_with_unknown_participant_then_not_found() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
 
-        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(userId, gameId, participantId)))
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)))
                 .thenThrow(new NotFoundException("존재하지 않는 참가자입니다. participantId: " + participantId));
 
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("존재하지 않는 참가자입니다. participantId: " + participantId));

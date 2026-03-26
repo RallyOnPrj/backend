@@ -6,19 +6,19 @@ CREATE TABLE identity_accounts (
 );
 
 CREATE TABLE identity_local_credentials (
-    identity_account_id UUID PRIMARY KEY,
+    account_id UUID PRIMARY KEY,
     email_normalized VARCHAR(320) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_identity_local_credentials_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id),
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id),
     CONSTRAINT uq_identity_local_credentials_email UNIQUE (email_normalized)
 );
 
 CREATE TABLE identity_oauth_links (
     id UUID PRIMARY KEY,
-    identity_account_id UUID NOT NULL,
+    account_id UUID NOT NULL,
     provider VARCHAR(20) NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     email VARCHAR(320),
@@ -33,13 +33,13 @@ CREATE TABLE identity_oauth_links (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_identity_oauth_links_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id),
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id),
     CONSTRAINT uq_identity_oauth_links_provider_user UNIQUE (provider, provider_user_id),
-    CONSTRAINT uq_identity_oauth_links_account_provider UNIQUE (identity_account_id, provider)
+    CONSTRAINT uq_identity_oauth_links_account_provider UNIQUE (account_id, provider)
 );
 
 CREATE INDEX idx_identity_oauth_links_account_id
-    ON identity_oauth_links (identity_account_id);
+    ON identity_oauth_links (account_id);
 
 CREATE TABLE region_province (
     id UUID PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE INDEX idx_region_district_province_id
     ON region_district (province_id);
 
 CREATE TABLE user_profile (
-    identity_account_id UUID PRIMARY KEY,
+    account_id UUID PRIMARY KEY,
     nickname VARCHAR(255),
     profile_image_url VARCHAR(255),
     birth TIMESTAMP,
@@ -79,7 +79,7 @@ CREATE TABLE user_profile (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_user_profile_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id),
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id),
     CONSTRAINT fk_user_profile_district
         FOREIGN KEY (district_id) REFERENCES region_district(id),
     CONSTRAINT uq_user_profile_nickname_tag UNIQUE (nickname, tag)
@@ -90,23 +90,23 @@ CREATE INDEX idx_user_profile_nickname
 
 CREATE TABLE user_grade_history (
     id UUID PRIMARY KEY,
-    identity_account_id UUID NOT NULL,
+    account_id UUID NOT NULL,
     grade VARCHAR(255),
     grade_type VARCHAR(255) NOT NULL,
     changed_at TIMESTAMP,
     CONSTRAINT fk_user_grade_history_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id)
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id)
 );
 
-CREATE INDEX idx_user_grade_history_identity_account_id
-    ON user_grade_history (identity_account_id);
+CREATE INDEX idx_user_grade_history_account_id
+    ON user_grade_history (account_id);
 CREATE INDEX idx_user_grade_history_changed_at
     ON user_grade_history (changed_at);
 
 CREATE TABLE free_games (
     id UUID PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    organizer_identity_account_id UUID NOT NULL,
+    organizer_account_id UUID NOT NULL,
     grade_type VARCHAR(255) NOT NULL,
     game_type VARCHAR(255) NOT NULL,
     game_status VARCHAR(255) NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE free_games (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_free_games_organizer
-        FOREIGN KEY (organizer_identity_account_id) REFERENCES identity_accounts(id),
+        FOREIGN KEY (organizer_account_id) REFERENCES identity_accounts(id),
     CONSTRAINT uq_free_games_share_code UNIQUE (share_code)
 );
 
@@ -135,7 +135,7 @@ CREATE TABLE free_game_settings (
 CREATE TABLE game_participants (
     id UUID PRIMARY KEY,
     freegame_id UUID NOT NULL,
-    identity_account_id UUID,
+    account_id UUID,
     original_name VARCHAR(255) NOT NULL,
     display_name VARCHAR(255) NOT NULL,
     gender VARCHAR(255) NOT NULL,
@@ -146,8 +146,8 @@ CREATE TABLE game_participants (
     CONSTRAINT fk_game_participants_free_game
         FOREIGN KEY (freegame_id) REFERENCES free_games(id),
     CONSTRAINT fk_game_participants_identity_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id),
-    CONSTRAINT uq_game_participants_account_per_game UNIQUE (freegame_id, identity_account_id)
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id),
+    CONSTRAINT uq_game_participants_account_per_game UNIQUE (freegame_id, account_id)
 );
 
 CREATE INDEX idx_game_participants_freegame_id
@@ -156,13 +156,13 @@ CREATE INDEX idx_game_participants_freegame_id
 CREATE TABLE game_managers (
     id UUID PRIMARY KEY,
     freegame_id UUID NOT NULL,
-    identity_account_id UUID NOT NULL,
+    account_id UUID NOT NULL,
     created_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_game_managers_free_game
         FOREIGN KEY (freegame_id) REFERENCES free_games(id),
     CONSTRAINT fk_game_managers_identity_account
-        FOREIGN KEY (identity_account_id) REFERENCES identity_accounts(id),
-    CONSTRAINT uq_game_managers_account_per_game UNIQUE (freegame_id, identity_account_id)
+        FOREIGN KEY (account_id) REFERENCES identity_accounts(id),
+    CONSTRAINT uq_game_managers_account_per_game UNIQUE (freegame_id, account_id)
 );
 
 CREATE INDEX idx_game_managers_freegame_id

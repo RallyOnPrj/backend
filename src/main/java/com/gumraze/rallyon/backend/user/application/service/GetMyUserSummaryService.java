@@ -19,11 +19,11 @@ public class GetMyUserSummaryService implements GetMyUserSummaryUseCase {
 
     @Override
     public UserMeResponse get(GetMyUserSummaryQuery query) {
-        var status = loadUserOnboardingStatusUseCase.load(query.userId());
+        var status = loadUserOnboardingStatusUseCase.load(query.accountId());
 
         UserProfile profile = null;
         if (status == UserStatus.ACTIVE) {
-            profile = loadUserProfilePort.loadByIdentityAccountId(query.userId()).orElse(null);
+            profile = loadUserProfilePort.loadByAccountId(query.accountId()).orElse(null);
         }
 
         return new UserMeResponse(

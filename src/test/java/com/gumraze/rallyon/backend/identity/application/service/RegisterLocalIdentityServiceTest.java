@@ -4,10 +4,10 @@ import com.gumraze.rallyon.backend.common.exception.ConflictException;
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.application.port.out.LoadLocalCredentialPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.PasswordHasherPort;
-import com.gumraze.rallyon.backend.identity.application.port.out.SaveIdentityAccountPort;
+import com.gumraze.rallyon.backend.identity.application.port.out.SaveAccountPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveLocalCredentialPort;
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
-import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
+import com.gumraze.rallyon.backend.identity.entity.Account;
+import com.gumraze.rallyon.backend.identity.entity.LocalCredential;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 class RegisterLocalIdentityServiceTest {
 
     @Mock
-    private SaveIdentityAccountPort saveIdentityAccountPort;
+    private SaveAccountPort saveAccountPort;
 
     @Mock
     private LoadLocalCredentialPort loadLocalCredentialPort;
@@ -48,20 +48,20 @@ class RegisterLocalIdentityServiceTest {
     @Test
     @DisplayName("회원가입은 이메일을 정규화하고 해시된 credential을 저장한다")
     void register_normalizes_email_and_saves_credential() {
-        IdentityAccount savedAccount = IdentityAccount.create();
-        UUID identityAccountId = UUID.randomUUID();
-        ReflectionTestUtils.setField(savedAccount, "id", identityAccountId);
+        Account savedAccount = Account.create();
+        UUID accountId = UUID.randomUUID();
+        ReflectionTestUtils.setField(savedAccount, "id", accountId);
 
         given(loadLocalCredentialPort.loadByEmailNormalized("user@rallyon.local")).willReturn(Optional.empty());
-        given(saveIdentityAccountPort.save(any())).willReturn(savedAccount);
+        given(saveAccountPort.save(any())).willReturn(savedAccount);
         given(passwordHasherPort.hash("password123!")).willReturn("hashed-password");
 
         UUID result = service.register(new RegisterLocalIdentityCommand(" User@RallyOn.Local ", "password123!"));
 
-        assertThat(result).isEqualTo(identityAccountId);
-        ArgumentCaptor<IdentityLocalCredential> credentialCaptor = ArgumentCaptor.forClass(IdentityLocalCredential.class);
+        assertThat(result).isEqualTo(accountId);
+        ArgumentCaptor<LocalCredential> credentialCaptor = ArgumentCaptor.forClass(LocalCredential.class);
         verify(saveLocalCredentialPort).save(credentialCaptor.capture());
-        assertThat(credentialCaptor.getValue().getIdentityAccount()).isEqualTo(savedAccount);
+        assertThat(credentialCaptor.getValue().getAccount()).isEqualTo(savedAccount);
         assertThat(credentialCaptor.getValue().getEmailNormalized()).isEqualTo("user@rallyon.local");
         assertThat(credentialCaptor.getValue().getPasswordHash()).isEqualTo("hashed-password");
     }
@@ -70,13 +70,13 @@ class RegisterLocalIdentityServiceTest {
     @DisplayName("이미 가입된 이메일이면 ConflictException이 발생한다")
     void register_throws_when_email_already_exists() {
         given(loadLocalCredentialPort.loadByEmailNormalized("user@rallyon.local"))
-                .willReturn(Optional.of(org.mockito.Mockito.mock(IdentityLocalCredential.class)));
+                .willReturn(Optional.of(org.mockito.Mockito.mock(LocalCredential.class)));
 
         assertThatThrownBy(() -> service.register(new RegisterLocalIdentityCommand("user@rallyon.local", "password123!")))
                 .isInstanceOf(ConflictException.class)
                 .hasMessageContaining("이미 가입된 이메일입니다.");
 
-        verify(saveIdentityAccountPort, never()).save(any());
+        verify(saveAccountPort, never()).save(any());
     }
 
     @Test
@@ -86,7 +86,7 @@ class RegisterLocalIdentityServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("비밀번호는 8자 이상이어야 합니다.");
 
-        verify(saveIdentityAccountPort, never()).save(any());
+        verify(saveAccountPort, never()).save(any());
         verify(saveLocalCredentialPort, never()).save(any());
     }
 }

@@ -42,12 +42,12 @@ class AddFreeGameParticipantServiceTest {
     @Test
     @DisplayName("운영자는 자신의 자유게임에 참가자 1명을 추가할 수 있다")
     void add_addsParticipantToOwnedGame() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.create(
                 "자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.RESULT,
                 "share-code",
@@ -79,7 +79,7 @@ class AddFreeGameParticipantServiceTest {
 
         given(addGameParticipantPort.add(freeGame, command)).willReturn(savedParticipant);
 
-        UUID result = service.add(organizerIdentityAccountId, gameId, command);
+        UUID result = service.add(organizerAccountId, gameId, command);
 
         assertThat(result).isEqualTo(participantId);
         verify(loadFreeGamePort).loadGameById(gameId);
@@ -89,13 +89,13 @@ class AddFreeGameParticipantServiceTest {
     @Test
     @DisplayName("존재하지 않는 자유게임이면 예외가 발생한다")
     void add_throwsWhenGameDoesNotExist() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.add(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 new AddFreeGameParticipantCommand(null, "서승재", Gender.MALE, Grade.C, 20)
         ))
@@ -106,13 +106,13 @@ class AddFreeGameParticipantServiceTest {
     @Test
     @DisplayName("운영자가 아니면 참가자를 추가할 수 없다")
     void add_throwsWhenRequesterIsNotOrganizer() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        UUID requesterIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
+        UUID requesterAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.create(
                 "자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.RESULT,
                 "share-code",
@@ -123,7 +123,7 @@ class AddFreeGameParticipantServiceTest {
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         assertThatThrownBy(() -> service.add(
-                requesterIdentityAccountId,
+                requesterAccountId,
                 gameId,
                 new AddFreeGameParticipantCommand(null, "서승재", Gender.MALE, Grade.C, 20)
         ))

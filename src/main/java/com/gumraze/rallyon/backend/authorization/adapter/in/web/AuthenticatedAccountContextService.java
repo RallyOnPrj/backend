@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.authorization.adapter.in.web;
 
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
+import com.gumraze.rallyon.backend.identity.domain.AccountRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,19 +20,19 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticatedIdentityContextService {
+public class AuthenticatedAccountContextService {
 
     private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public void save(
-            AuthenticatedIdentity authenticatedIdentity,
+            AuthenticatedAccount authenticatedAccount,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                authenticatedIdentity,
+                authenticatedAccount,
                 null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + authenticatedIdentity.role().name()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + authenticatedAccount.role().name()))
         );
 
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
@@ -41,21 +41,21 @@ public class AuthenticatedIdentityContextService {
         securityContextRepository.saveContext(securityContext, request, response);
     }
 
-    public AuthenticatedIdentity resolve(Authentication authentication) {
+    public AuthenticatedAccount resolve(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
 
-        if (authentication.getPrincipal() instanceof AuthenticatedIdentity authenticatedIdentity) {
-            return authenticatedIdentity;
+        if (authentication.getPrincipal() instanceof AuthenticatedAccount authenticatedAccount) {
+            return authenticatedAccount;
         }
 
         if (authentication.getCredentials() instanceof Jwt jwt) {
-            IdentityRole role = Optional.ofNullable(jwt.getClaimAsStringList("roles"))
+            AccountRole role = Optional.ofNullable(jwt.getClaimAsStringList("roles"))
                     .filter(list -> !list.isEmpty())
-                    .map(list -> IdentityRole.valueOf(list.getFirst()))
-                    .orElse(IdentityRole.USER);
-            return new AuthenticatedIdentity(
+                    .map(list -> AccountRole.valueOf(list.getFirst()))
+                    .orElse(AccountRole.USER);
+            return new AuthenticatedAccount(
                     UUID.fromString(jwt.getSubject()),
                     role,
                     jwt.getClaimAsString("name")

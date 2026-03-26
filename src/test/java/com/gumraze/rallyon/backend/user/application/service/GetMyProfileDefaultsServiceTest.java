@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.user.application.service;
 
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyProfileDefaultsQuery;
-import com.gumraze.rallyon.backend.user.application.port.out.LoadIdentityDisplayNamePort;
+import com.gumraze.rallyon.backend.user.application.port.out.LoadAccountDisplayNamePort;
 import com.gumraze.rallyon.backend.user.dto.UserProfileDefaultsResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.mockito.BDDMockito.given;
 class GetMyProfileDefaultsServiceTest {
 
     @Mock
-    private LoadIdentityDisplayNamePort loadIdentityDisplayNamePort;
+    private LoadAccountDisplayNamePort loadAccountDisplayNamePort;
 
     @InjectMocks
     private GetMyProfileDefaultsService service;
@@ -28,10 +28,10 @@ class GetMyProfileDefaultsServiceTest {
     @Test
     @DisplayName("display name이 있으면 suggestedNickname과 hasSuggestedNickname=true를 반환한다")
     void get_returns_suggested_nickname_when_display_name_exists() {
-        UUID identityAccountId = UUID.randomUUID();
-        given(loadIdentityDisplayNamePort.loadLatestDisplayName(identityAccountId)).willReturn(Optional.of("kakao-player"));
+        UUID accountId = UUID.randomUUID();
+        given(loadAccountDisplayNamePort.loadLatestDisplayName(accountId)).willReturn(Optional.of("kakao-player"));
 
-        UserProfileDefaultsResponse result = service.get(new GetMyProfileDefaultsQuery(identityAccountId));
+        UserProfileDefaultsResponse result = service.get(new GetMyProfileDefaultsQuery(accountId));
 
         assertThat(result.suggestedNickname()).isEqualTo("kakao-player");
         assertThat(result.hasSuggestedNickname()).isTrue();
@@ -40,10 +40,10 @@ class GetMyProfileDefaultsServiceTest {
     @Test
     @DisplayName("display name이 없으면 suggestedNickname=null과 hasSuggestedNickname=false를 반환한다")
     void get_returns_empty_defaults_when_display_name_does_not_exist() {
-        UUID identityAccountId = UUID.randomUUID();
-        given(loadIdentityDisplayNamePort.loadLatestDisplayName(identityAccountId)).willReturn(Optional.empty());
+        UUID accountId = UUID.randomUUID();
+        given(loadAccountDisplayNamePort.loadLatestDisplayName(accountId)).willReturn(Optional.empty());
 
-        UserProfileDefaultsResponse result = service.get(new GetMyProfileDefaultsQuery(identityAccountId));
+        UserProfileDefaultsResponse result = service.get(new GetMyProfileDefaultsQuery(accountId));
 
         assertThat(result.suggestedNickname()).isNull();
         assertThat(result.hasSuggestedNickname()).isFalse();

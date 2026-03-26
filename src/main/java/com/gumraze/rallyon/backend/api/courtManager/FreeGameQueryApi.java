@@ -11,12 +11,12 @@ import java.util.UUID;
 public interface FreeGameQueryApi {
 
     ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
-            UUID userId,
+            UUID accountId,
             UUID gameId
     );
 
     ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
-            UUID userId,
+            UUID accountId,
             UUID gameId
     );
 }

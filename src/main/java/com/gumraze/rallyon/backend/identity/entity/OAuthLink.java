@@ -25,18 +25,18 @@ import java.util.UUID;
         name = "identity_oauth_links",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uq_identity_oauth_links_provider_user", columnNames = {"provider", "provider_user_id"}),
-                @UniqueConstraint(name = "uq_identity_oauth_links_user_provider", columnNames = {"identity_account_id", "provider"})
+                @UniqueConstraint(name = "uq_identity_oauth_links_user_provider", columnNames = {"account_id", "provider"})
         }
 )
-public class IdentityOAuthLink extends MutableAuditEntity {
+public class OAuthLink extends MutableAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "identity_account_id", nullable = false)
-    private IdentityAccount identityAccount;
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -78,16 +78,16 @@ public class IdentityOAuthLink extends MutableAuditEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected IdentityOAuthLink() {
+    protected OAuthLink() {
     }
 
-    public static IdentityOAuthLink link(
-            IdentityAccount identityAccount,
+    public static OAuthLink link(
+            Account account,
             AuthProvider provider,
             String providerUserId
     ) {
-        IdentityOAuthLink link = new IdentityOAuthLink();
-        link.identityAccount = identityAccount;
+        OAuthLink link = new OAuthLink();
+        link.account = account;
         link.provider = provider;
         link.providerUserId = providerUserId;
         return link;
@@ -109,8 +109,8 @@ public class IdentityOAuthLink extends MutableAuditEntity {
         return id;
     }
 
-    public IdentityAccount getIdentityAccount() {
-        return identityAccount;
+    public Account getAccount() {
+        return account;
     }
 
     public AuthProvider getProvider() {

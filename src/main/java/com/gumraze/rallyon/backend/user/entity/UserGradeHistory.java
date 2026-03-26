@@ -23,8 +23,8 @@ public class UserGradeHistory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "identity_account_id", nullable = false)
-    private UUID identityAccountId;
+    @Column(name = "account_id", nullable = false)
+    private UUID accountId;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;
@@ -40,12 +40,12 @@ public class UserGradeHistory {
     }
 
     public static UserGradeHistory record(
-            UUID identityAccountId,
+            UUID accountId,
             Grade grade,
             GradeType gradeType
     ) {
         UserGradeHistory history = new UserGradeHistory();
-        history.identityAccountId = identityAccountId;
+        history.accountId = accountId;
         history.grade = grade;
         history.gradeType = Objects.requireNonNull(gradeType, "gradeType must not be null");
         history.changedAt = LocalDateTime.now();

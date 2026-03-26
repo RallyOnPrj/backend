@@ -16,8 +16,8 @@ import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateLoca
 import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateOAuthIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
+import com.gumraze.rallyon.backend.identity.domain.AccountRole;
 import com.gumraze.rallyon.backend.security.config.SecurityConfig;
 import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
@@ -70,7 +70,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         AuthorizationHostSecurityConfig.class,
         BrowserAuthSessionRepository.class,
         AuthorizationTokenCookieService.class,
-        AuthenticatedIdentityContextService.class,
+        AuthenticatedAccountContextService.class,
         BrowserAuthorizationService.class,
         AuthorizationSessionControllerTest.TestConfig.class
 })
@@ -317,7 +317,7 @@ class AuthorizationSessionControllerTest {
                         null
                 ));
 
-        AuthenticatedIdentity principal = activePrincipal();
+        AuthenticatedAccount principal = activePrincipal();
 
         MvcResult result = mockMvc.perform(get("/identity/session/callback")
                         .header(HttpHeaders.HOST, "auth.rallyon.test")
@@ -354,7 +354,7 @@ class AuthorizationSessionControllerTest {
         when(authorizationTokenClient.exchangeAuthorizationCode(eq("authorization-code"), any()))
                 .thenThrow(new ResourceAccessException("token endpoint unavailable"));
 
-        AuthenticatedIdentity principal = activePrincipal();
+        AuthenticatedAccount principal = activePrincipal();
 
         mockMvc.perform(get("/identity/session/callback")
                         .header(HttpHeaders.HOST, "auth.rallyon.test")
@@ -419,10 +419,10 @@ class AuthorizationSessionControllerTest {
         assertThat(setCookies).allMatch(value -> value.contains("Max-Age=0"));
     }
 
-    private AuthenticatedIdentity activePrincipal() {
-        return new AuthenticatedIdentity(
+    private AuthenticatedAccount activePrincipal() {
+        return new AuthenticatedAccount(
                 UUID.randomUUID(),
-                IdentityRole.USER,
+                AccountRole.USER,
                 "tester"
         );
     }

@@ -21,16 +21,16 @@ import java.util.UUID;
                 @UniqueConstraint(name = "uq_identity_local_credentials_email", columnNames = "email_normalized")
         }
 )
-public class IdentityLocalCredential extends MutableAuditEntity {
+public class LocalCredential extends MutableAuditEntity {
 
     @Id
-    @Column(name = "identity_account_id")
-    private UUID identityAccountId;
+    @Column(name = "account_id")
+    private UUID accountId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "identity_account_id", nullable = false)
-    private IdentityAccount identityAccount;
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
     @Column(name = "email_normalized", nullable = false, length = 320)
     private String emailNormalized;
@@ -44,27 +44,27 @@ public class IdentityLocalCredential extends MutableAuditEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected IdentityLocalCredential() {
+    protected LocalCredential() {
     }
 
-    public static IdentityLocalCredential issue(
-            IdentityAccount identityAccount,
+    public static LocalCredential issue(
+            Account account,
             String emailNormalized,
             String passwordHash
     ) {
-        IdentityLocalCredential credential = new IdentityLocalCredential();
-        credential.identityAccount = identityAccount;
+        LocalCredential credential = new LocalCredential();
+        credential.account = account;
         credential.emailNormalized = emailNormalized;
         credential.passwordHash = passwordHash;
         return credential;
     }
 
-    public UUID getIdentityAccountId() {
-        return identityAccountId;
+    public UUID getAccountId() {
+        return accountId;
     }
 
-    public IdentityAccount getIdentityAccount() {
-        return identityAccount;
+    public Account getAccount() {
+        return account;
     }
 
     public String getEmailNormalized() {

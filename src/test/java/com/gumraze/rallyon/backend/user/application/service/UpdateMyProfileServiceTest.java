@@ -41,10 +41,10 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("프로필 수정 시 districtId를 새 snapshot 기준으로 갱신한다")
     void update_profile_updates_requested_fields() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         var newDistrictId = uuid(2);
         var profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "oldNickname",
                 uuid(99),
                 Grade.D,
@@ -62,14 +62,14 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(newDistrictId)).thenReturn(Optional.of(
                 new RegionDistrictReference(newDistrictId, "권선구", "41113", uuid(3), "경기도", "41")
         ));
         when(loadUserProfilePort.loadByNicknameAndTag("newNickname", "SON7")).thenReturn(Optional.empty());
 
         service.update(new UpdateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 "newNickname",
                 "son7",
                 Grade.B,
@@ -94,10 +94,10 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("존재하지 않는 districtId면 프로필 수정이 실패한다")
     void update_profile_throws_when_district_missing() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         var districtId = uuid(2);
         var profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "tester",
                 null,
                 null,
@@ -115,11 +115,11 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
         when(loadRegionPort.loadDistrictReference(districtId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.update(new UpdateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 null,
                 null,
                 null,
@@ -136,9 +136,9 @@ class UpdateMyProfileServiceTest {
     @Test
     @DisplayName("태그 변경은 90일 이내에 한 번만 가능하다")
     void update_profile_throws_when_tag_changed_too_soon() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         var profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "oldNickname",
                 null,
                 null,
@@ -156,10 +156,10 @@ class UpdateMyProfileServiceTest {
                 new UserProfileValidator()
         );
 
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
 
         assertThatThrownBy(() -> service.update(new UpdateMyProfileCommand(
-                identityAccountId,
+                accountId,
                 null,
                 "new1",
                 null,

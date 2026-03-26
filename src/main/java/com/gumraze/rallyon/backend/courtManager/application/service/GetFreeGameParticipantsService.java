@@ -79,7 +79,7 @@ public class GetFreeGameParticipantsService implements GetFreeGameParticipantsUs
     private FreeGameParticipantResponse toBasicResponse(GameParticipant participant) {
         return new FreeGameParticipantResponse(
                 participant.getId(),
-                participant.getIdentityAccountId(),
+                participant.getAccountId(),
                 participant.getDisplayName(),
                 participant.getGender(),
                 participant.getGrade(),
@@ -101,7 +101,7 @@ public class GetFreeGameParticipantsService implements GetFreeGameParticipantsUs
 
         return new FreeGameParticipantResponse(
                 participant.getId(),
-                participant.getIdentityAccountId(),
+                participant.getAccountId(),
                 participant.getDisplayName(),
                 participant.getGender(),
                 participant.getGrade(),

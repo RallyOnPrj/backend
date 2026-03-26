@@ -72,11 +72,11 @@ public class CourtManagerController implements
     @Override
     @PostMapping
     public ResponseEntity<CreateFreeGameResponse> createFreeGame(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @RequestBody @Valid CreateFreeGameRequest request
     ) {
         CreateFreeGameCommand command = createFreeGameCommandMapper.toCommand(request);
-        UUID gameId = createFreeGameUseCase.create(identityAccountId, command);
+        UUID gameId = createFreeGameUseCase.create(accountId, command);
         return ResponseEntity.created(URI.create("/free-games/" + gameId))
                 .body(new CreateFreeGameResponse(gameId));
     }
@@ -84,46 +84,46 @@ public class CourtManagerController implements
     @Override
     @GetMapping("/{gameId}")
     public ResponseEntity<FreeGameDetailResponse> getFreeGameDetail(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId
     ) {
         return ResponseEntity.ok(
-                getFreeGameDetailUseCase.get(new GetFreeGameDetailQuery(identityAccountId, gameId))
+                getFreeGameDetailUseCase.get(new GetFreeGameDetailQuery(accountId, gameId))
         );
     }
 
     @Override
     @PatchMapping("/{gameId}")
     public ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRequest request
     ) {
         return ResponseEntity.ok(
-                updateFreeGameInfoUseCase.update(updateFreeGameInfoCommandMapper.toCommand(identityAccountId, gameId, request))
+                updateFreeGameInfoUseCase.update(updateFreeGameInfoCommandMapper.toCommand(accountId, gameId, request))
         );
     }
 
     @Override
     @GetMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<FreeGameRoundMatchResponse> getFreeGameRoundMatchResponse(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId
     ) {
         return ResponseEntity.ok(
-                getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(identityAccountId, gameId))
+                getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(accountId, gameId))
         );
     }
 
     @Override
     @PatchMapping("/{gameId}/rounds-and-matches")
     public ResponseEntity<Void> updateFreeGameRoundMatch(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     ) {
         updateFreeGameRoundsAndMatchesUseCase.update(
-                updateFreeGameRoundsAndMatchesCommandMapper.toCommand(identityAccountId, gameId, request)
+                updateFreeGameRoundsAndMatchesCommandMapper.toCommand(accountId, gameId, request)
         );
         return ResponseEntity.noContent().build();
     }
@@ -131,12 +131,12 @@ public class CourtManagerController implements
     @Override
     @PostMapping("/{gameId}/participants")
     public ResponseEntity<AddFreeGameParticipantResponse> addFreeGameParticipant(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestBody @Valid AddFreeGameParticipantRequest request
     ) {
         UUID participantId = addFreeGameParticipantUseCase.add(
-                identityAccountId,
+                accountId,
                 gameId,
                 addFreeGameParticipantCommandMapper.toCommand(request)
         );
@@ -147,26 +147,26 @@ public class CourtManagerController implements
     @Override
     @GetMapping("/{gameId}/participants")
     public ResponseEntity<FreeGameParticipantsResponse> getFreeGameParticipants(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestParam(name = "include", required = false) String include
     ) {
         boolean includeStats = "stats".equalsIgnoreCase(include);
         return ResponseEntity.ok(
-                getFreeGameParticipantsUseCase.get(new GetFreeGameParticipantsQuery(identityAccountId, gameId, includeStats))
+                getFreeGameParticipantsUseCase.get(new GetFreeGameParticipantsQuery(accountId, gameId, includeStats))
         );
     }
 
     @Override
     @GetMapping("/{gameId}/participants/{participantId}")
     public ResponseEntity<FreeGameParticipantDetailResponse> getFreeGameParticipantDetail(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @PathVariable UUID participantId
     ) {
         return ResponseEntity.ok(
                 getFreeGameParticipantDetailUseCase.get(
-                        new GetFreeGameParticipantDetailQuery(identityAccountId, gameId, participantId)
+                        new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)
                 )
         );
     }

@@ -6,7 +6,7 @@ import com.gumraze.rallyon.backend.courtManager.domain.ParticipantDisplayNamePol
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
 import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.repository.GameParticipantRepository;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 public class SaveGameParticipantPersistenceAdapter implements SaveGameParticipantPort {
 
     private final GameParticipantRepository gameParticipantRepository;
-    private final IdentityAccountRepository identityAccountRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public Map<String, GameParticipant> saveAll(
@@ -33,15 +33,15 @@ public class SaveGameParticipantPersistenceAdapter implements SaveGameParticipan
         Map<String, GameParticipant> participantsByClientId = new LinkedHashMap<>();
 
         for (CreateFreeGameCommand.Participant participant : participants) {
-            if (participant.identityAccountId() != null) {
-                identityAccountRepository.findById(participant.identityAccountId())
+            if (participant.accountId() != null) {
+                accountRepository.findById(participant.accountId())
                         .orElseThrow(() ->
-                                new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + participant.identityAccountId()));
+                                new IllegalArgumentException("존재하지 않는 accountId입니다. :" + participant.accountId()));
             }
 
             GameParticipant toSave = GameParticipant.create(
                     freeGame,
-                    participant.identityAccountId(),
+                    participant.accountId(),
                     participant.originalName(),
                     ParticipantDisplayNamePolicy.resolve(
                             participant.originalName(),

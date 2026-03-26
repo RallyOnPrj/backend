@@ -22,10 +22,10 @@ public final class CourtManagerTestFixtures {
     private CourtManagerTestFixtures() {
     }
 
-    public static FreeGame freeGame(UUID gameId, UUID organizerIdentityAccountId, MatchRecordMode matchRecordMode) {
+    public static FreeGame freeGame(UUID gameId, UUID organizerAccountId, MatchRecordMode matchRecordMode) {
         FreeGame freeGame = FreeGame.create(
                 "자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 matchRecordMode,
                 "share-code",
@@ -42,7 +42,7 @@ public final class CourtManagerTestFixtures {
     public static GameParticipant participant(
             FreeGame freeGame,
             UUID participantId,
-            UUID identityAccountId,
+            UUID accountId,
             String originalName,
             String displayName,
             Gender gender,
@@ -52,7 +52,7 @@ public final class CourtManagerTestFixtures {
     ) {
         GameParticipant participant = GameParticipant.create(
                 freeGame,
-                identityAccountId,
+                accountId,
                 originalName,
                 displayName,
                 gender,

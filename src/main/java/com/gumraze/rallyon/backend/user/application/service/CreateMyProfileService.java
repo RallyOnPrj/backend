@@ -30,7 +30,7 @@ public class CreateMyProfileService implements CreateMyProfileUseCase {
 
     @Override
     public void create(CreateMyProfileCommand command) {
-        if (loadUserProfilePort.existsByIdentityAccountId(command.userId())) {
+        if (loadUserProfilePort.existsByAccountId(command.accountId())) {
             throw new IllegalArgumentException("이미 프로필이 존재합니다.");
         }
 
@@ -41,7 +41,7 @@ public class CreateMyProfileService implements CreateMyProfileUseCase {
                 .districtId();
 
         UserProfile profile = UserProfile.create(
-                command.userId(),
+                command.accountId(),
                 command.nickname(),
                 districtId,
                 command.regionalGrade(),
@@ -53,10 +53,10 @@ public class CreateMyProfileService implements CreateMyProfileUseCase {
         );
 
         if (command.regionalGrade() != null) {
-            saveUserGradeHistoryPort.save(UserGradeHistory.record(command.userId(), command.regionalGrade(), GradeType.REGIONAL));
+            saveUserGradeHistoryPort.save(UserGradeHistory.record(command.accountId(), command.regionalGrade(), GradeType.REGIONAL));
         }
         if (command.nationalGrade() != null) {
-            saveUserGradeHistoryPort.save(UserGradeHistory.record(command.userId(), command.nationalGrade(), GradeType.NATIONAL));
+            saveUserGradeHistoryPort.save(UserGradeHistory.record(command.accountId(), command.nationalGrade(), GradeType.NATIONAL));
         }
 
         saveUserProfilePort.save(profile);

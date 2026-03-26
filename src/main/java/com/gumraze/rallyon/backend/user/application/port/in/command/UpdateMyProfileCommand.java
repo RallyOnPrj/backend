@@ -6,7 +6,7 @@ import com.gumraze.rallyon.backend.user.constants.Grade;
 import java.util.UUID;
 
 public record UpdateMyProfileCommand(
-        UUID userId,
+        UUID accountId,
         String nickname,
         String tag,
         Grade regionalGrade,

@@ -26,8 +26,8 @@ class ParticipantStatsCalculatorTest {
     @Test
     @DisplayName("RESULT 모드에서는 assigned, completed, win, loss를 계산한다")
     void calculate_counts_all_stats_in_result_mode() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerAccountId, MatchRecordMode.RESULT);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
 
         GameParticipant participant1 = participant(freeGame, "서승재");
@@ -80,8 +80,8 @@ class ParticipantStatsCalculatorTest {
     @Test
     @DisplayName("STATUS_ONLY 모드에서는 승패를 계산하지 않는다")
     void calculate_does_not_count_win_loss_in_status_only_mode() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerIdentityAccountId, MatchRecordMode.STATUS_ONLY);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerAccountId, MatchRecordMode.STATUS_ONLY);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
 
         GameParticipant participant1 = participant(freeGame, "서승재");
@@ -117,8 +117,8 @@ class ParticipantStatsCalculatorTest {
     @Test
     @DisplayName("null 슬롯은 통계 계산에서 무시한다")
     void calculate_ignores_null_slots() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(UUID.randomUUID(), organizerAccountId, MatchRecordMode.RESULT);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
 
         GameParticipant participant1 = participant(freeGame, "서승재");

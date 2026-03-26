@@ -54,8 +54,8 @@ class GetFreeGameParticipantsServiceTest {
     @DisplayName("통계 미포함 조회는 createdAt, id 순으로 정렬하고 기본 정보만 반환한다")
     void get_returns_basic_participants_sorted_by_created_at_and_id() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
 
         GameParticipant later = CourtManagerTestFixtures.participant(
                 freeGame,
@@ -83,7 +83,7 @@ class GetFreeGameParticipantsServiceTest {
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(loadGameParticipantPort.loadParticipantsByGameId(gameId)).willReturn(List.of(later, earlier));
 
-        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerIdentityAccountId, gameId, false));
+        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerAccountId, gameId, false));
 
         assertThat(result.participants()).hasSize(2);
         assertThat(result.participants().get(0).participantId()).isEqualTo(earlier.getId());
@@ -95,8 +95,8 @@ class GetFreeGameParticipantsServiceTest {
     @DisplayName("RESULT 모드 통계 조회는 승패를 포함한다")
     void get_returns_stats_with_win_loss_in_result_mode() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.RESULT);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.RESULT);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
 
         GameParticipant participant1 = participant(freeGame, "서승재");
@@ -123,7 +123,7 @@ class GetFreeGameParticipantsServiceTest {
         given(loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(gameId)).willReturn(List.of(round));
         given(loadFreeGameMatchPort.loadMatchesByRoundIdsOrderByCourtNumber(List.of(round.getId()))).willReturn(List.of(match));
 
-        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerIdentityAccountId, gameId, true));
+        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerAccountId, gameId, true));
 
         assertThat(result.participants().getFirst().assignedMatchCount()).isEqualTo(1);
         assertThat(result.participants().getFirst().completedMatchCount()).isEqualTo(1);
@@ -135,8 +135,8 @@ class GetFreeGameParticipantsServiceTest {
     @DisplayName("STATUS_ONLY 모드 통계 조회는 승패를 null로 반환한다")
     void get_returns_null_win_loss_in_status_only_mode() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.STATUS_ONLY);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
         FreeGameRound round = CourtManagerTestFixtures.round(freeGame, UUID.randomUUID(), 1, RoundStatus.NOT_STARTED);
         GameParticipant participant1 = participant(freeGame, "서승재");
         GameParticipant participant2 = participant(freeGame, "김원호");
@@ -161,7 +161,7 @@ class GetFreeGameParticipantsServiceTest {
         given(loadFreeGameRoundPort.loadRoundsByGameIdOrderByRoundNumber(gameId)).willReturn(List.of(round));
         given(loadFreeGameMatchPort.loadMatchesByRoundIdsOrderByCourtNumber(List.of(round.getId()))).willReturn(List.of(match));
 
-        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerIdentityAccountId, gameId, true));
+        FreeGameParticipantsResponse result = service.get(new GetFreeGameParticipantsQuery(organizerAccountId, gameId, true));
 
         assertThat(result.participants().getFirst().assignedMatchCount()).isEqualTo(1);
         assertThat(result.participants().getFirst().completedMatchCount()).isEqualTo(1);

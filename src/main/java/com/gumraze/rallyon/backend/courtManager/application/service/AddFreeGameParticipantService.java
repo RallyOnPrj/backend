@@ -27,7 +27,7 @@ public class AddFreeGameParticipantService implements AddFreeGameParticipantUseC
         FreeGame freeGame = loadFreeGamePort.loadGameById(gameId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 자유게임입니다. gameId: " + gameId));
 
-        if (!freeGame.getOrganizerIdentityAccountId().equals(organizerId)) {
+        if (!freeGame.getOrganizerAccountId().equals(organizerId)) {
             throw new ForbiddenException("게임의 organizer가 아닙니다. gameId: " + gameId);
         }
 

@@ -84,13 +84,13 @@ class UserControllerTest {
     @Test
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다")
     void get_me_returns_pending_user_status() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UserMeResponse response = new UserMeResponse(UserStatus.PENDING, null, null);
 
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(UserStatus.PENDING.name()))
@@ -101,7 +101,7 @@ class UserControllerTest {
     @Test
     @DisplayName("ACTIVE 사용자가 /users/me 조회 시 프로필 정보를 반환한다")
     void get_user_me_return_profile_when_active() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UserMeResponse response = new UserMeResponse(
                 UserStatus.ACTIVE,
                 "http://profile-image.com",
@@ -111,7 +111,7 @@ class UserControllerTest {
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(UserStatus.ACTIVE.name()))
@@ -150,7 +150,7 @@ class UserControllerTest {
                         .with(authenticatedUser(UUID.randomUUID()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].identityAccountId").value(response.identityAccountId().toString()))
+                .andExpect(jsonPath("$.content[0].accountId").value(response.accountId().toString()))
                 .andExpect(jsonPath("$.content[0].nickname").value(nickname))
                 .andExpect(jsonPath("$.content[0].tag").value("AB12"));
     }
@@ -193,9 +193,9 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("프로필 생성 성공 시 identityAccountId를 반환한다")
+    @DisplayName("프로필 생성 성공 시 accountId를 반환한다")
     void create_my_profile_success() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         var request = """
                 {
                   "nickname": "테스트 닉네임",
@@ -210,18 +210,18 @@ class UserControllerTest {
         doNothing().when(createMyProfileUseCase).create(any());
 
         mockMvc.perform(post("/users/me/profile")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/users/me/profile"))
-                .andExpect(jsonPath("$.identityAccountId").value(identityAccountId.toString()));
+                .andExpect(jsonPath("$.accountId").value(accountId.toString()));
     }
 
     @Test
     @DisplayName("내 프로필 상세조회 성공")
     void get_my_profile_detail_success() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UserProfileResponseDto response = new UserProfileResponseDto(
                 UserStatus.ACTIVE,
                 "테스트 닉네임",
@@ -242,7 +242,7 @@ class UserControllerTest {
         when(getMyProfileUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me/profile")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
@@ -253,7 +253,7 @@ class UserControllerTest {
     @Test
     @DisplayName("기본 프로필 수정 성공")
     void update_my_profile_success() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UserProfileUpdateRequest request = new UserProfileUpdateRequest(
                 "newNickname",
                 "SON7",
@@ -269,7 +269,7 @@ class UserControllerTest {
         doNothing().when(updateMyProfileUseCase).update(any());
 
         mockMvc.perform(patch("/users/me/profile")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -278,22 +278,22 @@ class UserControllerTest {
     @Test
     @DisplayName("프로필 초기값 조회 성공")
     void get_profile_defaults_success() throws Exception {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UserProfileDefaultsResponse response = new UserProfileDefaultsResponse("kakao-player", true);
 
         when(getMyProfileDefaultsUseCase.get(any())).thenReturn(response);
 
         mockMvc.perform(get("/users/me/profile/defaults")
-                        .with(authenticatedUser(identityAccountId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.suggestedNickname").value("kakao-player"))
                 .andExpect(jsonPath("$.hasSuggestedNickname").value(true));
     }
 
-    private RequestPostProcessor authenticatedUser(UUID userId) {
+    private RequestPostProcessor authenticatedUser(UUID accountId) {
         return authentication(new UsernamePasswordAuthenticationToken(
-                userId,
+                accountId,
                 null,
                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
         ));

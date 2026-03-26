@@ -30,12 +30,12 @@ class SaveFreeGamePersistenceAdapterTest {
     @Test
     @DisplayName("자유게임을 저장한다")
     void save_returnsSavedFreeGame() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         FreeGame freeGame = FreeGame.create(
                 "자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.STATUS_ONLY,
                 null,
@@ -44,7 +44,7 @@ class SaveFreeGamePersistenceAdapterTest {
 
         FreeGame savedFreeGame = FreeGame.create(
                 "자유게임",
-                organizerIdentityAccountId,
+                organizerAccountId,
                 GradeType.NATIONAL,
                 MatchRecordMode.STATUS_ONLY,
                 null,

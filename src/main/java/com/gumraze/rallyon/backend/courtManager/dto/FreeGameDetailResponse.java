@@ -18,7 +18,7 @@ public record FreeGameDetailResponse(
         GradeType gradeType,
         Integer courtCount,
         Integer roundCount,
-        UUID organizerIdentityAccountId,
+        UUID organizerAccountId,
         String shareCode,
         String location
 ) {
@@ -32,7 +32,7 @@ public record FreeGameDetailResponse(
                 freeGame.getGradeType(),
                 setting.getCourtCount(),
                 setting.getRoundCount(),
-                freeGame.getOrganizerIdentityAccountId(),
+                freeGame.getOrganizerAccountId(),
                 freeGame.getShareCode(),
                 freeGame.getLocation()
         );

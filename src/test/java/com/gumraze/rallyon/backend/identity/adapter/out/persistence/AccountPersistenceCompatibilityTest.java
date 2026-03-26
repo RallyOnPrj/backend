@@ -1,13 +1,13 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.persistence;
 
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityLocalCredentialRepository;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityOAuthLinkRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.LocalCredentialRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.OAuthLinkRepository;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
-import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
-import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
+import com.gumraze.rallyon.backend.identity.entity.Account;
+import com.gumraze.rallyon.backend.identity.entity.LocalCredential;
+import com.gumraze.rallyon.backend.identity.entity.OAuthLink;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,19 +23,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = "spring.flyway.enabled=false")
 @ActiveProfiles("test")
 @Transactional
-class IdentityPersistenceCompatibilityTest {
+class AccountPersistenceCompatibilityTest {
 
     @MockitoBean
     private RestClient.Builder restClientBuilder;
 
     @Autowired
-    private IdentityAccountRepository identityAccountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
-    private IdentityOAuthLinkRepository identityOAuthLinkRepository;
+    private OAuthLinkRepository oauthLinkRepository;
 
     @Autowired
-    private IdentityLocalCredentialRepository identityLocalCredentialRepository;
+    private LocalCredentialRepository localCredentialRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -43,8 +43,8 @@ class IdentityPersistenceCompatibilityTest {
     @Test
     @DisplayName("GOOGLE identity_oauth_links row를 저장하고 조회할 수 있다")
     void loads_google_oauth_link_rows() {
-        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
-        IdentityOAuthLink link = IdentityOAuthLink.link(identityAccount, AuthProvider.GOOGLE, "google-user-1");
+        Account account = accountRepository.save(Account.create());
+        OAuthLink link = OAuthLink.link(account, AuthProvider.GOOGLE, "google-user-1");
         link.applySnapshot(new OAuthUserInfo(
                 "google-user-1",
                 "google-user-1@rallyon.test",
@@ -58,28 +58,28 @@ class IdentityPersistenceCompatibilityTest {
                 false
         ));
 
-        identityOAuthLinkRepository.save(link);
+        oauthLinkRepository.save(link);
 
         entityManager.flush();
         entityManager.clear();
 
-        IdentityOAuthLink loaded = identityOAuthLinkRepository
+        OAuthLink loaded = oauthLinkRepository
                 .findByProviderAndProviderUserId(AuthProvider.GOOGLE, "google-user-1")
                 .orElseThrow();
 
         assertThat(loaded.getProvider()).isEqualTo(AuthProvider.GOOGLE);
         assertThat(loaded.getProviderUserId()).isEqualTo("google-user-1");
-        assertThat(loaded.getIdentityAccount().getId()).isEqualTo(identityAccount.getId());
+        assertThat(loaded.getAccount().getId()).isEqualTo(account.getId());
         assertThat(loaded.getNickname()).isEqualTo("google-user-1");
     }
 
     @Test
     @DisplayName("identity_local_credentials row를 저장하고 이메일로 조회할 수 있다")
     void loads_local_credentials_by_normalized_email() {
-        IdentityAccount identityAccount = identityAccountRepository.save(IdentityAccount.create());
+        Account account = accountRepository.save(Account.create());
 
-        identityLocalCredentialRepository.save(IdentityLocalCredential.issue(
-                identityAccount,
+        localCredentialRepository.save(LocalCredential.issue(
+                account,
                 "user@rallyon.test",
                 "hashed-password"
         ));
@@ -87,11 +87,11 @@ class IdentityPersistenceCompatibilityTest {
         entityManager.flush();
         entityManager.clear();
 
-        IdentityLocalCredential loaded = identityLocalCredentialRepository
+        LocalCredential loaded = localCredentialRepository
                 .findByEmailNormalized("user@rallyon.test")
                 .orElseThrow();
 
-        assertThat(loaded.getIdentityAccountId()).isEqualTo(identityAccount.getId());
+        assertThat(loaded.getAccountId()).isEqualTo(account.getId());
         assertThat(loaded.getPasswordHash()).isEqualTo("hashed-password");
     }
 }

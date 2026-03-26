@@ -22,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "game_participants",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "identity_account_id"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"freegame_id", "account_id"})
 )
 public class GameParticipant extends MutableAuditEntity {
 
@@ -34,8 +34,8 @@ public class GameParticipant extends MutableAuditEntity {
     @JoinColumn(name = "freegame_id", nullable = false)
     private FreeGame freeGame;
 
-    @Column(name = "identity_account_id")
-    private UUID identityAccountId;
+    @Column(name = "account_id")
+    private UUID accountId;
 
     @Column(name = "original_name", nullable = false)
     private String originalName;
@@ -65,7 +65,7 @@ public class GameParticipant extends MutableAuditEntity {
 
     public static GameParticipant create(
             FreeGame freeGame,
-            UUID identityAccountId,
+            UUID accountId,
             String originalName,
             String displayName,
             Gender gender,
@@ -74,7 +74,7 @@ public class GameParticipant extends MutableAuditEntity {
     ) {
         GameParticipant participant = new GameParticipant();
         participant.freeGame = freeGame;
-        participant.identityAccountId = identityAccountId;
+        participant.accountId = accountId;
         participant.originalName = originalName;
         participant.displayName = displayName;
         participant.gender = gender;
@@ -91,8 +91,8 @@ public class GameParticipant extends MutableAuditEntity {
         return freeGame;
     }
 
-    public UUID getIdentityAccountId() {
-        return identityAccountId;
+    public UUID getAccountId() {
+        return accountId;
     }
 
     public String getOriginalName() {

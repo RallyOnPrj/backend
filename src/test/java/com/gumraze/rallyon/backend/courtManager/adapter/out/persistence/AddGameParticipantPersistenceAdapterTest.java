@@ -4,7 +4,7 @@ import com.gumraze.rallyon.backend.courtManager.adapter.out.persistence.reposito
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.AddFreeGameParticipantCommand;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.GameParticipant;
-import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.IdentityAccountRepository;
+import com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository.AccountRepository;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
@@ -28,25 +28,25 @@ import static org.mockito.Mockito.verify;
 class AddGameParticipantPersistenceAdapterTest {
 
     private GameParticipantRepository gameParticipantRepository;
-    private IdentityAccountRepository identityAccountRepository;
+    private AccountRepository accountRepository;
     private AddGameParticipantPersistenceAdapter adapter;
 
     @BeforeEach
     void setUp() {
         gameParticipantRepository = mock(GameParticipantRepository.class);
-        identityAccountRepository = mock(IdentityAccountRepository.class);
-        adapter = new AddGameParticipantPersistenceAdapter(gameParticipantRepository, identityAccountRepository);
+        accountRepository = mock(AccountRepository.class);
+        adapter = new AddGameParticipantPersistenceAdapter(gameParticipantRepository, accountRepository);
     }
 
     @Test
-    @DisplayName("회원 참가자 추가 시 identityAccountId를 연결한다")
-    void add_withUserId_loadsAndAssignsIdentityAccountId() {
-        UUID identityAccountId = UUID.randomUUID();
+    @DisplayName("회원 참가자 추가 시 accountId를 연결한다")
+    void add_withUserId_loadsAndAssignsAccountId() {
+        UUID accountId = UUID.randomUUID();
         FreeGame freeGame = freeGame();
         AddFreeGameParticipantCommand command =
-                new AddFreeGameParticipantCommand(identityAccountId, "서승재", Gender.MALE, Grade.A, 20);
+                new AddFreeGameParticipantCommand(accountId, "서승재", Gender.MALE, Grade.A, 20);
 
-        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.of(mock()));
+        given(accountRepository.findById(accountId)).willReturn(Optional.of(mock()));
         given(gameParticipantRepository.findByFreeGameId(freeGame.getId())).willReturn(List.of());
         given(gameParticipantRepository.save(any(GameParticipant.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -55,23 +55,23 @@ class AddGameParticipantPersistenceAdapterTest {
 
         ArgumentCaptor<GameParticipant> captor = ArgumentCaptor.forClass(GameParticipant.class);
         verify(gameParticipantRepository).save(captor.capture());
-        assertThat(captor.getValue().getIdentityAccountId()).isEqualTo(identityAccountId);
+        assertThat(captor.getValue().getAccountId()).isEqualTo(accountId);
         assertThat(captor.getValue().getDisplayName()).isEqualTo("서승재");
     }
 
     @Test
-    @DisplayName("존재하지 않는 identityAccountId면 예외가 발생한다")
+    @DisplayName("존재하지 않는 accountId면 예외가 발생한다")
     void add_withUnknownUserId_throws() {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         FreeGame freeGame = freeGame();
         AddFreeGameParticipantCommand command =
-                new AddFreeGameParticipantCommand(identityAccountId, "서승재", Gender.MALE, Grade.A, 20);
+                new AddFreeGameParticipantCommand(accountId, "서승재", Gender.MALE, Grade.A, 20);
 
-        given(identityAccountRepository.findById(identityAccountId)).willReturn(Optional.empty());
+        given(accountRepository.findById(accountId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> adapter.add(freeGame, command))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("identityAccountId");
+                .hasMessageContaining("accountId");
     }
 
     @Test

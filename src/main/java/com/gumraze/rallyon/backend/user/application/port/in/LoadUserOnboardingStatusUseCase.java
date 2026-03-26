@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface LoadUserOnboardingStatusUseCase {
 
-    UserStatus load(UUID identityAccountId);
+    UserStatus load(UUID accountId);
 }

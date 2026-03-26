@@ -43,7 +43,7 @@ public class SearchUsersService implements SearchUsersUseCase {
 
     private UserSearchResponse toResponse(UserProfile userProfile) {
         return new UserSearchResponse(
-                userProfile.getIdentityAccountId(),
+                userProfile.getAccountId(),
                 userProfile.getNickname(),
                 userProfile.getTag(),
                 userProfile.getProfileImageUrl()

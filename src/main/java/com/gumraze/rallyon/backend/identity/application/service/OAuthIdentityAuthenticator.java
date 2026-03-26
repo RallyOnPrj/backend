@@ -4,13 +4,13 @@ import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthAllowedProvid
 import com.gumraze.rallyon.backend.identity.adapter.out.oauth.OAuthProviderRegistry;
 import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateOAuthIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.out.LoadOAuthLinkPort;
-import com.gumraze.rallyon.backend.identity.application.port.out.SaveIdentityAccountPort;
+import com.gumraze.rallyon.backend.identity.application.port.out.SaveAccountPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveOAuthLinkPort;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 import com.gumraze.rallyon.backend.identity.domain.OAuthUserInfo;
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
-import com.gumraze.rallyon.backend.identity.entity.IdentityOAuthLink;
+import com.gumraze.rallyon.backend.identity.entity.Account;
+import com.gumraze.rallyon.backend.identity.entity.OAuthLink;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,38 +22,38 @@ public class OAuthIdentityAuthenticator implements AuthenticateOAuthIdentityUseC
     private final OAuthAllowedProvidersProperties allowedProviders;
     private final LoadOAuthLinkPort loadOAuthLinkPort;
     private final SaveOAuthLinkPort saveOAuthLinkPort;
-    private final SaveIdentityAccountPort saveIdentityAccountPort;
+    private final SaveAccountPort saveAccountPort;
 
     public OAuthIdentityAuthenticator(
             OAuthProviderRegistry oAuthProviderRegistry,
             OAuthAllowedProvidersProperties allowedProviders,
             LoadOAuthLinkPort loadOAuthLinkPort,
             SaveOAuthLinkPort saveOAuthLinkPort,
-            SaveIdentityAccountPort saveIdentityAccountPort
+            SaveAccountPort saveAccountPort
     ) {
         this.oAuthProviderRegistry = oAuthProviderRegistry;
         this.allowedProviders = allowedProviders;
         this.loadOAuthLinkPort = loadOAuthLinkPort;
         this.saveOAuthLinkPort = saveOAuthLinkPort;
-        this.saveIdentityAccountPort = saveIdentityAccountPort;
+        this.saveAccountPort = saveAccountPort;
     }
 
     @Override
-    public AuthenticatedIdentity authenticate(AuthProvider provider, String authorizationCode, String redirectUri) {
+    public AuthenticatedAccount authenticate(AuthProvider provider, String authorizationCode, String redirectUri) {
         validateAllowedProvider(provider);
 
         OAuthUserInfo userInfo = oAuthProviderRegistry.resolve(provider)
                 .getOAuthUserInfo(authorizationCode, redirectUri);
 
-        IdentityOAuthLink link = loadOAuthLinkPort.loadByProviderAndProviderUserId(provider, userInfo.providerUserId())
+        OAuthLink link = loadOAuthLinkPort.loadByProviderAndProviderUserId(provider, userInfo.providerUserId())
                 .orElseGet(() -> createNewLink(provider, userInfo));
 
         link.applySnapshot(userInfo);
-        IdentityOAuthLink savedLink = saveOAuthLinkPort.save(link);
+        OAuthLink savedLink = saveOAuthLinkPort.save(link);
 
-        return new AuthenticatedIdentity(
-                savedLink.getIdentityAccount().getId(),
-                savedLink.getIdentityAccount().getRole(),
+        return new AuthenticatedAccount(
+                savedLink.getAccount().getId(),
+                savedLink.getAccount().getRole(),
                 savedLink.getNickname()
         );
     }
@@ -64,8 +64,8 @@ public class OAuthIdentityAuthenticator implements AuthenticateOAuthIdentityUseC
         }
     }
 
-    private IdentityOAuthLink createNewLink(AuthProvider provider, OAuthUserInfo userInfo) {
-        IdentityAccount identityAccount = saveIdentityAccountPort.save(IdentityAccount.create());
-        return IdentityOAuthLink.link(identityAccount, provider, userInfo.providerUserId());
+    private OAuthLink createNewLink(AuthProvider provider, OAuthUserInfo userInfo) {
+        Account account = saveAccountPort.save(Account.create());
+        return OAuthLink.link(account, provider, userInfo.providerUserId());
     }
 }

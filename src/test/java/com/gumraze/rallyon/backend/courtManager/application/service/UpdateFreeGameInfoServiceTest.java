@@ -42,13 +42,13 @@ class UpdateFreeGameInfoServiceTest {
     @DisplayName("자유게임 기본 정보를 수정하고 저장한다")
     void update_updates_game_info() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.STATUS_ONLY);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(saveFreeGamePort.save(same(freeGame))).willReturn(freeGame);
 
         UpdateFreeGameResponse result = service.update(new UpdateFreeGameInfoCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 "수정된 게임",
                 MatchRecordMode.RESULT,
@@ -68,12 +68,12 @@ class UpdateFreeGameInfoServiceTest {
     @DisplayName("managerIds 수정은 아직 지원하지 않는다")
     void update_throws_when_manager_ids_are_present() {
         UUID gameId = UUID.randomUUID();
-        UUID organizerIdentityAccountId = UUID.randomUUID();
-        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerIdentityAccountId, MatchRecordMode.STATUS_ONLY);
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
 
         assertThatThrownBy(() -> service.update(new UpdateFreeGameInfoCommand(
-                organizerIdentityAccountId,
+                organizerAccountId,
                 gameId,
                 null,
                 null,

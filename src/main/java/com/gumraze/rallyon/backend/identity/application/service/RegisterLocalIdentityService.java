@@ -5,12 +5,12 @@ import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIde
 import com.gumraze.rallyon.backend.identity.application.port.in.command.RegisterLocalIdentityCommand;
 import com.gumraze.rallyon.backend.identity.application.port.out.LoadLocalCredentialPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.PasswordHasherPort;
-import com.gumraze.rallyon.backend.identity.application.port.out.SaveIdentityAccountPort;
+import com.gumraze.rallyon.backend.identity.application.port.out.SaveAccountPort;
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveLocalCredentialPort;
 import com.gumraze.rallyon.backend.identity.domain.EmailNormalizer;
 import com.gumraze.rallyon.backend.identity.domain.PasswordPolicy;
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
-import com.gumraze.rallyon.backend.identity.entity.IdentityLocalCredential;
+import com.gumraze.rallyon.backend.identity.entity.Account;
+import com.gumraze.rallyon.backend.identity.entity.LocalCredential;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Transactional
 public class RegisterLocalIdentityService implements RegisterLocalIdentityUseCase {
 
-    private final SaveIdentityAccountPort saveIdentityAccountPort;
+    private final SaveAccountPort saveAccountPort;
     private final LoadLocalCredentialPort loadLocalCredentialPort;
     private final SaveLocalCredentialPort saveLocalCredentialPort;
     private final PasswordHasherPort passwordHasherPort;
@@ -36,12 +36,12 @@ public class RegisterLocalIdentityService implements RegisterLocalIdentityUseCas
             throw new ConflictException("이미 가입된 이메일입니다.");
         }
 
-        IdentityAccount identityAccount = saveIdentityAccountPort.save(IdentityAccount.create());
-        saveLocalCredentialPort.save(IdentityLocalCredential.issue(
-                identityAccount,
+        Account account = saveAccountPort.save(Account.create());
+        saveLocalCredentialPort.save(LocalCredential.issue(
+                account,
                 normalizedEmail,
                 passwordHasherPort.hash(command.password())
         ));
-        return identityAccount.getId();
+        return account.getId();
     }
 }

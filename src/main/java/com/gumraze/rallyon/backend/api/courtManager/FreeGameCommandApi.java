@@ -21,20 +21,20 @@ public interface FreeGameCommandApi {
 
     @ApiAuthValidationResponses
     ResponseEntity<CreateFreeGameResponse> createFreeGame(
-            UUID identityAccountId,
+            UUID accountId,
             CreateFreeGameRequest request
     );
 
     @PatchMapping("/{gameId}")
     ResponseEntity<UpdateFreeGameResponse> updateFreeGameInfo(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRequest request
     );
 
     @PatchMapping("/{gameId}/rounds-and-matches")
     ResponseEntity<Void> updateFreeGameRoundMatch(
-            @AuthenticationPrincipal UUID identityAccountId,
+            @AuthenticationPrincipal UUID accountId,
             @PathVariable UUID gameId,
             @RequestBody @Valid UpdateFreeGameRoundMatchRequest request
     );

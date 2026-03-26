@@ -20,7 +20,7 @@ class UpdateFreeGameRoundsAndMatchesCommandMapperTest {
     @Test
     @DisplayName("라운드/매치 수정 request를 nested command로 변환한다")
     void toCommand_maps_nested_rounds_and_matches() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participant1 = UUID.randomUUID();
         UUID participant2 = UUID.randomUUID();
@@ -36,9 +36,9 @@ class UpdateFreeGameRoundsAndMatchesCommandMapperTest {
                 )
         );
 
-        UpdateFreeGameRoundsAndMatchesCommand command = mapper.toCommand(organizerIdentityAccountId, gameId, request);
+        UpdateFreeGameRoundsAndMatchesCommand command = mapper.toCommand(organizerAccountId, gameId, request);
 
-        assertThat(command.organizerId()).isEqualTo(organizerIdentityAccountId);
+        assertThat(command.organizerId()).isEqualTo(organizerAccountId);
         assertThat(command.gameId()).isEqualTo(gameId);
         assertThat(command.rounds()).hasSize(1);
         assertThat(command.rounds().getFirst().roundNumber()).isEqualTo(1);
@@ -51,12 +51,12 @@ class UpdateFreeGameRoundsAndMatchesCommandMapperTest {
     @Test
     @DisplayName("rounds가 null이면 command rounds도 null이다")
     void toCommand_keeps_null_rounds() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
 
         UpdateFreeGameRoundMatchRequest request = new UpdateFreeGameRoundMatchRequest(null);
 
-        UpdateFreeGameRoundsAndMatchesCommand command = mapper.toCommand(organizerIdentityAccountId, gameId, request);
+        UpdateFreeGameRoundsAndMatchesCommand command = mapper.toCommand(organizerAccountId, gameId, request);
 
         assertThat(command.rounds()).isNull();
     }

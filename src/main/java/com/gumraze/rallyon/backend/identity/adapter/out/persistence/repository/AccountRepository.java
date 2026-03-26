@@ -1,9 +1,9 @@
 package com.gumraze.rallyon.backend.identity.adapter.out.persistence.repository;
 
-import com.gumraze.rallyon.backend.identity.entity.IdentityAccount;
+import com.gumraze.rallyon.backend.identity.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface IdentityAccountRepository extends JpaRepository<IdentityAccount, UUID> {
+public interface AccountRepository extends JpaRepository<Account, UUID> {
 }

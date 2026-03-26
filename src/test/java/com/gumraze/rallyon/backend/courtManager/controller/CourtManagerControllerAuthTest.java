@@ -104,7 +104,7 @@ class CourtManagerControllerAuthTest {
     @DisplayName("라운드/매치 수정 시 organizer 아니면 403")
     void updateRoundMatch_when_not_organizer_then_forbidden() throws Exception {
         UUID gameId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UpdateFreeGameRoundMatchRequest request = new UpdateFreeGameRoundMatchRequest(
                 List.of(
                         new RoundRequest(
@@ -119,10 +119,10 @@ class CourtManagerControllerAuthTest {
                         )
                 )
         );
-        UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(userId, gameId, List.of());
+        UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(accountId, gameId, List.of());
 
         when(updateFreeGameRoundsAndMatchesCommandMapper.toCommand(
-                eq(userId),
+                eq(accountId),
                 eq(gameId),
                 any(UpdateFreeGameRoundMatchRequest.class)
         )).thenReturn(command);
@@ -132,7 +132,7 @@ class CourtManagerControllerAuthTest {
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
@@ -140,15 +140,15 @@ class CourtManagerControllerAuthTest {
     @Test
     @DisplayName("참가자 상세 조회 시 organizer 아니면 403")
     void getParticipantDetail_when_not_organizer_then_forbidden() throws Exception {
-        UUID userId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
 
-        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(userId, gameId, participantId)))
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)))
                 .thenThrow(new ForbiddenException("Organizer 권한이 없습니다."));
 
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isForbidden());
     }

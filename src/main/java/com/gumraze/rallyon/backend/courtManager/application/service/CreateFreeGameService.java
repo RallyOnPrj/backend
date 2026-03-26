@@ -3,7 +3,7 @@ package com.gumraze.rallyon.backend.courtManager.application.service;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.IssueShareCodePort;
-import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadUserPort;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadAccountPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameSettingPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameRoundPort;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CreateFreeGameService implements CreateFreeGameUseCase {
 
-    private final LoadUserPort loadUserPort;
+    private final LoadAccountPort loadAccountPort;
     private final IssueShareCodePort issueShareCodePort;
     private final SaveFreeGamePort saveFreeGamePort;
     private final SaveFreeGameSettingPort saveFreeGameSettingPort;
@@ -32,7 +32,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
 
     @Override
     public UUID create(UUID organizerId, CreateFreeGameCommand command) {
-        if (!loadUserPort.existsById(organizerId)) {
+        if (!loadAccountPort.existsById(organizerId)) {
             throw new IllegalArgumentException("존재하지 않는 organizer 입니다.");
         }
 
@@ -82,7 +82,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
         }
 
         for (UUID managerId : managerIds) {
-            if (!loadUserPort.existsById(managerId)) {
+            if (!loadAccountPort.existsById(managerId)) {
                 throw new IllegalArgumentException("존재하지 않는 managerId입니다. :" + managerId);
             }
         }

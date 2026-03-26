@@ -20,7 +20,7 @@ public record CreateFreeGameCommand (
 ) {
     public record Participant (
         String clientId,
-        UUID identityAccountId,
+        UUID accountId,
         String originalName,
         Gender gender,
         Grade grade,

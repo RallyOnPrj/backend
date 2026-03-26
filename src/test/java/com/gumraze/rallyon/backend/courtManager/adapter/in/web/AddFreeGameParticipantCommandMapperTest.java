@@ -18,9 +18,9 @@ class AddFreeGameParticipantCommandMapperTest {
     @Test
     @DisplayName("참가자 추가 request를 command로 변환한다")
     void toCommand_maps_request_to_command() {
-        UUID identityAccountId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
         AddFreeGameParticipantRequest request = new AddFreeGameParticipantRequest(
-                identityAccountId,
+                accountId,
                 "서승재",
                 Gender.MALE,
                 Grade.A,
@@ -29,7 +29,7 @@ class AddFreeGameParticipantCommandMapperTest {
 
         AddFreeGameParticipantCommand command = mapper.toCommand(request);
 
-        assertThat(command.identityAccountId()).isEqualTo(identityAccountId);
+        assertThat(command.accountId()).isEqualTo(accountId);
         assertThat(command.name()).isEqualTo("서승재");
         assertThat(command.gender()).isEqualTo(Gender.MALE);
         assertThat(command.grade()).isEqualTo(Grade.A);

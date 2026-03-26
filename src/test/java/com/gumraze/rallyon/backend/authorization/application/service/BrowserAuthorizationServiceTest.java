@@ -14,8 +14,8 @@ import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateLoca
 import com.gumraze.rallyon.backend.identity.application.port.in.AuthenticateOAuthIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.application.port.in.RegisterLocalIdentityUseCase;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
-import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
+import com.gumraze.rallyon.backend.identity.domain.AccountRole;
 import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,16 +126,16 @@ class BrowserAuthorizationServiceTest {
         assertThat(result.authSession().authorizationState()).isNotBlank();
         assertThat(result.authSession().socialState()).isNotBlank();
         assertThat(result.authSession().codeVerifier()).isNotBlank();
-        assertThat(result.authenticatedIdentity()).isNull();
+        assertThat(result.authenticatedAccount()).isNull();
     }
 
     @Test
     @DisplayName("로컬 로그인 성공 시 authorize URL과 principal을 반환한다")
     void login_with_local_session_returns_authorize_url() {
         BrowserAuthSession authSession = authSession("login", "/court-manager");
-        AuthenticatedIdentity authenticatedIdentity = principal();
+        AuthenticatedAccount authenticatedAccount = principal();
         given(authenticateLocalIdentityUseCase.authenticate("user@rallyon.local", "password123!"))
-                .willReturn(authenticatedIdentity);
+                .willReturn(authenticatedAccount);
 
         BrowserAuthorizationUseCase.AuthorizationStepResult result = service.loginWithLocalSession(
                 new BrowserAuthorizationUseCase.LocalLoginCommand(
@@ -149,16 +149,16 @@ class BrowserAuthorizationServiceTest {
         assertThat(result.redirectLocation()).contains("/oauth2/authorize");
         assertThat(result.redirectLocation()).contains("state=" + authSession.authorizationState());
         assertThat(result.redirectLocation()).contains("code_challenge_method=S256");
-        assertThat(result.authenticatedIdentity()).isEqualTo(authenticatedIdentity);
+        assertThat(result.authenticatedAccount()).isEqualTo(authenticatedAccount);
     }
 
     @Test
     @DisplayName("로컬 회원가입 성공 시 회원 생성 후 authorize URL과 principal을 반환한다")
     void register_with_local_session_returns_authorize_url() {
         BrowserAuthSession authSession = authSession("signup", "/profile/setup");
-        AuthenticatedIdentity authenticatedIdentity = principal();
+        AuthenticatedAccount authenticatedAccount = principal();
         given(authenticateLocalIdentityUseCase.authenticate("user@rallyon.local", "password123!"))
-                .willReturn(authenticatedIdentity);
+                .willReturn(authenticatedAccount);
 
         BrowserAuthorizationUseCase.AuthorizationStepResult result = service.registerWithLocalSession(
                 new BrowserAuthorizationUseCase.LocalRegistrationCommand(
@@ -172,7 +172,7 @@ class BrowserAuthorizationServiceTest {
 
         verify(registerLocalIdentityUseCase).register(any());
         assertThat(result.redirectLocation()).contains("/oauth2/authorize");
-        assertThat(result.authenticatedIdentity()).isEqualTo(authenticatedIdentity);
+        assertThat(result.authenticatedAccount()).isEqualTo(authenticatedAccount);
     }
 
     @Test
@@ -194,7 +194,7 @@ class BrowserAuthorizationServiceTest {
         assertThat(result.redirectLocation()).isEqualTo(
                 "https://auth.rallyon.test/login?error=invalid_social_callback&returnTo=/profile"
         );
-        assertThat(result.authenticatedIdentity()).isNull();
+        assertThat(result.authenticatedAccount()).isNull();
     }
 
     @Test
@@ -223,10 +223,10 @@ class BrowserAuthorizationServiceTest {
     @DisplayName("PENDING 사용자의 callback 완료는 /profile/setup으로 보낸다")
     void handle_session_callback_redirects_pending_user_to_profile_setup() {
         BrowserAuthSession authSession = authSession("signup", "/court-manager");
-        AuthenticatedIdentity authenticatedIdentity = principal();
+        AuthenticatedAccount authenticatedAccount = principal();
         given(authorizationTokenClient.exchangeAuthorizationCode("code", authSession))
                 .willReturn(new TokenResponse("access", "refresh", "Bearer", 3600L, "openid", null));
-        given(loadUserOnboardingStatusUseCase.load(authenticatedIdentity.identityAccountId())).willReturn(UserStatus.PENDING);
+        given(loadUserOnboardingStatusUseCase.load(authenticatedAccount.accountId())).willReturn(UserStatus.PENDING);
 
         BrowserAuthorizationUseCase.SessionCallbackResult result = service.handleSessionCallback(
                 new BrowserAuthorizationUseCase.SessionCallbackCommand(
@@ -234,7 +234,7 @@ class BrowserAuthorizationServiceTest {
                         authSession.authorizationState(),
                         null,
                         authSession,
-                        authenticatedIdentity
+                        authenticatedAccount
                 )
         );
 
@@ -318,7 +318,7 @@ class BrowserAuthorizationServiceTest {
         return new BrowserAuthSession("auth-state", "social-state", "code-verifier", returnTo, screen);
     }
 
-    private AuthenticatedIdentity principal() {
-        return new AuthenticatedIdentity(UUID.randomUUID(), IdentityRole.USER, "player");
+    private AuthenticatedAccount principal() {
+        return new AuthenticatedAccount(UUID.randomUUID(), AccountRole.USER, "player");
     }
 }

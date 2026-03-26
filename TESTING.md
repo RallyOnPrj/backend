@@ -124,7 +124,7 @@ assertThat(response.getLocation()).isEqualTo("잠실 배드민턴장");
 ```
 
 ```java
-assertThatThrownBy(() -> freeGameService.getFreeGameDetail(userId, gameId))
+assertThatThrownBy(() -> freeGameService.getFreeGameDetail(accountId, gameId))
         .isInstanceOf(NotFoundException.class)
         .hasMessageContaining("존재하지 않는 게임");
 ```

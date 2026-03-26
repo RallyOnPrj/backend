@@ -18,8 +18,8 @@ import java.util.UUID;
 public class UserProfile extends MutableAuditEntity {
 
     @Id
-    @Column(name = "identity_account_id")
-    private UUID identityAccountId;
+    @Column(name = "account_id")
+    private UUID accountId;
 
     private String nickname;
     private String profileImageUrl;
@@ -54,7 +54,7 @@ public class UserProfile extends MutableAuditEntity {
     }
 
     public static UserProfile create(
-            UUID identityAccountId,
+            UUID accountId,
             String nickname,
             UUID districtId,
             Grade regionalGrade,
@@ -65,7 +65,7 @@ public class UserProfile extends MutableAuditEntity {
             LocalDateTime now
     ) {
         UserProfile profile = new UserProfile();
-        profile.identityAccountId = identityAccountId;
+        profile.accountId = accountId;
         profile.nickname = nickname;
         profile.districtId = districtId;
         profile.regionalGrade = regionalGrade;
@@ -115,8 +115,8 @@ public class UserProfile extends MutableAuditEntity {
         this.gender = gender;
     }
 
-    public UUID getIdentityAccountId() {
-        return identityAccountId;
+    public UUID getAccountId() {
+        return accountId;
     }
 
     public String getNickname() {

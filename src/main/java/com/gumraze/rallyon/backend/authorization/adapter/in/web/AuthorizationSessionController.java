@@ -5,7 +5,7 @@ import com.gumraze.rallyon.backend.authorization.application.port.in.BrowserAuth
 import com.gumraze.rallyon.backend.authorization.config.AuthorizationProperties;
 import com.gumraze.rallyon.backend.authorization.domain.BrowserAuthSession;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
-import com.gumraze.rallyon.backend.identity.domain.AuthenticatedIdentity;
+import com.gumraze.rallyon.backend.identity.domain.AuthenticatedAccount;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,20 +31,20 @@ public class AuthorizationSessionController {
     private final BrowserAuthorizationUseCase browserAuthorizationUseCase;
     private final BrowserAuthSessionRepository browserAuthSessionRepository;
     private final AuthorizationTokenCookieService authorizationTokenCookieService;
-    private final AuthenticatedIdentityContextService authenticatedIdentityContextService;
+    private final AuthenticatedAccountContextService authenticatedAccountContextService;
     private final AuthorizationProperties authorizationProperties;
 
     public AuthorizationSessionController(
             BrowserAuthorizationUseCase browserAuthorizationUseCase,
             BrowserAuthSessionRepository browserAuthSessionRepository,
             AuthorizationTokenCookieService authorizationTokenCookieService,
-            AuthenticatedIdentityContextService authenticatedIdentityContextService,
+            AuthenticatedAccountContextService authenticatedAccountContextService,
             AuthorizationProperties authorizationProperties
     ) {
         this.browserAuthorizationUseCase = browserAuthorizationUseCase;
         this.browserAuthSessionRepository = browserAuthSessionRepository;
         this.authorizationTokenCookieService = authorizationTokenCookieService;
-        this.authenticatedIdentityContextService = authenticatedIdentityContextService;
+        this.authenticatedAccountContextService = authenticatedAccountContextService;
         this.authorizationProperties = authorizationProperties;
     }
 
@@ -64,7 +64,7 @@ public class AuthorizationSessionController {
         CreateSessionRequest requestValue =
                 requestBody == null ? new CreateSessionRequest(null, null, null, null) : requestBody;
 
-        AuthenticatedIdentity currentIdentity = authenticatedIdentityContextService.resolve(
+        AuthenticatedAccount currentIdentity = authenticatedAccountContextService.resolve(
                 SecurityContextHolder.getContext().getAuthentication()
         );
 
@@ -79,7 +79,7 @@ public class AuthorizationSessionController {
         );
 
         browserAuthSessionRepository.save(request.getSession(true), result.authSession());
-        persistAuthenticatedIdentity(result.authenticatedIdentity(), request, response);
+        persistAuthenticatedAccount(result.authenticatedAccount(), request, response);
 
         return ResponseEntity.ok(new CreateSessionResponse(result.nextUrl()));
     }
@@ -102,7 +102,7 @@ public class AuthorizationSessionController {
                         )
                 );
 
-        persistAuthenticatedIdentity(result.authenticatedIdentity(), request, response);
+        persistAuthenticatedAccount(result.authenticatedAccount(), request, response);
         return redirect(result.redirectLocation());
     }
 
@@ -126,7 +126,7 @@ public class AuthorizationSessionController {
                         )
                 );
 
-        persistAuthenticatedIdentity(result.authenticatedIdentity(), request, response);
+        persistAuthenticatedAccount(result.authenticatedAccount(), request, response);
         return redirect(result.redirectLocation());
     }
 
@@ -137,7 +137,7 @@ public class AuthorizationSessionController {
             @RequestParam(required = false) String error,
             HttpServletRequest request
     ) {
-        AuthenticatedIdentity currentIdentity = authenticatedIdentityContextService.resolve(
+        AuthenticatedAccount currentIdentity = authenticatedAccountContextService.resolve(
                 SecurityContextHolder.getContext().getAuthentication()
         );
 
@@ -232,13 +232,13 @@ public class AuthorizationSessionController {
         }
     }
 
-    private void persistAuthenticatedIdentity(
-            AuthenticatedIdentity authenticatedIdentity,
+    private void persistAuthenticatedAccount(
+            AuthenticatedAccount authenticatedAccount,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        if (authenticatedIdentity != null) {
-            authenticatedIdentityContextService.save(authenticatedIdentity, request, response);
+        if (authenticatedAccount != null) {
+            authenticatedAccountContextService.save(authenticatedAccount, request, response);
         }
     }
 

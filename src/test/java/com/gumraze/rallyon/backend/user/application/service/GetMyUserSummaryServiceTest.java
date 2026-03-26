@@ -33,27 +33,27 @@ class GetMyUserSummaryServiceTest {
     @Test
     @DisplayName("PENDING 사용자는 프로필 조회 없이 status만 반환한다")
     void get_summary_returns_status_only_for_pending_user() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         GetMyUserSummaryService service = new GetMyUserSummaryService(
                 loadUserOnboardingStatusUseCase,
                 loadUserProfilePort
         );
 
-        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.PENDING);
+        when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.PENDING);
 
-        UserMeResponse result = service.get(new GetMyUserSummaryQuery(identityAccountId));
+        UserMeResponse result = service.get(new GetMyUserSummaryQuery(accountId));
 
         assertThat(result.status()).isEqualTo(UserStatus.PENDING);
         assertThat(result.nickname()).isNull();
-        verify(loadUserProfilePort, never()).loadByIdentityAccountId(identityAccountId);
+        verify(loadUserProfilePort, never()).loadByAccountId(accountId);
     }
 
     @Test
     @DisplayName("ACTIVE 사용자는 프로필 정보를 포함한다")
     void get_summary_returns_profile_for_active_user() {
-        var identityAccountId = uuid(1);
+        var accountId = uuid(1);
         UserProfile profile = UserProfile.create(
-                identityAccountId,
+                accountId,
                 "테스트 닉네임",
                 null,
                 null,
@@ -70,10 +70,10 @@ class GetMyUserSummaryServiceTest {
                 loadUserProfilePort
         );
 
-        when(loadUserOnboardingStatusUseCase.load(identityAccountId)).thenReturn(UserStatus.ACTIVE);
-        when(loadUserProfilePort.loadByIdentityAccountId(identityAccountId)).thenReturn(Optional.of(profile));
+        when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.ACTIVE);
+        when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
 
-        UserMeResponse result = service.get(new GetMyUserSummaryQuery(identityAccountId));
+        UserMeResponse result = service.get(new GetMyUserSummaryQuery(accountId));
 
         assertThat(result.status()).isEqualTo(UserStatus.ACTIVE);
         assertThat(result.nickname()).isEqualTo("테스트 닉네임");

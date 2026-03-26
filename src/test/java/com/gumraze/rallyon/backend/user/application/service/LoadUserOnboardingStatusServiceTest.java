@@ -26,18 +26,18 @@ class LoadUserOnboardingStatusServiceTest {
     @Test
     @DisplayName("프로필이 존재하면 ACTIVE를 반환한다")
     void load_returns_active_when_profile_exists() {
-        UUID identityAccountId = UUID.randomUUID();
-        given(loadUserProfilePort.existsByIdentityAccountId(identityAccountId)).willReturn(true);
+        UUID accountId = UUID.randomUUID();
+        given(loadUserProfilePort.existsByAccountId(accountId)).willReturn(true);
 
-        assertThat(service.load(identityAccountId)).isEqualTo(UserStatus.ACTIVE);
+        assertThat(service.load(accountId)).isEqualTo(UserStatus.ACTIVE);
     }
 
     @Test
     @DisplayName("프로필이 없으면 PENDING을 반환한다")
     void load_returns_pending_when_profile_does_not_exist() {
-        UUID identityAccountId = UUID.randomUUID();
-        given(loadUserProfilePort.existsByIdentityAccountId(identityAccountId)).willReturn(false);
+        UUID accountId = UUID.randomUUID();
+        given(loadUserProfilePort.existsByAccountId(accountId)).willReturn(false);
 
-        assertThat(service.load(identityAccountId)).isEqualTo(UserStatus.PENDING);
+        assertThat(service.load(accountId)).isEqualTo(UserStatus.PENDING);
     }
 }

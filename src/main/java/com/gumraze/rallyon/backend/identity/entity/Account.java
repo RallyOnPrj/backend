@@ -1,7 +1,7 @@
 package com.gumraze.rallyon.backend.identity.entity;
 
 import com.gumraze.rallyon.backend.common.persistence.MutableAuditEntity;
-import com.gumraze.rallyon.backend.identity.domain.IdentityRole;
+import com.gumraze.rallyon.backend.identity.domain.AccountRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "identity_accounts")
-public class IdentityAccount extends MutableAuditEntity {
+public class Account extends MutableAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,7 +24,7 @@ public class IdentityAccount extends MutableAuditEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private IdentityRole role;
+    private AccountRole role;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -32,12 +32,12 @@ public class IdentityAccount extends MutableAuditEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected IdentityAccount() {
+    protected Account() {
     }
 
-    public static IdentityAccount create() {
-        IdentityAccount account = new IdentityAccount();
-        account.role = IdentityRole.USER;
+    public static Account create() {
+        Account account = new Account();
+        account.role = AccountRole.USER;
         return account;
     }
 
@@ -45,7 +45,7 @@ public class IdentityAccount extends MutableAuditEntity {
         return id;
     }
 
-    public IdentityRole getRole() {
+    public AccountRole getRole() {
         return role;
     }
 

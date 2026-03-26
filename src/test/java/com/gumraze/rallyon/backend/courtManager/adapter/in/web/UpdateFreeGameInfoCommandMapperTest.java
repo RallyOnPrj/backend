@@ -19,7 +19,7 @@ class UpdateFreeGameInfoCommandMapperTest {
     @Test
     @DisplayName("게임 정보 수정 request를 command로 변환한다")
     void toCommand_maps_request_to_command() {
-        UUID organizerIdentityAccountId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID managerId = UUID.randomUUID();
         UpdateFreeGameRequest request = new UpdateFreeGameRequest(
@@ -30,9 +30,9 @@ class UpdateFreeGameInfoCommandMapperTest {
                 List.of(managerId)
         );
 
-        UpdateFreeGameInfoCommand command = mapper.toCommand(organizerIdentityAccountId, gameId, request);
+        UpdateFreeGameInfoCommand command = mapper.toCommand(organizerAccountId, gameId, request);
 
-        assertThat(command.organizerId()).isEqualTo(organizerIdentityAccountId);
+        assertThat(command.organizerId()).isEqualTo(organizerAccountId);
         assertThat(command.gameId()).isEqualTo(gameId);
         assertThat(command.title()).isEqualTo("수정된 자유게임");
         assertThat(command.matchRecordMode()).isEqualTo(MatchRecordMode.RESULT);

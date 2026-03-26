@@ -21,8 +21,8 @@ public class GetMyProfileService implements GetMyProfileUseCase {
 
     @Override
     public UserProfileResponseDto get(GetMyProfileQuery query) {
-        var status = loadUserOnboardingStatusUseCase.load(query.userId());
-        UserProfile profile = loadUserProfilePort.loadByIdentityAccountId(query.userId())
+        var status = loadUserOnboardingStatusUseCase.load(query.accountId());
+        UserProfile profile = loadUserProfilePort.loadByAccountId(query.accountId())
                 .orElseThrow(() -> new NotFoundException("사용자의 프로필을 찾을 수 없습니다."));
         var districtReference = profile.getDistrictId() == null
                 ? null
