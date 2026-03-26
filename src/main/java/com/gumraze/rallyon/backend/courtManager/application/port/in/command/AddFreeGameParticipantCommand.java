@@ -6,7 +6,7 @@ import com.gumraze.rallyon.backend.user.constants.Grade;
 import java.util.UUID;
 
 public record AddFreeGameParticipantCommand(
-        UUID userId,
+        UUID identityAccountId,
         String name,
         Gender gender,
         Grade grade,

@@ -9,7 +9,7 @@ public class AddFreeGameParticipantCommandMapper {
 
     public AddFreeGameParticipantCommand toCommand(AddFreeGameParticipantRequest request) {
         return new AddFreeGameParticipantCommand(
-                request.userId(),
+                request.identityAccountId(),
                 request.name(),
                 request.gender(),
                 request.grade(),

@@ -77,7 +77,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserMeResponse> me (
-            UUID userId
+            UUID identityAccountId
     );
 
     @Operation(
@@ -97,7 +97,7 @@ public interface UserApi {
     })
     ResponseEntity<UserProfileCreateResponseDto>
     createProfile(
-            UUID userId,
+            UUID identityAccountId,
             UserProfileCreateRequest request
     );
 
@@ -158,7 +158,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserProfileResponseDto> getMyProfile(
-            UUID userId
+            UUID identityAccountId
     );
 
     @Operation(
@@ -182,7 +182,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<Void> updateMyProfile(
-            UUID userId,
+            UUID identityAccountId,
             UserProfileUpdateRequest request
     );
 }

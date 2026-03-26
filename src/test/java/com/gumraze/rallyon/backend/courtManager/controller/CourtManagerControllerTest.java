@@ -333,8 +333,8 @@ class CourtManagerControllerTest {
     void get_free_game_participants_with_stats_success() throws Exception {
         UUID gameId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        UUID participantUserId = UUID.randomUUID();
-        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), participantUserId, "KimA");
+        UUID participantIdentityAccountId = UUID.randomUUID();
+        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), participantIdentityAccountId, "KimA");
         FreeGameParticipantsResponse response =
                 participantsResponse(gameId, List.of(participantResponseWithStats(participant, 3, 2, 1, 1)));
 
@@ -346,6 +346,7 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participants[0].identityAccountId").value(participantIdentityAccountId.toString()))
                 .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3));
     }
 
@@ -355,9 +356,9 @@ class CourtManagerControllerTest {
         UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         UUID participantId = UUID.randomUUID();
-        UUID participantUserId = UUID.randomUUID();
+        UUID participantIdentityAccountId = UUID.randomUUID();
         FreeGameParticipantDetailResponse response =
-                participantDetailResponse(gameId, participantId, participantUserId, "KimA");
+                participantDetailResponse(gameId, participantId, participantIdentityAccountId, "KimA");
 
         when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(userId, gameId, participantId)))
                 .thenReturn(response);
@@ -366,7 +367,8 @@ class CourtManagerControllerTest {
                         .with(authenticatedUser(userId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participantId").value(participantId.toString()));
+                .andExpect(jsonPath("$.participantId").value(participantId.toString()))
+                .andExpect(jsonPath("$.identityAccountId").value(participantIdentityAccountId.toString()));
     }
 
     @Test

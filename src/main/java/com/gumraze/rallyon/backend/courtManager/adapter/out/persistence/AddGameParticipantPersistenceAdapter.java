@@ -19,14 +19,14 @@ public class AddGameParticipantPersistenceAdapter implements AddGameParticipantP
 
     @Override
     public GameParticipant add(FreeGame freeGame, AddFreeGameParticipantCommand command) {
-        if (command.userId() != null) {
-            identityAccountRepository.findById(command.userId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + command.userId()));
+        if (command.identityAccountId() != null) {
+            identityAccountRepository.findById(command.identityAccountId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + command.identityAccountId()));
         }
 
         GameParticipant participant = GameParticipant.create(
                 freeGame,
-                command.userId(),
+                command.identityAccountId(),
                 command.name(),
                 ParticipantDisplayNamePolicy.resolve(
                         command.name(),

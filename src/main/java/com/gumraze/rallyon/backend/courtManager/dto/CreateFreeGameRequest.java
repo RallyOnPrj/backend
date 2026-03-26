@@ -42,7 +42,7 @@ public record CreateFreeGameRequest(
             @NotBlank
             String clientId,
 
-            UUID userId,
+            UUID identityAccountId,
 
             @NotBlank
             @Pattern(

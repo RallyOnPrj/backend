@@ -19,7 +19,7 @@ public class CreateFreeGameCommandMapper {
                 request.participants() == null ? null : request.participants().stream()
                         .map(participant -> new CreateFreeGameCommand.Participant(
                                 participant.clientId(),
-                                participant.userId(),
+                                participant.identityAccountId(),
                                 participant.originalName(),
                                 participant.gender(),
                                 participant.grade(),

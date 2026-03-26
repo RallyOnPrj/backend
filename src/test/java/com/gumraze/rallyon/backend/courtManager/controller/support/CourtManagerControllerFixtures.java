@@ -50,10 +50,10 @@ public final class CourtManagerControllerFixtures {
         );
     }
 
-    public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID userId, String displayName) {
+    public static FreeGameParticipantResponse participantResponse(UUID participantId, UUID identityAccountId, String displayName) {
         return new FreeGameParticipantResponse(
                 participantId,
-                userId,
+                identityAccountId,
                 displayName,
                 Gender.MALE,
                 Grade.ROOKIE,
@@ -96,13 +96,13 @@ public final class CourtManagerControllerFixtures {
     public static FreeGameParticipantDetailResponse participantDetailResponse(
             UUID gameId,
             UUID participantId,
-            UUID userId,
+            UUID identityAccountId,
             String displayName
     ) {
         return new FreeGameParticipantDetailResponse(
                 gameId,
                 participantId,
-                userId,
+                identityAccountId,
                 displayName,
                 Gender.MALE,
                 Grade.ROOKIE,

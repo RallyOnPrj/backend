@@ -44,8 +44,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
@@ -188,6 +190,32 @@ class UserControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
 
         verifyNoInteractions(searchUsersUseCase);
+    }
+
+    @Test
+    @DisplayName("프로필 생성 성공 시 identityAccountId를 반환한다")
+    void create_my_profile_success() throws Exception {
+        UUID identityAccountId = UUID.randomUUID();
+        var request = """
+                {
+                  "nickname": "테스트 닉네임",
+                  "districtId": "%s",
+                  "regionalGrade": "D",
+                  "nationalGrade": "C",
+                  "birth": "20000101",
+                  "gender": "MALE"
+                }
+                """.formatted(UUID.randomUUID());
+
+        doNothing().when(createMyProfileUseCase).create(any());
+
+        mockMvc.perform(post("/users/me/profile")
+                        .with(authenticatedUser(identityAccountId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/users/me/profile"))
+                .andExpect(jsonPath("$.identityAccountId").value(identityAccountId.toString()));
     }
 
     @Test

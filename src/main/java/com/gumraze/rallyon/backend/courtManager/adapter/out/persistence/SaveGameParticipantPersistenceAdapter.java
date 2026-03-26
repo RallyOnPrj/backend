@@ -33,15 +33,15 @@ public class SaveGameParticipantPersistenceAdapter implements SaveGameParticipan
         Map<String, GameParticipant> participantsByClientId = new LinkedHashMap<>();
 
         for (CreateFreeGameCommand.Participant participant : participants) {
-            if (participant.userId() != null) {
-                identityAccountRepository.findById(participant.userId())
+            if (participant.identityAccountId() != null) {
+                identityAccountRepository.findById(participant.identityAccountId())
                         .orElseThrow(() ->
-                                new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + participant.userId()));
+                                new IllegalArgumentException("존재하지 않는 identityAccountId입니다. :" + participant.identityAccountId()));
             }
 
             GameParticipant toSave = GameParticipant.create(
                     freeGame,
-                    participant.userId(),
+                    participant.identityAccountId(),
                     participant.originalName(),
                     ParticipantDisplayNamePolicy.resolve(
                             participant.originalName(),
