@@ -3,7 +3,6 @@ package com.gumraze.rallyon.backend.api.user;
 import com.gumraze.rallyon.backend.api.common.ApiAuthValidationResponses;
 import com.gumraze.rallyon.backend.api.common.ApiBearerAuth;
 import com.gumraze.rallyon.backend.user.dto.*;
-import com.gumraze.rallyon.backend.user.entity.UserProfileUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+
+import java.util.UUID;
 
 @Tag(name = "Users", description = "사용자 API")
 @ApiBearerAuth
@@ -76,12 +77,12 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserMeResponse> me (
-            Long userId
+            UUID accountId
     );
 
     @Operation(
             summary = "프로필 생성",
-            description = "닉네임/지역/등급을 입력해 프로필을 생성하고 계정을 ACTIVE로 전환합니다."
+            description = "닉네임/지역/등급을 입력해 프로필을 생성하고 온보딩 상태를 ACTIVE로 전환합니다."
     )
     @ApiAuthValidationResponses
     @ApiResponses({
@@ -96,12 +97,12 @@ public interface UserApi {
     })
     ResponseEntity<UserProfileCreateResponseDto>
     createProfile(
-            Long userId,
+            UUID accountId,
             UserProfileCreateRequest request
     );
 
     @Operation(
-            summary = "프로필 닉네임 프리필 조회",
+            summary = "프로필 초기값 조회",
             description = "제3자 로그인 닉네임이 있으면 suggestedNickname으로 반환합니다."
     )
     @ApiResponses({
@@ -110,7 +111,7 @@ public interface UserApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = UserProfilePrefillResponseDto.class)
+                            schema = @Schema(implementation = UserProfileDefaultsResponse.class)
                     )
             ),
             @ApiResponse(
@@ -122,8 +123,8 @@ public interface UserApi {
                     )
             )
     })
-    ResponseEntity<UserProfilePrefillResponseDto> prefillProfile(
-            Long userId
+    ResponseEntity<UserProfileDefaultsResponse> profileDefaults(
+            UUID accountId
     );
 
     @Operation(
@@ -157,12 +158,12 @@ public interface UserApi {
             )
     })
     ResponseEntity<UserProfileResponseDto> getMyProfile(
-            Long userId
+            UUID accountId
     );
 
     @Operation(
             summary = "내 프로필 수정",
-            description = "내 프로필 정보를 수정합니다."
+            description = "내 프로필 정보를 수정합니다. 닉네임과 태그도 같은 aggregate에서 함께 수정합니다."
     )
     @ApiAuthValidationResponses
     @ApiResponses({
@@ -181,48 +182,7 @@ public interface UserApi {
             )
     })
     ResponseEntity<Void> updateMyProfile(
-            Long userId,
+            UUID accountId,
             UserProfileUpdateRequest request
-    );
-
-    @Operation(
-            summary = "닉네임/태그 변경",
-            description = "닉네임과 태그를 변경합니다."
-    )
-    @ApiAuthValidationResponses
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "닉네임/태그 변경 성공 (No Content)",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "사용자의 프로필을 찾을 수 없습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "이미 존재하는 닉네임과 태그입니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "422",
-                    description = "요청을 처리할 수 없습니다.",
-                    content = @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemDetail.class)
-                    )
-            )
-    })
-    ResponseEntity<Void> updateIdentity(
-            Long userId,
-            UserProfileIdentityUpdateRequest request
     );
 }

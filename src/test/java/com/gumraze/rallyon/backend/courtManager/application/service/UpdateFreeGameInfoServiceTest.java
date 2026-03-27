@@ -1,0 +1,89 @@
+package com.gumraze.rallyon.backend.courtManager.application.service;
+
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.UpdateFreeGameInfoCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadFreeGamePort;
+import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameResponse;
+import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
+import com.gumraze.rallyon.backend.courtManager.support.CourtManagerTestFixtures;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
+class UpdateFreeGameInfoServiceTest {
+
+    @Mock
+    private LoadFreeGamePort loadFreeGamePort;
+
+    @Mock
+    private SaveFreeGamePort saveFreeGamePort;
+
+    @InjectMocks
+    private UpdateFreeGameInfoService service;
+
+    @Test
+    @DisplayName("자유게임 기본 정보를 수정하고 저장한다")
+    void update_updates_game_info() {
+        UUID gameId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
+        given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
+        given(saveFreeGamePort.save(same(freeGame))).willReturn(freeGame);
+
+        UpdateFreeGameResponse result = service.update(new UpdateFreeGameInfoCommand(
+                organizerAccountId,
+                gameId,
+                "수정된 게임",
+                MatchRecordMode.RESULT,
+                GradeType.NATIONAL,
+                "올림픽공원",
+                null
+        ));
+
+        assertThat(result.gameId()).isEqualTo(gameId);
+        assertThat(freeGame.getTitle()).isEqualTo("수정된 게임");
+        assertThat(freeGame.getMatchRecordMode()).isEqualTo(MatchRecordMode.RESULT);
+        assertThat(freeGame.getLocation()).isEqualTo("올림픽공원");
+        verify(saveFreeGamePort).save(freeGame);
+    }
+
+    @Test
+    @DisplayName("managerIds 수정은 아직 지원하지 않는다")
+    void update_throws_when_manager_ids_are_present() {
+        UUID gameId = UUID.randomUUID();
+        UUID organizerAccountId = UUID.randomUUID();
+        FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
+        given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
+
+        assertThatThrownBy(() -> service.update(new UpdateFreeGameInfoCommand(
+                organizerAccountId,
+                gameId,
+                null,
+                null,
+                null,
+                null,
+                List.of(UUID.randomUUID())
+        )))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("매니저 수정 기능은 현재 미개발 상태입니다.");
+
+        verify(saveFreeGamePort, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+}

@@ -1,11 +1,44 @@
-package com.gumraze.rallyon.backend.courtManager.controller;
+package com.gumraze.rallyon.backend.courtManager.adapter.in.web;
 
-import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
 import com.gumraze.rallyon.backend.common.exception.NotFoundException;
-import com.gumraze.rallyon.backend.config.SecurityConfig;
-import com.gumraze.rallyon.backend.courtManager.constants.*;
-import com.gumraze.rallyon.backend.courtManager.dto.*;
-import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.AddFreeGameParticipantUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantsUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetPublicFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameInfoUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.AddFreeGameParticipantCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.CreateFreeGameCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.UpdateFreeGameInfoCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.command.UpdateFreeGameRoundsAndMatchesCommand;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameParticipantDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameParticipantsQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetFreeGameRoundsAndMatchesQuery;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.query.GetPublicFreeGameDetailQuery;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchResult;
+import com.gumraze.rallyon.backend.courtManager.constants.MatchStatus;
+import com.gumraze.rallyon.backend.courtManager.constants.RoundStatus;
+import com.gumraze.rallyon.backend.courtManager.dto.AddFreeGameParticipantRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.CreateFreeGameRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.CreateFreeGameResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameDetailResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameMatchResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameParticipantDetailResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameParticipantResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameParticipantsResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameRoundMatchResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.FreeGameRoundResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.MatchRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.RoundRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameResponse;
+import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
+import com.gumraze.rallyon.backend.security.config.SecurityConfig;
 import com.gumraze.rallyon.backend.user.constants.Gender;
 import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
@@ -15,23 +48,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.freeGameDetailResponse;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.participantDetailResponse;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.participantResponse;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.participantResponseWithStats;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.participantsResponse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CourtManagerController.class)
 @Import(SecurityConfig.class)
@@ -43,642 +86,321 @@ class CourtManagerControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private FreeGameService freeGameService;
+    @MockitoBean private CreateFreeGameUseCase createFreeGameUseCase;
+    @MockitoBean private GetFreeGameDetailUseCase getFreeGameDetailUseCase;
+    @MockitoBean private UpdateFreeGameInfoUseCase updateFreeGameInfoUseCase;
+    @MockitoBean private GetFreeGameRoundsAndMatchesUseCase getFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesUseCase updateFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private AddFreeGameParticipantUseCase addFreeGameParticipantUseCase;
+    @MockitoBean private GetFreeGameParticipantsUseCase getFreeGameParticipantsUseCase;
+    @MockitoBean private GetFreeGameParticipantDetailUseCase getFreeGameParticipantDetailUseCase;
+    @MockitoBean private GetPublicFreeGameDetailUseCase getPublicFreeGameDetailUseCase;
 
-    @MockitoBean
-    private JwtAccessTokenValidator jwtAccessTokenValidator;
+    @MockitoBean private CreateFreeGameCommandMapper createFreeGameCommandMapper;
+    @MockitoBean private UpdateFreeGameInfoCommandMapper updateFreeGameInfoCommandMapper;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesCommandMapper updateFreeGameRoundsAndMatchesCommandMapper;
+    @MockitoBean private AddFreeGameParticipantCommandMapper addFreeGameParticipantCommandMapper;
+    @MockitoBean private JwtDecoder jwtDecoder;
 
-    private RequestPostProcessor authenticatedUser(Long userId) {
-        return authentication(
-                new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+    @Test
+    @DisplayName("자유게임 생성 요청을 create use case로 전달한다")
+    void createFreeGame_success() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        CreateFreeGameRequest request = new CreateFreeGameRequest(
+                "자유게임1",
+                null,
+                GradeType.NATIONAL,
+                2,
+                3,
+                "잠실 배드민턴장",
+                null,
+                List.of(),
+                List.of()
+        );
+        CreateFreeGameCommand command = new CreateFreeGameCommand(
+                "자유게임1",
+                null,
+                GradeType.NATIONAL,
+                2,
+                3,
+                "잠실 배드민턴장",
+                null,
+                List.of(),
+                List.of()
+        );
+
+        given(createFreeGameCommandMapper.toCommand(request)).willReturn(command);
+        given(createFreeGameUseCase.create(accountId, command)).willReturn(gameId);
+
+        mockMvc.perform(post("/free-games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(authenticatedUser(accountId))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/free-games/" + gameId))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()));
+
+        verify(createFreeGameCommandMapper).toCommand(request);
+        verify(createFreeGameUseCase).create(accountId, command);
+    }
+
+    @Test
+    @DisplayName("자유게임 상세 조회 성공")
+    void getFreeGameDetail_success() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        FreeGameDetailResponse response = freeGameDetailResponse(accountId, gameId);
+
+        when(getFreeGameDetailUseCase.get(new GetFreeGameDetailQuery(accountId, gameId))).thenReturn(response);
+
+        mockMvc.perform(get("/free-games/{gameId}", gameId)
+                        .with(authenticatedUser(accountId))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
+                .andExpect(jsonPath("$.title").value("자유게임"));
+    }
+
+    @Test
+    @DisplayName("자유게임 기본 정보 수정 성공")
+    void updateFreeGameInfo_success() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UpdateFreeGameRequest request = new UpdateFreeGameRequest(
+                "수정된 자유게임",
+                MatchRecordMode.RESULT,
+                GradeType.REGIONAL,
+                null,
+                null
+        );
+        UpdateFreeGameInfoCommand command = new UpdateFreeGameInfoCommand(
+                accountId,
+                gameId,
+                request.title(),
+                request.matchRecordMode(),
+                request.gradeType(),
+                request.location(),
+                request.managerIds()
+        );
+        UpdateFreeGameResponse response = new UpdateFreeGameResponse(gameId);
+
+        when(updateFreeGameInfoCommandMapper.toCommand(eq(accountId), eq(gameId), any(UpdateFreeGameRequest.class)))
+                .thenReturn(command);
+        when(updateFreeGameInfoUseCase.update(command)).thenReturn(response);
+
+        mockMvc.perform(patch("/free-games/{gameId}", gameId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(authenticatedUser(accountId))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()));
+    }
+
+    @Test
+    @DisplayName("자유게임 라운드/매치 조회 성공")
+    void getFreeGameRoundMatch_success() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
+
+        FreeGameRoundMatchResponse response = new FreeGameRoundMatchResponse(
+                gameId,
+                List.of(
+                        new FreeGameRoundResponse(
+                                1,
+                                RoundStatus.NOT_STARTED,
+                                List.of(
+                                        new FreeGameMatchResponse(
+                                                1L,
+                                                List.of(teamA1, teamA2),
+                                                List.of(teamB1, teamB2),
+                                                MatchStatus.NOT_STARTED,
+                                                MatchResult.NULL,
+                                                true
+                                        )
+                                )
+                        )
                 )
         );
-    }
 
-    @Test()
-    @DisplayName("최소 필수값으로 자유게임 생성 성공")
-    void createFreeGame_success() throws Exception {
-        // given: 최소 필수값만 포함된 생성 요청을 준비함.
-        CreateFreeGameResponse response = CreateFreeGameResponse.builder()
-                .gameId(101L).build();
-
-        // 서비스 응답을 stub
-        when(freeGameService.createFreeGame(anyLong(), any()))
+        when(getFreeGameRoundsAndMatchesUseCase.get(new GetFreeGameRoundsAndMatchesQuery(accountId, gameId)))
                 .thenReturn(response);
 
-        // 토큰 검증을 stub
-        // request 객체 생성
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임1")
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .roundCount(3)
-                .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when: /free-games로 POST 요청을 보냄
-        // then: 201과 응답 바디 구조/값이 일치하는지 확인
-        mockMvc.perform(post("/free-games")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.gameId").value(101));
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, title 누락")
-    void createFreeGame_without_title() throws Exception {
-        // given: 자유 게임 생성 시, title 누락
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title(null)
-                .courtCount(2)
-                .roundCount(3)
-                .build();
-
-        // when & then
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, courtCount 누락")
-    void createFreeGame_without_courtCount() throws Exception {
-        // given: 자유게임 생성 시, courtCount 누락
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("테스트 게임")
-                .roundCount(3)
-                .build();
-
-        // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, roundCount 누락 테스트")
-    void createFreeGame_without_roundCount() throws Exception {
-        // given: 자유게임 생성 시, roundCount 누락
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("테스트 게임")
-                .courtCount(2)
-                .build();
-
-        // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, courtCount, roundCount 누락 테스트")
-    void createFreeGame_without_courtCount_and_roundCount() throws Exception {
-        // given: 자유게임 생성 시, courtCount, roundCount 누락
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .build();
-
-        // when & then: 자유게임 생성 호출 시 VALIDATION_ERROR 발생
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, participant가 존재할 때 최소 필수 항목이 존재하면 성공 테스트")
-    void createFreeGame_with_participant() throws Exception {
-        // given: 자유게임 생성 시, 참가자가 존재할 때 -> 최소 필드 값이 존재하면 성공
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .courtCount(2)
-                .gradeType(GradeType.NATIONAL)
-                .roundCount(3)
-                .participants(
-                        List.of(
-                                ParticipantCreateRequest.builder()
-                                        .originalName("참가자 1")
-                                        .gender(Gender.MALE)
-                                        .grade(Grade.ROOKIE)
-                                        .ageGroup(20)
-                                        .build()
-                        )
-                )
-                .build();
-
-        CreateFreeGameResponse response = CreateFreeGameResponse.builder()
-                .gameId(101L).build();
-        when(freeGameService.createFreeGame(anyLong(), any()))
-                .thenReturn(response);
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(post("/free-games")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, participant가 존재할 때 최소 필수 항목 없는 경우 실패 테스트")
-    void createFreeGame_with_participant_without_gender() throws Exception {
-        // given: 참가자는 있지만, gender가 없는 경우
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .courtCount(2)
-                .roundCount(3)
-                .participants(
-                        List.of(
-                                ParticipantCreateRequest.builder()
-                                        .originalName("참가자 1")
-                                        .grade(Grade.ROOKIE)
-                                        .ageGroup(20)
-                                        .build()
-                        )
-                )
-                .build();
-
-        // when & then
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, 사용자 인증 누락 실패 테스트")
-    void createFreeGame_without_token() throws Exception {
-        // given: 참가자는 있지만, gender가 없는 경우
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임 1")
-                .courtCount(2)
-                .roundCount(3)
-                .participants(
-                        List.of(
-                                ParticipantCreateRequest.builder()
-                                        .originalName("참가자 1")
-                                        .gender(Gender.MALE)
-                                        .grade(Grade.ROOKIE)
-                                        .ageGroup(20)
-                                        .build()
-                        )
-                )
-                .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // 비어있는 토큰 설정
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        mockMvc.perform(post("/free-games")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .content(body))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, GradeType이 비어있으면 실패 테스트")
-    void createFreeGame_without_gradeType() throws Exception {
-        // given: 자유게임 생성 시 gradeType이 비어있을 경우
-        CreateFreeGameRequest request = CreateFreeGameRequest.builder()
-                .title("자유게임")
-                .gradeType(null)
-                .courtCount(2)
-                .roundCount(3)
-                .build();
-
-        // when & then: 자유게임 생성 시 400 에러 발생
-        assertCreateFreeGameBadRequest(request);
-    }
-
-    @Test
-    @DisplayName("자유게임 생성 시, GradeType에 틀린 값이 입력되면 실패 테스트")
-    void createFreeGame_with_invalid_gradeType() throws Exception {
-        // given: GradeType에 틀린 값이 입력될 경우
-        String body = """
-                {
-                  "title": "자유게임",
-                  "gradeType": "REGION",
-                  "courtCount": 2,
-                  "roundCount": 3
-                }
-                """;
-
-        // when & then: 자유게임 생성 시 400 에러 발생
-        assertCreateFreeGameBadRequest(body);
-    }
-
-    @Test
-    @DisplayName("자유게임 상세 조회 성공 테스트")
-    void getFreeGameDetail_success() throws Exception {
-        // given
-        Long userId = 99L;
-        Long gameId = 1L;
-        FreeGameDetailResponse response = buildFreeGameDetailResponse(userId, gameId);
-
-        when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
-
-        mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .with(authenticatedUser(userId))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(1))
-                .andExpect(jsonPath("$.title").value("자유게임"))
-                .andExpect(jsonPath("$.gameType").value("FREE"))
-                .andExpect(jsonPath("$.gameStatus").value("NOT_STARTED"))
-                .andExpect(jsonPath("$.matchRecordMode").value("STATUS_ONLY"))
-                .andExpect(jsonPath("$.gradeType").value("NATIONAL"))
-                .andExpect(jsonPath("$.courtCount").value(2))
-                .andExpect(jsonPath("$.roundCount").value(2))
-                .andExpect(jsonPath("$.organizerId").value(99))
-        ;
-    }
-
-    @Test
-    @DisplayName("자유게임 상세 조회 시 인증 실패")
-    void getFreeGameDetail_without_token() throws Exception {
-        // given
-        Long userId = 99L;
-        Long gameId = 1L;
-        FreeGameDetailResponse response = buildFreeGameDetailResponse(gameId, userId);
-
-        when(freeGameService.getFreeGameDetail(userId, gameId)).thenReturn(response);
-        when(jwtAccessTokenValidator.validateAndGetUserId("token"))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .header("Authorization", "Bearer token")
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
-    }
-
-    @Test
-    @DisplayName("자유게임 상세 조회 시 존재하지 않는 gameId면 실패")
-    void getFreeGameDetail_withUnknownGameId_returnError() throws Exception {
-        // given
-        Long userId = 99L;
-        Long gameId = 1L;
-        when(freeGameService.getFreeGameDetail(userId, gameId))
-                .thenThrow(new NotFoundException("게임이 존재하지 않습니다."));
-
-        mockMvc.perform(get("/free-games/{gameId}", gameId)
-                        .with(authenticatedUser(userId))
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON))
-                .andDo(print()) // 응답 로그 출력
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-                .andExpect(jsonPath("$.detail").value("게임이 존재하지 않습니다."));
-    }
-
-    @Test
-    @DisplayName("자유게임 기본 정보 수정 성공 테스트")
-    void updateFreeGameInfo_success() throws Exception {
-        // given: 정상적인 요청 입력
-        Long gameId = 80L;
-        Long userId = 1L;
-
-        UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
-                .title("수정된 자유게임")
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .gradeType(GradeType.REGIONAL)
-                .build();
-        String body = objectMapper.writeValueAsString(request);
-        UpdateFreeGameResponse response = UpdateFreeGameResponse.builder()
-                .gameId(gameId)
-                .build();
-
-        // stub
-        when(freeGameService.updateFreeGameInfo(anyLong(), anyLong(), any(UpdateFreeGameRequest.class)))
-                .thenReturn(response);
-
-        mockMvc.perform(patch("/free-games/{gameId}", gameId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
-                        .content(body))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(80))
-        ;
-    }
-
-    @Test
-    @DisplayName("자유게임 수정 시, token 검증")
-    void updateFreeGameInfo_without_token() throws Exception {
-        // given
-        Long gameId = 80L;
-        UpdateFreeGameRequest request = UpdateFreeGameRequest.builder()
-                .title("수정된 자유게임")
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .gradeType(GradeType.REGIONAL)
-                .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}", gameId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .content(body))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
-    }
-
-    @Test
-    @DisplayName("자유게임 라운드/매치 조회 성공 테스트")
-    void getFreeGameRoundMatch_success() throws Exception {
-        // given
-        Long userId = 1L;
-        Long gameId = 2L;
-
-        FreeGameMatchResponse match =
-                FreeGameMatchResponse.builder()
-                        .courtNumber(1L)
-                        .teamAIds(List.of(201L, 202L))
-                        .teamBIds(List.of(203L, 204L))
-                        .matchStatus(MatchStatus.NOT_STARTED)
-                        .matchResult(MatchResult.NULL)
-                        .isActive(true)
-                        .build();
-
-        FreeGameRoundResponse round =
-                FreeGameRoundResponse.builder()
-                        .roundNumber(1)
-                        .roundStatus(RoundStatus.NOT_STARTED)
-                        .matches(List.of(match))
-                        .build();
-
-        FreeGameRoundMatchResponse response =
-                FreeGameRoundMatchResponse.builder()
-                        .gameId(gameId)
-                        .rounds(List.of(round))
-                        .build();
-
-        when(freeGameService.getFreeGameRoundMatchResponse(userId, gameId))
-                .thenReturn(response);
-
-        // when & then
         mockMvc.perform(get("/free-games/{gameId}/rounds-and-matches", gameId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(2L))
-                .andExpect(jsonPath("$.rounds[0].roundNumber").value(1L))
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
                 .andExpect(jsonPath("$.rounds[0].matches[0].courtNumber").value(1L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[0]").value(201L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[1]").value(202L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[0]").value(203L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].teamBIds[1]").value(204L))
-                .andExpect(jsonPath("$.rounds[0].matches[0].matchStatus").value("NOT_STARTED"))
-                .andExpect(jsonPath("$.rounds[0].matches[0].matchResult").value("NULL"))
-                .andExpect(jsonPath("$.rounds[0].matches[0].isActive").value(true))
-        ;
+                .andExpect(jsonPath("$.rounds[0].matches[0].teamAIds[0]").value(teamA1.toString()));
     }
 
     @Test
-    @DisplayName("라운드/매치 부분 수정 PATCH 성공")
+    @DisplayName("라운드/매치 수정 PATCH 성공")
     void updateRoundsAndMatches_patch_success() throws Exception {
-        // given
-        Long userId = 1L;
-        Long gameId = 1L;
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UUID teamA1 = UUID.randomUUID();
+        UUID teamA2 = UUID.randomUUID();
+        UUID teamB1 = UUID.randomUUID();
+        UUID teamB2 = UUID.randomUUID();
 
-        when(freeGameService.updateFreeGameRoundMatch(anyLong(), anyLong(), any()))
-                .thenReturn(new UpdateFreeGameRoundMatchResponse(gameId));
-
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(List.of(101L, 102L))
-                                                        .teamBIds(List.of(103L, 104L))
-                                                        .build()
-                                        ))
-                                        .build()
+        UpdateFreeGameRoundMatchRequest request = new UpdateFreeGameRoundMatchRequest(
+                List.of(
+                        new RoundRequest(
+                                1,
+                                List.of(
+                                        new MatchRequest(
+                                                1,
+                                                List.of(teamA1, teamA2),
+                                                List.of(teamB1, teamB2)
+                                        )
+                                )
+                        )
+                )
+        );
+        UpdateFreeGameRoundsAndMatchesCommand command = new UpdateFreeGameRoundsAndMatchesCommand(
+                accountId,
+                gameId,
+                List.of(new UpdateFreeGameRoundsAndMatchesCommand.Round(
+                        1,
+                        List.of(new UpdateFreeGameRoundsAndMatchesCommand.Match(
+                                1,
+                                List.of(teamA1, teamA2),
+                                List.of(teamB1, teamB2)
                         ))
-                        .build();
+                ))
+        );
+
+        when(updateFreeGameRoundsAndMatchesCommandMapper.toCommand(
+                eq(accountId),
+                eq(gameId),
+                any(UpdateFreeGameRoundMatchRequest.class)
+        )).thenReturn(command);
 
         mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
+
+        verify(updateFreeGameRoundsAndMatchesUseCase).update(command);
     }
 
     @Test
-    @DisplayName("자유게임 참가자 목록 조회 성공 (include=stats)")
-    void get_free_game_participants_with_stats_success() throws Exception {
-        // given
-        Long gameId = 101L;
-        FreeGameParticipantResponse participant = buildParticipantResponse(201L, 10L, "KimA");
-        FreeGameParticipantsResponse response =
-                buildParticipantsResponse(gameId, List.of(withStats(participant, 3, 2, 1, 1)));
+    @DisplayName("참가자 추가 성공")
+    void addFreeGameParticipant_success() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+        AddFreeGameParticipantRequest request = new AddFreeGameParticipantRequest(
+                null,
+                "참가자",
+                Gender.MALE,
+                Grade.ROOKIE,
+                20
+        );
+        AddFreeGameParticipantCommand command = new AddFreeGameParticipantCommand(
+                null,
+                "참가자",
+                Gender.MALE,
+                Grade.ROOKIE,
+                20
+        );
 
-        when(freeGameService.getFreeGameParticipants(1L, gameId, true))
+        when(addFreeGameParticipantCommandMapper.toCommand(request)).thenReturn(command);
+        when(addFreeGameParticipantUseCase.add(accountId, gameId, command)).thenReturn(participantId);
+
+        mockMvc.perform(post("/free-games/{gameId}/participants", gameId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(authenticatedUser(accountId))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/free-games/" + gameId + "/participants/" + participantId))
+                .andExpect(jsonPath("$.participantId").value(participantId.toString()));
+    }
+
+    @Test
+    @DisplayName("자유게임 참가자 목록 조회 성공")
+    void get_free_game_participants_with_stats_success() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
+        FreeGameParticipantResponse participant = participantResponse(UUID.randomUUID(), participantAccountId, "KimA");
+        FreeGameParticipantsResponse response =
+                participantsResponse(gameId, List.of(participantResponseWithStats(participant, 3, 2, 1, 1)));
+
+        when(getFreeGameParticipantsUseCase.get(new GetFreeGameParticipantsQuery(accountId, gameId, true)))
                 .thenReturn(response);
 
-        // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
                         .queryParam("include", "stats")
-                        .with(authenticatedUser(1L))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
-                .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3))
-                .andExpect(jsonPath("$.participants[0].completedMatchCount").value(2))
-                .andExpect(jsonPath("$.participants[0].winCount").value(1))
-                .andExpect(jsonPath("$.participants[0].lossCount").value(1));
-    }
-
-    @Test
-    @DisplayName("자유게임 참가자 목록 조회 성공 (include 없음)")
-    void get_free_game_participants_without_stats_success() throws Exception {
-        // given
-        Long gameId = 101L;
-        FreeGameParticipantResponse participant = buildParticipantResponse(201L, 10L, "KimA");
-        FreeGameParticipantsResponse response = buildParticipantsResponse(gameId, List.of(participant));
-
-        when(freeGameService.getFreeGameParticipants(1L, gameId, false))
-                .thenReturn(response);
-
-        // when & then
-        mockMvc.perform(get("/free-games/{gameId}/participants", gameId)
-                        .with(authenticatedUser(1L))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
-                .andExpect(jsonPath("$.participants[0].assignedMatchCount").doesNotExist())
-                .andExpect(jsonPath("$.participants[0].completedMatchCount").doesNotExist())
-                .andExpect(jsonPath("$.participants[0].winCount").doesNotExist())
-                .andExpect(jsonPath("$.participants[0].lossCount").doesNotExist());
+                .andExpect(jsonPath("$.participants[0].accountId").value(participantAccountId.toString()))
+                .andExpect(jsonPath("$.participants[0].assignedMatchCount").value(3));
     }
 
     @Test
     @DisplayName("자유게임 참가자 상세 조회 성공")
     void get_free_game_participant_detail_success() throws Exception {
-        // given
-        Long userId = 1L;
-        Long gameId = 101L;
-        Long participantId = 201L;
-
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+        UUID participantAccountId = UUID.randomUUID();
         FreeGameParticipantDetailResponse response =
-                buildParticipantDetailResponse(gameId, participantId, 10L, "KimA");
+                participantDetailResponse(gameId, participantId, participantAccountId, "KimA");
 
-        when(freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId))
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)))
                 .thenReturn(response);
 
-        // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(101))
-                .andExpect(jsonPath("$.participantId").value(201))
-                .andExpect(jsonPath("$.userId").value(10))
-                .andExpect(jsonPath("$.displayName").value("KimA"))
-                .andExpect(jsonPath("$.gender").value("MALE"))
-                .andExpect(jsonPath("$.grade").value("초심"))
-                .andExpect(jsonPath("$.ageGroup").value(30));
+                .andExpect(jsonPath("$.participantId").value(participantId.toString()))
+                .andExpect(jsonPath("$.accountId").value(participantAccountId.toString()));
     }
 
     @Test
-    @DisplayName("자유게임 참가자 상세 조회 시 존재하지 않는 participantId면 실패")
-    void get_free_game_participant_detail_with_unknown_participant_then_not_found() throws Exception {
-        // given
-        Long userId = 1L;
-        Long gameId = 101L;
-        Long participantId = 999L;
+    @DisplayName("공개 자유게임 상세 조회 성공")
+    void get_public_free_game_detail_success() throws Exception {
+        String shareCode = "public-share-code";
+        UUID organizerId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        FreeGameDetailResponse response = freeGameDetailResponse(organizerId, gameId);
 
-        when(freeGameService.getFreeGameParticipantDetail(userId, gameId, participantId))
+        when(getPublicFreeGameDetailUseCase.get(new GetPublicFreeGameDetailQuery(shareCode))).thenReturn(response);
+
+        mockMvc.perform(get("/free-games/share/{shareCode}", shareCode)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()));
+    }
+
+    @Test
+    @DisplayName("참가자 상세 조회 시 존재하지 않는 participantId면 실패")
+    void get_free_game_participant_detail_with_unknown_participant_then_not_found() throws Exception {
+        UUID accountId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        UUID participantId = UUID.randomUUID();
+
+        when(getFreeGameParticipantDetailUseCase.get(new GetFreeGameParticipantDetailQuery(accountId, gameId, participantId)))
                 .thenThrow(new NotFoundException("존재하지 않는 참가자입니다. participantId: " + participantId));
 
-        // when & then
         mockMvc.perform(get("/free-games/{gameId}/participants/{participantId}", gameId, participantId)
-                        .with(authenticatedUser(userId))
+                        .with(authenticatedUser(accountId))
                         .accept(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.detail").value("존재하지 않는 참가자입니다. participantId: " + participantId));
-    }
-
-    /*
-     * Test Helper Method
-     */
-    private FreeGameDetailResponse buildFreeGameDetailResponse(Long organizerId, Long gameId) {
-        return FreeGameDetailResponse.builder()
-                .gameId(gameId)
-                .title("자유게임")
-                .gameType(GameType.FREE)
-                .gameStatus(GameStatus.NOT_STARTED)
-                .matchRecordMode(MatchRecordMode.STATUS_ONLY)
-                .gradeType(GradeType.NATIONAL)
-                .courtCount(2)
-                .roundCount(2)
-                .organizerId(organizerId)
-                .build();
-    }
-
-    private void assertCreateFreeGameBadRequest(CreateFreeGameRequest request) throws Exception {
-        assertCreateFreeGameBadRequest(objectMapper.writeValueAsString(request));
-    }
-
-    private void assertCreateFreeGameBadRequest(String body) throws Exception {
-        mockMvc.perform(post("/free-games")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists());
-    }
-
-    private FreeGameParticipantResponse buildParticipantResponse(Long participantId, Long userId, String displayName) {
-        return FreeGameParticipantResponse.builder()
-                .participantId(participantId)
-                .userId(userId)
-                .displayName(displayName)
-                .gender(Gender.MALE)
-                .grade(Grade.ROOKIE)
-                .ageGroup(30)
-                .build();
-    }
-
-    private FreeGameParticipantResponse withStats(
-            FreeGameParticipantResponse participant,
-            int assignedMatchCount,
-            int completedMatchCount,
-            int winCount,
-            int lossCount
-    ) {
-        return FreeGameParticipantResponse.builder()
-                .participantId(participant.getParticipantId())
-                .userId(participant.getUserId())
-                .displayName(participant.getDisplayName())
-                .gender(participant.getGender())
-                .grade(participant.getGrade())
-                .ageGroup(participant.getAgeGroup())
-                .assignedMatchCount(assignedMatchCount)
-                .completedMatchCount(completedMatchCount)
-                .winCount(winCount)
-                .lossCount(lossCount)
-                .build();
-    }
-
-    private FreeGameParticipantsResponse buildParticipantsResponse(
-            Long gameId,
-            List<FreeGameParticipantResponse> participants
-    ) {
-        return FreeGameParticipantsResponse.builder()
-                .gameId(gameId)
-                .matchRecordMode(MatchRecordMode.RESULT)
-                .participants(participants)
-                .build();
-    }
-
-    private FreeGameParticipantDetailResponse buildParticipantDetailResponse(
-            Long gameId,
-            Long participantId,
-            Long userId,
-            String displayName
-    ) {
-        return FreeGameParticipantDetailResponse.builder()
-                .gameId(gameId)
-                .participantId(participantId)
-                .userId(userId)
-                .displayName(displayName)
-                .gender(Gender.MALE)
-                .grade(Grade.ROOKIE)
-                .ageGroup(30)
-                .build();
     }
 }

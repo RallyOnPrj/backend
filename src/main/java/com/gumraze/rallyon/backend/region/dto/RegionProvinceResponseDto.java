@@ -1,6 +1,8 @@
 package com.gumraze.rallyon.backend.region.dto;
 
+import java.util.UUID;
+
 public record RegionProvinceResponseDto(
-    Long id,
+    UUID id,
     String name
 ) { }

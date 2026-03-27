@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 @Tag(name = "Regions", description = "지역 조회 API")
 public interface RegionApi {
@@ -54,7 +55,7 @@ public interface RegionApi {
             )
     })
     ResponseEntity<List<RegionDistrictResponseDto>> getDistricts(
-            @Parameter(description = "시/도 ID", required = true, example = "1")
-            Long provinceId
+            @Parameter(description = "시/도 ID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
+            UUID provinceId
     );
 }

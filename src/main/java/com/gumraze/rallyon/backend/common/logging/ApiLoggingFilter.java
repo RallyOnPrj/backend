@@ -5,14 +5,24 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
 public class ApiLoggingFilter extends OncePerRequestFilter {
+
+    private static final long DEFAULT_SLOW_REQUEST_THRESHOLD_MILLIS = 1_000L;
+
+    private final long slowRequestThresholdMillis;
+
+    public ApiLoggingFilter() {
+        this(DEFAULT_SLOW_REQUEST_THRESHOLD_MILLIS);
+    }
+
+    ApiLoggingFilter(long slowRequestThresholdMillis) {
+        this.slowRequestThresholdMillis = slowRequestThresholdMillis;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -28,27 +38,38 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
         } finally {
             // 실행 시간 기록
             long duration = System.currentTimeMillis() - start;
-
-            String method = request.getMethod();
-            String path = request.getRequestURI();
-
             int status = response.getStatus();
-            String userId = resolveUserId();
 
-            log.info("[INFO][API] method={}, path={}, status={}, userId={}, duration={}",
-                    method, path, status, userId, duration);
+            if (!shouldLog(status, duration)) {
+                return;
+            }
+
+            writeLog(request, status, duration);
         }
     }
 
-    private String resolveUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    private boolean shouldLog(int status, long duration) {
+        return status >= 400 || duration >= slowRequestThresholdMillis;
+    }
 
-        if (auth == null || !auth.isAuthenticated()) {
-            return "알 수 없는 사용자";
+    private void writeLog(HttpServletRequest request, int status, long duration) {
+        String method = request.getMethod();
+        String path = request.getRequestURI();
+
+        if (status >= 500) {
+            log.error("[API][SERVER_ERROR] method={}, path={}, status={}, duration={}",
+                    method, path, status, duration);
+            return;
         }
-        Object principal = auth.getPrincipal();
 
-        return (principal instanceof Long) ? principal.toString() : "알 수 없는 사용자";
+        if (status >= 400) {
+            log.warn("[API][CLIENT_ERROR] method={}, path={}, status={}, duration={}",
+                    method, path, status, duration);
+            return;
+        }
+
+        log.warn("[API][SLOW] method={}, path={}, status={}, duration={}",
+                method, path, status, duration);
     }
 
     @Override

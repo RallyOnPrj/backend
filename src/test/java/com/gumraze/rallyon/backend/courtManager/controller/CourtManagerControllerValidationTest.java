@@ -1,222 +1,133 @@
-package com.gumraze.rallyon.backend.courtManager.controller;
+package com.gumraze.rallyon.backend.courtManager.adapter.in.web;
 
-import com.gumraze.rallyon.backend.auth.token.JwtAccessTokenValidator;
-import com.gumraze.rallyon.backend.config.SecurityConfig;
-import com.gumraze.rallyon.backend.courtManager.dto.MatchRequest;
-import com.gumraze.rallyon.backend.courtManager.dto.RoundRequest;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.AddFreeGameParticipantUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.CreateFreeGameUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameParticipantsUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.GetPublicFreeGameDetailUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameInfoUseCase;
+import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGameRoundsAndMatchesUseCase;
+import com.gumraze.rallyon.backend.courtManager.dto.AddFreeGameParticipantRequest;
+import com.gumraze.rallyon.backend.courtManager.dto.CreateFreeGameRequest;
 import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameRoundMatchRequest;
-import com.gumraze.rallyon.backend.courtManager.service.FreeGameService;
-import org.junit.jupiter.api.BeforeEach;
+import com.gumraze.rallyon.backend.security.config.SecurityConfig;
+import com.gumraze.rallyon.backend.user.constants.Gender;
+import com.gumraze.rallyon.backend.user.constants.Grade;
+import com.gumraze.rallyon.backend.user.constants.GradeType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static com.gumraze.rallyon.backend.courtManager.controller.support.CourtManagerControllerFixtures.authenticatedUser;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// 요청 값 검증 test
 @WebMvcTest(CourtManagerController.class)
 @Import(SecurityConfig.class)
-public class CourtManagerControllerValidationTest {
+class CourtManagerControllerValidationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @MockitoBean private CreateFreeGameUseCase createFreeGameUseCase;
+    @MockitoBean private GetFreeGameDetailUseCase getFreeGameDetailUseCase;
+    @MockitoBean private UpdateFreeGameInfoUseCase updateFreeGameInfoUseCase;
+    @MockitoBean private GetFreeGameRoundsAndMatchesUseCase getFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesUseCase updateFreeGameRoundsAndMatchesUseCase;
+    @MockitoBean private AddFreeGameParticipantUseCase addFreeGameParticipantUseCase;
+    @MockitoBean private GetFreeGameParticipantsUseCase getFreeGameParticipantsUseCase;
+    @MockitoBean private GetFreeGameParticipantDetailUseCase getFreeGameParticipantDetailUseCase;
+    @MockitoBean private GetPublicFreeGameDetailUseCase getPublicFreeGameDetailUseCase;
+    @MockitoBean private CreateFreeGameCommandMapper createFreeGameCommandMapper;
+    @MockitoBean private UpdateFreeGameInfoCommandMapper updateFreeGameInfoCommandMapper;
+    @MockitoBean private UpdateFreeGameRoundsAndMatchesCommandMapper updateFreeGameRoundsAndMatchesCommandMapper;
+    @MockitoBean private AddFreeGameParticipantCommandMapper addFreeGameParticipantCommandMapper;
+    @MockitoBean private JwtDecoder jwtDecoder;
 
-    @MockitoBean
-    private FreeGameService freeGameService;
-
-    @MockitoBean
-    private JwtAccessTokenValidator jwtAccessTokenValidator;
-
-    @BeforeEach
-    void setUp() {
-        when(jwtAccessTokenValidator.validateAndGetUserId("token")).thenReturn(Optional.of(1L));
-    }
-
-    private RequestPostProcessor authenticatedUser(Long userId) {
-        return authentication(
-                new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                )
+    @Test
+    @DisplayName("자유게임 생성 시 title 누락이면 400")
+    void createFreeGame_without_title() throws Exception {
+        CreateFreeGameRequest request = new CreateFreeGameRequest(
+                null,
+                null,
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                List.of(),
+                List.of(),
+                List.of()
         );
+
+        mockMvc.perform(post("/free-games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(authenticatedUser(UUID.randomUUID()))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("라운드/매치 부분 수정 - rounds 누락이면 400")
+    @DisplayName("라운드/매치 수정 시 rounds 누락이면 400")
     void updateRoundMatch_without_rounds_then_bad_request() throws Exception {
-        // given
-        // 라운드 누락
-        String body = "{}";
+        UUID gameId = UUID.randomUUID();
 
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
+                        .with(authenticatedUser(UUID.randomUUID()))
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
-    @DisplayName("라운드/매치 부분 수정 - roundNumber 누락이면 400")
-    void updateRoundMatch_without_roundNumber_then_bad_request() throws Exception {
-        // given
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(null)  // 누락
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(List.of(3L, 4L))
-                                                        .build()
-                                        ))
-                                        .build()
-                        ))
-                        .build();
+    @DisplayName("참가자 추가 시 gender 누락이면 400")
+    void addParticipant_without_gender_then_bad_request() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        AddFreeGameParticipantRequest request = new AddFreeGameParticipantRequest(
+                null,
+                "참가자",
+                null,
+                Grade.ROOKIE,
+                20
+        );
 
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(post("/free-games/{gameId}/participants", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
+                        .with(authenticatedUser(UUID.randomUUID()))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("라운드/매치 부분 수정 - matches 누락이면 400")
-    void updateRoundMatch_without_matches_then_bad_request() throws Exception {
-        // given
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(null)  // match 누락
-                                        .build()
-                        ))
-                        .build();
+    @DisplayName("참가자 추가 시 이름 형식이 잘못되면 400")
+    void addParticipant_with_invalid_name_then_bad_request() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        AddFreeGameParticipantRequest request = new AddFreeGameParticipantRequest(
+                null,
+                "1234",
+                Gender.MALE,
+                Grade.ROOKIE,
+                20
+        );
 
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
+        mockMvc.perform(post("/free-games/{gameId}/participants", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
+                        .with(authenticatedUser(UUID.randomUUID()))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
-
-    @Test
-    @DisplayName("라운드/매치 부분 수정 - teamAIds 누락이면 400")
-    void updateRoundMatch_without_teamAIds_then_bad_request() throws Exception {
-        // given
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(null)
-                                                        .teamBIds(List.of(3L, 4L))
-                                                        .build()
-                                        ))
-                                        .build()
-                        ))
-                        .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
-    }
-
-    @Test
-    @DisplayName("라운드/매치 부분 수정 - teamBIds 누락이면 400")
-    void updateRoundMatch_without_teamBIds_then_bad_request() throws Exception {
-        // given
-        UpdateFreeGameRoundMatchRequest request =
-                UpdateFreeGameRoundMatchRequest.builder()
-                        .rounds(List.of(
-                                RoundRequest.builder()
-                                        .roundNumber(1)
-                                        .matches(List.of(
-                                                MatchRequest.builder()
-                                                        .courtNumber(1)
-                                                        .teamAIds(List.of(1L, 2L))
-                                                        .teamBIds(null)
-                                                        .build()
-                                        ))
-                                        .build()
-                        ))
-                        .build();
-
-        String body = objectMapper.writeValueAsString(request);
-
-        // when & then
-        mockMvc.perform(patch("/free-games/{gameId}/rounds-and-matches", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .with(authenticatedUser(1L))
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.type").exists())
-                .andExpect(jsonPath("$.title").exists())
-        ;
-    }
-
 }

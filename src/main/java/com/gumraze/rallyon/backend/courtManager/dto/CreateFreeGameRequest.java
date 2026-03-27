@@ -1,42 +1,88 @@
 package com.gumraze.rallyon.backend.courtManager.dto;
 
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.user.constants.Gender;
+import com.gumraze.rallyon.backend.user.constants.Grade;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.*;
-
+import jakarta.validation.constraints.*;
 import java.util.List;
+import java.util.UUID;
 
-@Getter
-@Builder
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class CreateFreeGameRequest {
-    @NotBlank
-    private String title;                                   // 게임 제목
+public record CreateFreeGameRequest(
+        @NotBlank
+        String title,
 
-    @Enumerated(EnumType.STRING)
-    private MatchRecordMode matchRecordMode;                // 매치 기록 모드: RESULT/STATUS_ONLY
+        MatchRecordMode matchRecordMode,
 
-    @NotNull
-    private GradeType gradeType;                            // 게임 참가자들의 급수 형식
+        @NotNull
+        GradeType gradeType,
 
-    @NotNull @Min(1)
-    private Integer courtCount;                             // 코트 수
+        @NotNull
+        @Min(1)
+        Integer courtCount,
 
-    @NotNull @Min(1)
-    private Integer roundCount;                             // 라운드 수
+        @NotNull
+        @Min(1)
+        Integer roundCount,
 
-    @Size(max = 2)
-    private List<Long> managerIds;                          // 게임 공동 운영자(최대 2명, null 허용)
+        @Size(max = 255)
+        String location,
 
-    @Valid
-    private List<ParticipantCreateRequest> participants;    // 게임 참가자(null 허용)
+        @Size(max = 2)
+        List<UUID> managerIds,
+
+        @Valid
+        List<ParticipantRequest> participants,
+
+        @Valid
+        List<RoundRequest> rounds
+) {
+    public record ParticipantRequest(
+            @NotBlank
+            String clientId,
+
+            UUID accountId,
+
+            @NotBlank
+            @Pattern(
+                    regexp = "^(?=.*[A-Za-z가-힣])[A-Za-z가-힣 ]+$",
+                    message = "참가자 이름은 한글 또는 영문만 입력할 수 있습니다."
+            )
+            String originalName,
+
+            @NotNull
+            Gender gender,
+
+            @NotNull
+            Grade grade,
+
+            @NotNull
+            @Min(10)
+            @Max(70)
+            Integer ageGroup
+    ) {
+    }
+
+    public record RoundRequest(
+            @NotNull
+            @Min(1)
+            Integer roundNumber,
+
+            @NotNull
+            @Valid
+            List<CourtRequest> courts
+    ) {
+    }
+
+    public record CourtRequest(
+            @NotNull
+            @Min(1)
+            Integer courtNumber,
+
+            @NotNull
+            @Size(min = 4, max = 4)
+            List<String> slots
+    ) {
+    }
 }

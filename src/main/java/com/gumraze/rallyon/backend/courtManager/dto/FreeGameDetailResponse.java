@@ -6,41 +6,35 @@ import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameSetting;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
-@Setter
-@Getter
-@Builder
-@AllArgsConstructor
-public class FreeGameDetailResponse {
-    private Long gameId;
-    private String title;
-    private GameType gameType;
-    private GameStatus gameStatus;
-    private MatchRecordMode matchRecordMode;
-    private GradeType gradeType;
-    private Integer courtCount;
-    private Integer roundCount;
-    private Long organizerId;
-    private String shareCode;
+import java.util.UUID;
 
+public record FreeGameDetailResponse(
+        UUID gameId,
+        String title,
+        GameType gameType,
+        GameStatus gameStatus,
+        MatchRecordMode matchRecordMode,
+        GradeType gradeType,
+        Integer courtCount,
+        Integer roundCount,
+        UUID organizerAccountId,
+        String shareCode,
+        String location
+) {
     public static FreeGameDetailResponse from(FreeGame freeGame, FreeGameSetting setting) {
-        return FreeGameDetailResponse.builder()
-                .gameId(freeGame.getId())
-                .title(freeGame.getTitle())
-                .gameType(freeGame.getGameType())
-                .gameStatus(freeGame.getGameStatus())
-                .matchRecordMode(freeGame.getMatchRecordMode())
-                .gradeType(freeGame.getGradeType())
-                .courtCount(setting.getCourtCount())
-                .roundCount(setting.getRoundCount())
-                .organizerId(freeGame.getOrganizer().getId())
-                .shareCode(freeGame.getShareCode())
-                .build();
+        return new FreeGameDetailResponse(
+                freeGame.getId(),
+                freeGame.getTitle(),
+                freeGame.getGameType(),
+                freeGame.getGameStatus(),
+                freeGame.getMatchRecordMode(),
+                freeGame.getGradeType(),
+                setting.getCourtCount(),
+                setting.getRoundCount(),
+                freeGame.getOrganizerAccountId(),
+                freeGame.getShareCode(),
+                freeGame.getLocation()
+        );
     }
 }
-
-
