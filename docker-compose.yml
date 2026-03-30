@@ -24,7 +24,7 @@ services:
         max-file: "3"
 
   app:
-    image: ghcr.io/drivebadminton/drive-backend:latest
+    image: ghcr.io/rallyonprj/backend:main
     container_name: rallyon-backend
     mem_limit: 512m
     depends_on:
@@ -35,11 +35,26 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_ACCESS_TOKEN_SECRET: ${JWT_ACCESS_TOKEN_SECRET}
-      JWT_ACCESS_TOKEN_EXPIRATION_MS: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
-      JWT_REFRESH_TOKEN_EXPIRATION_HOURS: ${JWT_REFRESH_TOKEN_EXPIRATION_HOURS}
+      OAUTH_ALLOWED_PROVIDERS: ${OAUTH_ALLOWED_PROVIDERS:-KAKAO}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      GOOGLE_OAUTH_ENABLED: ${GOOGLE_OAUTH_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      APPLE_OAUTH_ENABLED: ${APPLE_OAUTH_ENABLED:-false}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+      APPLE_KEY_ID: ${APPLE_KEY_ID:-}
+      APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
+      APP_AUTH_ISSUER: ${APP_AUTH_ISSUER:-https://auth.rallyon.kr}
+      APP_AUTH_FRONTEND_BASE_URL: ${APP_AUTH_FRONTEND_BASE_URL:-https://rallyon.kr}
+      APP_AUTH_BROWSER_REDIRECT_URI: ${APP_AUTH_BROWSER_REDIRECT_URI:-https://auth.rallyon.kr/identity/session/callback}
+      APP_AUTH_ACCESS_TOKEN_COOKIE_DOMAIN: ${APP_AUTH_ACCESS_TOKEN_COOKIE_DOMAIN:-.rallyon.kr}
+      APP_API_HOST: ${APP_API_HOST:-api.rallyon.kr}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-https://rallyon.kr,https://www.rallyon.kr,https://auth.rallyon.kr}
+      APP_AUTH_SIGNING_PRIVATE_KEY_PEM: ${APP_AUTH_SIGNING_PRIVATE_KEY_PEM:-}
+      APP_AUTH_SIGNING_KEY_ID: ${APP_AUTH_SIGNING_KEY_ID:-rallyon-auth-key}
+      APP_AUTH_ALLOW_GENERATED_KEY_FALLBACK: ${APP_AUTH_ALLOW_GENERATED_KEY_FALLBACK:-true}
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx256m"
     ports:
       - "${HOST_APP_PORT:-8080}:8080"
