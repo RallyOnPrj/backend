@@ -1,0 +1,31 @@
+name: Feature
+description: 새로운 기능 작업을 위한 이슈 템플릿
+title: "[Feature] "
+labels:
+  - feature
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 작업 요약
+      description: 어떤 기능을 추가하거나 개선하는지 적어주세요.
+      placeholder: 예) 대회 검색 필터 추가
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 배경 / 목적
+      description: 왜 이 작업이 필요한지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 조건
+      description: 구현이 끝났다고 판단할 기준을 적어주세요.
+      placeholder: |
+        - 사용자가 ...
+        - API가 ...
+    validations:
+      required: true

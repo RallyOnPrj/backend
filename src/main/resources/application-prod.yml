@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/drive
+    url: jdbc:postgresql://db:5432/${POSTGRES_DB}
+    driver-class-name: org.postgresql.Driver
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
@@ -11,8 +12,20 @@ spring:
 server:
   forward-headers-strategy: framework
 
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://api.drive-minton.com,https://drive-minton.com}
+
 springdoc:
   api-docs:
-    enabled: false
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
   swagger-ui:
-    enabled: false
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
+
+naver:
+  search:
+    local:
+      enabled: ${NAVER_SEARCH_LOCAL_ENABLED:false}
+      client-id: ${NAVER_SEARCH_CLIENT_ID:}
+      client-secret: ${NAVER_SEARCH_CLIENT_SECRET:}
+      base-url: ${NAVER_SEARCH_BASE_URL:https://openapi.naver.com}

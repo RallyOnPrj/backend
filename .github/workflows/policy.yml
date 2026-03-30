@@ -1,0 +1,75 @@
+name: Policy - Branch, Commit, PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+      - ready_for_review
+  push:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate workflow policy
+        uses: actions/github-script@v7
+        env:
+          BRANCH_REGEX: "^(feat|fix|refactor|docs|chore|test|style)/[0-9]+-[a-z0-9-]+$"
+          PR_TITLE_REGEX: "^(feat|fix|refactor|docs|chore|test|style): .+$"
+          COMMIT_TITLE_REGEX: "^((feat|fix|refactor|docs|chore|test|style)(\\([a-z0-9-]+\\))?: .+|merge: .+|Merge .+)$"
+        with:
+          script: |
+            const branchRegex = new RegExp(process.env.BRANCH_REGEX);
+            const prTitleRegex = new RegExp(process.env.PR_TITLE_REGEX);
+            const commitTitleRegex = new RegExp(process.env.COMMIT_TITLE_REGEX);
+            const errors = [];
+            const { owner, repo } = context.repo;
+
+            const validateTitle = (title, label, regex, format) => {
+              if (!regex.test(title)) {
+                errors.push(`${label} "${title}" 가 규칙을 만족하지 않습니다. 형식: ${format}`);
+              }
+            };
+
+            if (context.eventName === "pull_request") {
+              const pr = context.payload.pull_request;
+
+              if (!branchRegex.test(pr.head.ref)) {
+                errors.push(`브랜치명 "${pr.head.ref}" 가 규칙을 만족하지 않습니다. 형식: type/{issue-number}-{slug}`);
+              }
+
+              validateTitle(pr.title, "PR 제목", prTitleRegex, "type: 한글 제목");
+
+              const commits = await github.paginate(github.rest.pulls.listCommits, {
+                owner,
+                repo,
+                pull_number: pr.number,
+                per_page: 100,
+              });
+
+              for (const commit of commits) {
+                const subject = commit.commit.message.split("\n")[0];
+                validateTitle(subject, "커밋 제목", commitTitleRegex, "type: 한글 제목 또는 merge: 제목");
+              }
+            }
+
+            if (context.eventName === "push") {
+              const commits = context.payload.commits || [];
+              for (const commit of commits) {
+                const subject = commit.message.split("\n")[0];
+                validateTitle(subject, "커밋 제목", commitTitleRegex, "type: 한글 제목 또는 merge: 제목");
+              }
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(errors.join("\n"));
+            } else {
+              core.info("브랜치/커밋/PR 규칙 검증을 통과했습니다.");
+            }
