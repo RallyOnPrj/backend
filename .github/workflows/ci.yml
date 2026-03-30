@@ -16,7 +16,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/drivebadminton/drive-backend
+  IMAGE_NAME: ghcr.io/rallyonprj/backend
 
 jobs:
   test:
