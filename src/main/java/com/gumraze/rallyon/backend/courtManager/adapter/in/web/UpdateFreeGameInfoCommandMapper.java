@@ -16,6 +16,7 @@ public class UpdateFreeGameInfoCommandMapper {
                 request.title(),
                 request.matchRecordMode(),
                 request.gradeType(),
+                request.scheduledAt(),
                 request.location(),
                 request.managerIds()
         );

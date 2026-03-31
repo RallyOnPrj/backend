@@ -113,6 +113,7 @@ class CourtManagerControllerTest {
                 GradeType.NATIONAL,
                 2,
                 3,
+                "2026-04-01T15:10",
                 "잠실 배드민턴장",
                 null,
                 List.of(),
@@ -124,6 +125,7 @@ class CourtManagerControllerTest {
                 GradeType.NATIONAL,
                 2,
                 3,
+                "2026-04-01T15:10",
                 "잠실 배드민턴장",
                 null,
                 List.of(),
@@ -172,6 +174,7 @@ class CourtManagerControllerTest {
                 "수정된 자유게임",
                 MatchRecordMode.RESULT,
                 GradeType.REGIONAL,
+                "2026-04-02T18:20",
                 null,
                 null
         );
@@ -181,6 +184,7 @@ class CourtManagerControllerTest {
                 request.title(),
                 request.matchRecordMode(),
                 request.gradeType(),
+                request.scheduledAt(),
                 request.location(),
                 request.managerIds()
         );

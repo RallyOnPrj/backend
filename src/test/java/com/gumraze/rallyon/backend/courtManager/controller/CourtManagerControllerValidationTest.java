@@ -68,6 +68,30 @@ class CourtManagerControllerValidationTest {
                 2,
                 3,
                 null,
+                null,
+                List.of(),
+                List.of(),
+                List.of()
+        );
+
+        mockMvc.perform(post("/free-games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(authenticatedUser(UUID.randomUUID()))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("자유게임 생성 시 scheduledAt 누락이면 400")
+    void createFreeGame_without_scheduled_at() throws Exception {
+        CreateFreeGameRequest request = new CreateFreeGameRequest(
+                "자유게임",
+                null,
+                GradeType.NATIONAL,
+                2,
+                3,
+                null,
+                null,
                 List.of(),
                 List.of(),
                 List.of()

@@ -9,6 +9,7 @@ import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGam
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGameRoundPort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveGameParticipantPort;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.domain.FreeGameScheduleValidator;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.CourtAssignment;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.RoundAssignment;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
@@ -29,6 +30,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
     private final SaveFreeGameSettingPort saveFreeGameSettingPort;
     private final SaveGameParticipantPort saveGameParticipantPort;
     private final SaveFreeGameRoundPort saveFreeGameRoundPort;
+    private final FreeGameScheduleValidator freeGameScheduleValidator;
 
     @Override
     public UUID create(UUID organizerId, CreateFreeGameCommand command) {
@@ -42,6 +44,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
 
         validateManagerIds(organizerId, command.managerIds());
         String shareCode = issueShareCodePort.issue();
+        var scheduledAt = freeGameScheduleValidator.parseRequiredFuture(command.scheduledAt());
 
         FreeGame freeGame = FreeGame.create(
                 command.title(),
@@ -49,6 +52,7 @@ public class CreateFreeGameService implements CreateFreeGameUseCase {
                 command.gradeType(),
                 matchRecordMode,
                 shareCode,
+                scheduledAt,
                 command.location()
         );
 
