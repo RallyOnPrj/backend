@@ -3,6 +3,7 @@ package com.gumraze.rallyon.backend.common.api;
 import com.gumraze.rallyon.backend.common.exception.ConflictException;
 import com.gumraze.rallyon.backend.common.exception.ForbiddenException;
 import com.gumraze.rallyon.backend.common.exception.NotFoundException;
+import com.gumraze.rallyon.backend.common.exception.ServiceUnavailableException;
 import com.gumraze.rallyon.backend.common.exception.UnauthorizedException;
 import com.gumraze.rallyon.backend.common.exception.UnprocessableEntityException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -194,6 +195,22 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 "/problems/unprocessable-entity",
                 "요청을 처리할 수 없습니다.",
+                ex.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleServiceUnavailable(
+            ServiceUnavailableException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("[서비스 일시 사용 불가]: {}", ex.getMessage());
+
+        return buildProblemDetailResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "/problems/service-unavailable",
+                "서비스를 현재 사용할 수 없습니다.",
                 ex.getMessage(),
                 request
         );
