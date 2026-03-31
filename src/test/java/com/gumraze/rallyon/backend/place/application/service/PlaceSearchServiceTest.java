@@ -2,6 +2,7 @@ package com.gumraze.rallyon.backend.place.application.service;
 
 import com.gumraze.rallyon.backend.application.port.out.PlaceSearchPort;
 import com.gumraze.rallyon.backend.application.service.PlaceSearchService;
+import com.gumraze.rallyon.backend.common.exception.ServiceUnavailableException;
 import com.gumraze.rallyon.backend.domain.PlaceSearchResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -22,6 +25,7 @@ import static org.mockito.BDDMockito.then;
 public class PlaceSearchServiceTest {
 
     @Mock private PlaceSearchPort placeSearchPort;
+    @Mock private ObjectProvider<PlaceSearchPort> placeSearchPortProvider;
     @InjectMocks private PlaceSearchService placeSearchService;
 
     @Test
@@ -55,6 +59,7 @@ public class PlaceSearchServiceTest {
                 )
         );
 
+        given(placeSearchPortProvider.getIfAvailable()).willReturn(placeSearchPort);
         given(placeSearchPort.search(eq("숙지다목적체육관"), anyInt()))
                 .willReturn(expected);
 
@@ -71,6 +76,7 @@ public class PlaceSearchServiceTest {
     void search_usesDefaultLimitOfTen() {
         // given
         String query = "숙지다목적체육관";
+        given(placeSearchPortProvider.getIfAvailable()).willReturn(placeSearchPort);
         given(placeSearchPort.search("숙지다목적체육관", 5))
                 .willReturn(List.of());
 
@@ -107,6 +113,18 @@ public class PlaceSearchServiceTest {
 
         // then
         assertThat(result).isEmpty();
+        then(placeSearchPort).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("장소 검색 포트가 없으면 503 예외를 던진다")
+    void search_without_place_search_port_throws_service_unavailable() {
+        given(placeSearchPortProvider.getIfAvailable()).willReturn(null);
+
+        assertThatThrownBy(() -> placeSearchService.search("숙지다목적체육관"))
+                .isInstanceOf(ServiceUnavailableException.class)
+                .hasMessage("장소 검색 서비스를 현재 사용할 수 없습니다.");
+
         then(placeSearchPort).shouldHaveNoInteractions();
     }
 }

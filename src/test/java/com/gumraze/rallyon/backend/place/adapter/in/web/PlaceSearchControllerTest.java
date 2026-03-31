@@ -2,6 +2,7 @@ package com.gumraze.rallyon.backend.place.adapter.in.web;
 
 import com.gumraze.rallyon.backend.application.adapter.in.web.PlaceSearchController;
 import com.gumraze.rallyon.backend.application.port.in.SearchPlacesUseCase;
+import com.gumraze.rallyon.backend.common.exception.ServiceUnavailableException;
 import com.gumraze.rallyon.backend.domain.PlaceSearchResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,5 +88,18 @@ class PlaceSearchControllerTest {
                 .andExpect(status().isBadRequest());
 
         then(searchPlacesUseCase).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("장소 검색 서비스를 사용할 수 없으면 503을 반환한다")
+    void search_returns_service_unavailable_when_search_is_disabled() throws Exception {
+        given(searchPlacesUseCase.search("숙지다목적체육관"))
+                .willThrow(new ServiceUnavailableException("장소 검색 서비스를 현재 사용할 수 없습니다."));
+
+        mockMvc.perform(get("/places/search")
+                        .param("query", "숙지다목적체육관"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.detail").value("장소 검색 서비스를 현재 사용할 수 없습니다."));
     }
 }
