@@ -5,6 +5,7 @@ import com.gumraze.rallyon.backend.identity.application.port.out.LoadOAuthLinkPo
 import com.gumraze.rallyon.backend.identity.application.port.out.SaveOAuthLinkPort;
 import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.identity.entity.OAuthLink;
+import com.gumraze.rallyon.backend.user.application.port.out.LoadAccountAuthProviderPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadAccountDisplayNamePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,11 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class OAuthLinkPersistenceAdapter implements LoadOAuthLinkPort, SaveOAuthLinkPort, LoadAccountDisplayNamePort {
+public class OAuthLinkPersistenceAdapter implements
+        LoadOAuthLinkPort,
+        SaveOAuthLinkPort,
+        LoadAccountDisplayNamePort,
+        LoadAccountAuthProviderPort {
 
     private final OAuthLinkRepository repository;
 
@@ -33,6 +38,13 @@ public class OAuthLinkPersistenceAdapter implements LoadOAuthLinkPort, SaveOAuth
         return repository.findByAccount_IdOrderByUpdatedAtDesc(accountId).stream()
                 .map(OAuthLink::getNickname)
                 .filter(nickname -> nickname != null && !nickname.isBlank())
+                .findFirst();
+    }
+
+    @Override
+    public Optional<AuthProvider> loadLatestAuthProvider(UUID accountId) {
+        return repository.findByAccount_IdOrderByUpdatedAtDesc(accountId).stream()
+                .map(OAuthLink::getProvider)
                 .findFirst();
     }
 

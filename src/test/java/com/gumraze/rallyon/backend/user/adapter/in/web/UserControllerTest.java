@@ -1,5 +1,6 @@
 package com.gumraze.rallyon.backend.user.adapter.in.web;
 
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.security.config.SecurityConfig;
 import com.gumraze.rallyon.backend.user.application.port.in.CreateMyProfileUseCase;
 import com.gumraze.rallyon.backend.user.application.port.in.GetMyProfileDefaultsUseCase;
@@ -85,7 +86,7 @@ class UserControllerTest {
     @DisplayName("PENDING 사용자가 /users/me 조회 시 status만 반환한다")
     void get_me_returns_pending_user_status() throws Exception {
         UUID accountId = UUID.randomUUID();
-        UserMeResponse response = new UserMeResponse(UserStatus.PENDING, null, null);
+        UserMeResponse response = new UserMeResponse(UserStatus.PENDING, null, null, null);
 
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
 
@@ -95,7 +96,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(UserStatus.PENDING.name()))
                 .andExpect(jsonPath("$.profileImageUrl").value(nullValue()))
-                .andExpect(jsonPath("$.nickname").value(nullValue()));
+                .andExpect(jsonPath("$.nickname").value(nullValue()))
+                .andExpect(jsonPath("$.provider").value(nullValue()));
     }
 
     @Test
@@ -105,7 +107,8 @@ class UserControllerTest {
         UserMeResponse response = new UserMeResponse(
                 UserStatus.ACTIVE,
                 "http://profile-image.com",
-                "테스트 닉네임"
+                "테스트 닉네임",
+                AuthProvider.GOOGLE
         );
 
         when(getMyUserSummaryUseCase.get(any())).thenReturn(response);
@@ -116,7 +119,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(UserStatus.ACTIVE.name()))
                 .andExpect(jsonPath("$.nickname").value("테스트 닉네임"))
-                .andExpect(jsonPath("$.profileImageUrl").value("http://profile-image.com"));
+                .andExpect(jsonPath("$.profileImageUrl").value("http://profile-image.com"))
+                .andExpect(jsonPath("$.provider").value(AuthProvider.GOOGLE.name()));
     }
 
     @Test
