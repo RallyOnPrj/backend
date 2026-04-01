@@ -81,6 +81,7 @@ class CourtManagerControllerAuthTest {
                 3,
                 null,
                 null,
+                null,
                 List.of(new CreateFreeGameRequest.ParticipantRequest("p1", null, "참가자", Gender.MALE, Grade.ROOKIE, 20)),
                 List.of()
         );

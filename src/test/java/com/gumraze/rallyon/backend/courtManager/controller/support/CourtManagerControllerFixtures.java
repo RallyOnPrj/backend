@@ -14,12 +14,16 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 public final class CourtManagerControllerFixtures {
+
+    private static final LocalDateTime DEFAULT_SCHEDULED_AT =
+            LocalDateTime.of(2026, 4, 1, 15, 10);
 
     private CourtManagerControllerFixtures() {
     }
@@ -46,6 +50,7 @@ public final class CourtManagerControllerFixtures {
                 2,
                 organizerId,
                 null,
+                DEFAULT_SCHEDULED_AT,
                 "잠실 배드민턴장"
         );
     }

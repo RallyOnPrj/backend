@@ -11,6 +11,7 @@ public record UpdateFreeGameRequest(
         String title,
         MatchRecordMode matchRecordMode,
         GradeType gradeType,
+        String scheduledAt,
         @Size(max = 255) String location,
         List<UUID> managerIds
 ) {}

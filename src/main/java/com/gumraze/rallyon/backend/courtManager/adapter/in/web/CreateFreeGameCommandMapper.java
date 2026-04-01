@@ -14,6 +14,7 @@ public class CreateFreeGameCommandMapper {
                 request.gradeType(),
                 request.courtCount(),
                 request.roundCount(),
+                request.scheduledAt(),
                 request.location(),
                 request.managerIds(),
                 request.participants() == null ? null : request.participants().stream()
