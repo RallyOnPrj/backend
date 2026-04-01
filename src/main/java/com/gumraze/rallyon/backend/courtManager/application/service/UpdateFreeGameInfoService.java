@@ -4,6 +4,7 @@ import com.gumraze.rallyon.backend.courtManager.application.port.in.UpdateFreeGa
 import com.gumraze.rallyon.backend.courtManager.application.port.in.command.UpdateFreeGameInfoCommand;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
+import com.gumraze.rallyon.backend.courtManager.domain.FreeGameScheduleValidator;
 import com.gumraze.rallyon.backend.courtManager.application.support.FreeGameAccessSupport;
 import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameResponse;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
@@ -18,6 +19,7 @@ public class UpdateFreeGameInfoService implements UpdateFreeGameInfoUseCase {
 
     private final LoadFreeGamePort loadFreeGamePort;
     private final SaveFreeGamePort saveFreeGamePort;
+    private final FreeGameScheduleValidator freeGameScheduleValidator;
 
     @Override
     public UpdateFreeGameResponse update(UpdateFreeGameInfoCommand command) {
@@ -31,10 +33,13 @@ public class UpdateFreeGameInfoService implements UpdateFreeGameInfoUseCase {
             throw new UnsupportedOperationException("매니저 수정 기능은 현재 미개발 상태입니다.");
         }
 
+        var scheduledAt = freeGameScheduleValidator.parseOptionalFuture(command.scheduledAt());
+
         freeGame.update(
                 command.title(),
                 command.matchRecordMode(),
                 command.gradeType(),
+                scheduledAt,
                 command.location()
         );
 

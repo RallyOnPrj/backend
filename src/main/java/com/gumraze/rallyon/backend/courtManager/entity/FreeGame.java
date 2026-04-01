@@ -53,6 +53,9 @@ public class FreeGame extends MutableAuditEntity {
     @Column(name = "location", length = 255)
     private String location;
 
+    @Column(name = "scheduled_at")
+    private LocalDateTime scheduledAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -68,6 +71,7 @@ public class FreeGame extends MutableAuditEntity {
             GradeType gradeType,
             MatchRecordMode matchRecordMode,
             String shareCode,
+            LocalDateTime scheduledAt,
             String location
     ) {
         FreeGame freeGame = new FreeGame();
@@ -76,10 +80,36 @@ public class FreeGame extends MutableAuditEntity {
         freeGame.gradeType = gradeType;
         freeGame.matchRecordMode = matchRecordMode;
         freeGame.shareCode = shareCode;
+        freeGame.scheduledAt = scheduledAt;
         freeGame.location = location;
         freeGame.gameType = GameType.FREE;
         freeGame.gameStatus = GameStatus.NOT_STARTED;
         return freeGame;
+    }
+
+    public static FreeGame create(
+            String title,
+            UUID organizerAccountId,
+            GradeType gradeType,
+            MatchRecordMode matchRecordMode,
+            String shareCode,
+            String location
+    ) {
+        return create(title, organizerAccountId, gradeType, matchRecordMode, shareCode, null, location);
+    }
+
+    public void update(
+            String title,
+            MatchRecordMode matchRecordMode,
+            GradeType gradeType,
+            LocalDateTime scheduledAt,
+            String location
+    ) {
+        this.title = title != null ? title : this.title;
+        this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
+        this.gradeType = gradeType != null ? gradeType : this.gradeType;
+        this.scheduledAt = scheduledAt != null ? scheduledAt : this.scheduledAt;
+        this.location = location != null ? location : this.location;
     }
 
     public void update(
@@ -88,10 +118,7 @@ public class FreeGame extends MutableAuditEntity {
             GradeType gradeType,
             String location
     ) {
-        this.title = title != null ? title : this.title;
-        this.matchRecordMode = matchRecordMode != null ? matchRecordMode : this.matchRecordMode;
-        this.gradeType = gradeType != null ? gradeType : this.gradeType;
-        this.location = location != null ? location : this.location;
+        update(title, matchRecordMode, gradeType, null, location);
     }
 
     public UUID getId() {
@@ -128,6 +155,10 @@ public class FreeGame extends MutableAuditEntity {
 
     public String getLocation() {
         return location;
+    }
+
+    public LocalDateTime getScheduledAt() {
+        return scheduledAt;
     }
 
     @Override

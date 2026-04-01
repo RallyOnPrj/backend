@@ -7,6 +7,7 @@ import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGameSetting;
 import com.gumraze.rallyon.backend.user.constants.GradeType;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FreeGameDetailResponse(
@@ -20,6 +21,7 @@ public record FreeGameDetailResponse(
         Integer roundCount,
         UUID organizerAccountId,
         String shareCode,
+        LocalDateTime scheduledAt,
         String location
 ) {
     public static FreeGameDetailResponse from(FreeGame freeGame, FreeGameSetting setting) {
@@ -34,6 +36,7 @@ public record FreeGameDetailResponse(
                 setting.getRoundCount(),
                 freeGame.getOrganizerAccountId(),
                 freeGame.getShareCode(),
+                freeGame.getScheduledAt(),
                 freeGame.getLocation()
         );
     }

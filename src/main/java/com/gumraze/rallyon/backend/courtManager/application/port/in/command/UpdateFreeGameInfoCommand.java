@@ -12,6 +12,7 @@ public record UpdateFreeGameInfoCommand(
         String title,
         MatchRecordMode matchRecordMode,
         GradeType gradeType,
+        String scheduledAt,
         String location,
         List<UUID> managerIds
 ) {

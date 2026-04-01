@@ -26,6 +26,9 @@ public record CreateFreeGameRequest(
         @Min(1)
         Integer roundCount,
 
+        @NotBlank
+        String scheduledAt,
+
         @Size(max = 255)
         String location,
 

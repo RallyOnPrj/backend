@@ -4,6 +4,7 @@ import com.gumraze.rallyon.backend.courtManager.application.port.in.command.Upda
 import com.gumraze.rallyon.backend.courtManager.application.port.out.LoadFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveFreeGamePort;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.domain.FreeGameScheduleValidator;
 import com.gumraze.rallyon.backend.courtManager.dto.UpdateFreeGameResponse;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
 import com.gumraze.rallyon.backend.courtManager.support.CourtManagerTestFixtures;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +37,9 @@ class UpdateFreeGameInfoServiceTest {
     @Mock
     private SaveFreeGamePort saveFreeGamePort;
 
+    @Mock
+    private FreeGameScheduleValidator freeGameScheduleValidator;
+
     @InjectMocks
     private UpdateFreeGameInfoService service;
 
@@ -44,8 +49,10 @@ class UpdateFreeGameInfoServiceTest {
         UUID gameId = UUID.randomUUID();
         UUID organizerAccountId = UUID.randomUUID();
         FreeGame freeGame = CourtManagerTestFixtures.freeGame(gameId, organizerAccountId, MatchRecordMode.STATUS_ONLY);
+        LocalDateTime scheduledAt = LocalDateTime.of(2026, 4, 2, 18, 20);
         given(loadFreeGamePort.loadGameById(gameId)).willReturn(Optional.of(freeGame));
         given(saveFreeGamePort.save(same(freeGame))).willReturn(freeGame);
+        given(freeGameScheduleValidator.parseOptionalFuture("2026-04-02T18:20")).willReturn(scheduledAt);
 
         UpdateFreeGameResponse result = service.update(new UpdateFreeGameInfoCommand(
                 organizerAccountId,
@@ -53,6 +60,7 @@ class UpdateFreeGameInfoServiceTest {
                 "수정된 게임",
                 MatchRecordMode.RESULT,
                 GradeType.NATIONAL,
+                "2026-04-02T18:20",
                 "올림픽공원",
                 null
         ));
@@ -60,6 +68,7 @@ class UpdateFreeGameInfoServiceTest {
         assertThat(result.gameId()).isEqualTo(gameId);
         assertThat(freeGame.getTitle()).isEqualTo("수정된 게임");
         assertThat(freeGame.getMatchRecordMode()).isEqualTo(MatchRecordMode.RESULT);
+        assertThat(freeGame.getScheduledAt()).isEqualTo(scheduledAt);
         assertThat(freeGame.getLocation()).isEqualTo("올림픽공원");
         verify(saveFreeGamePort).save(freeGame);
     }
@@ -75,6 +84,7 @@ class UpdateFreeGameInfoServiceTest {
         assertThatThrownBy(() -> service.update(new UpdateFreeGameInfoCommand(
                 organizerAccountId,
                 gameId,
+                null,
                 null,
                 null,
                 null,

@@ -1,7 +1,9 @@
 package com.gumraze.rallyon.backend.user.application.service;
 
+import com.gumraze.rallyon.backend.identity.domain.AuthProvider;
 import com.gumraze.rallyon.backend.user.application.port.in.LoadUserOnboardingStatusUseCase;
 import com.gumraze.rallyon.backend.user.application.port.in.query.GetMyUserSummaryQuery;
+import com.gumraze.rallyon.backend.user.application.port.out.LoadAccountAuthProviderPort;
 import com.gumraze.rallyon.backend.user.application.port.out.LoadUserProfilePort;
 import com.gumraze.rallyon.backend.user.constants.UserStatus;
 import com.gumraze.rallyon.backend.user.dto.UserMeResponse;
@@ -30,22 +32,29 @@ class GetMyUserSummaryServiceTest {
     @Mock
     private LoadUserProfilePort loadUserProfilePort;
 
+    @Mock
+    private LoadAccountAuthProviderPort loadAccountAuthProviderPort;
+
     @Test
     @DisplayName("PENDING 사용자는 프로필 조회 없이 status만 반환한다")
     void get_summary_returns_status_only_for_pending_user() {
         var accountId = uuid(1);
         GetMyUserSummaryService service = new GetMyUserSummaryService(
                 loadUserOnboardingStatusUseCase,
-                loadUserProfilePort
+                loadUserProfilePort,
+                loadAccountAuthProviderPort
         );
 
         when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.PENDING);
+        when(loadAccountAuthProviderPort.loadLatestAuthProvider(accountId)).thenReturn(Optional.empty());
 
         UserMeResponse result = service.get(new GetMyUserSummaryQuery(accountId));
 
         assertThat(result.status()).isEqualTo(UserStatus.PENDING);
         assertThat(result.nickname()).isNull();
+        assertThat(result.provider()).isNull();
         verify(loadUserProfilePort, never()).loadByAccountId(accountId);
+        verify(loadAccountAuthProviderPort).loadLatestAuthProvider(accountId);
     }
 
     @Test
@@ -67,16 +76,19 @@ class GetMyUserSummaryServiceTest {
 
         GetMyUserSummaryService service = new GetMyUserSummaryService(
                 loadUserOnboardingStatusUseCase,
-                loadUserProfilePort
+                loadUserProfilePort,
+                loadAccountAuthProviderPort
         );
 
         when(loadUserOnboardingStatusUseCase.load(accountId)).thenReturn(UserStatus.ACTIVE);
         when(loadUserProfilePort.loadByAccountId(accountId)).thenReturn(Optional.of(profile));
+        when(loadAccountAuthProviderPort.loadLatestAuthProvider(accountId)).thenReturn(Optional.of(AuthProvider.KAKAO));
 
         UserMeResponse result = service.get(new GetMyUserSummaryQuery(accountId));
 
         assertThat(result.status()).isEqualTo(UserStatus.ACTIVE);
         assertThat(result.nickname()).isEqualTo("테스트 닉네임");
         assertThat(result.profileImageUrl()).isEqualTo("https://example.com/profile.png");
+        assertThat(result.provider()).isEqualTo(AuthProvider.KAKAO);
     }
 }
