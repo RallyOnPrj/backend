@@ -26,6 +26,7 @@ class UpdateFreeGameInfoCommandMapperTest {
                 "수정된 자유게임",
                 MatchRecordMode.RESULT,
                 GradeType.NATIONAL,
+                "2026-04-01T15:10",
                 "올림픽공원",
                 List.of(managerId)
         );
@@ -37,6 +38,7 @@ class UpdateFreeGameInfoCommandMapperTest {
         assertThat(command.title()).isEqualTo("수정된 자유게임");
         assertThat(command.matchRecordMode()).isEqualTo(MatchRecordMode.RESULT);
         assertThat(command.gradeType()).isEqualTo(GradeType.NATIONAL);
+        assertThat(command.scheduledAt()).isEqualTo("2026-04-01T15:10");
         assertThat(command.location()).isEqualTo("올림픽공원");
         assertThat(command.managerIds()).containsExactly(managerId);
     }

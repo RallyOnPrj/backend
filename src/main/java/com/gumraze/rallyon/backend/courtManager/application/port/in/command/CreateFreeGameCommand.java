@@ -13,6 +13,7 @@ public record CreateFreeGameCommand (
     GradeType gradeType,
     Integer courtCount,
     Integer roundCount,
+    String scheduledAt,
     String location,
     List<UUID> managerIds,
     List<Participant> participants,

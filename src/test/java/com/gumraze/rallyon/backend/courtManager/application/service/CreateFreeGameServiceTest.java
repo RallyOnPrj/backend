@@ -10,6 +10,7 @@ import com.gumraze.rallyon.backend.courtManager.application.port.out.SaveGamePar
 import com.gumraze.rallyon.backend.courtManager.constants.GameStatus;
 import com.gumraze.rallyon.backend.courtManager.constants.GameType;
 import com.gumraze.rallyon.backend.courtManager.constants.MatchRecordMode;
+import com.gumraze.rallyon.backend.courtManager.domain.FreeGameScheduleValidator;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.CourtAssignment;
 import com.gumraze.rallyon.backend.courtManager.domain.assignment.RoundAssignment;
 import com.gumraze.rallyon.backend.courtManager.entity.FreeGame;
@@ -26,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,9 @@ class CreateFreeGameServiceTest {
     @Mock
     private SaveFreeGameRoundPort saveFreeGameRoundPort;
 
+    @Mock
+    private FreeGameScheduleValidator freeGameScheduleValidator;
+
     @InjectMocks
     private CreateFreeGameService createFreeGameService;
 
@@ -72,6 +77,7 @@ class CreateFreeGameServiceTest {
         GameParticipant p2 = savedParticipant("김원호");
         GameParticipant p3 = savedParticipant("안세영");
         GameParticipant p4 = savedParticipant("정나은");
+        LocalDateTime scheduledAt = LocalDateTime.of(2026, 4, 1, 15, 10);
 
         CreateFreeGameCommand command = createCommand(
                 MatchRecordMode.RESULT,
@@ -86,12 +92,14 @@ class CreateFreeGameServiceTest {
                 GradeType.NATIONAL,
                 MatchRecordMode.RESULT,
                 shareCode,
+                scheduledAt,
                 "잠실 배드민턴장"
         );
         ReflectionTestUtils.setField(savedGame, "id", gameId);
 
         given(loadAccountPort.existsById(organizerAccountId)).willReturn(true);
         given(issueShareCodePort.issue()).willReturn(shareCode);
+        given(freeGameScheduleValidator.parseRequiredFuture(command.scheduledAt())).willReturn(scheduledAt);
         given(saveFreeGamePort.save(any())).willReturn(savedGame);
         given(saveGameParticipantPort.saveAll(any(), any())).willReturn(Map.of(
                 "p1", p1,
@@ -113,6 +121,7 @@ class CreateFreeGameServiceTest {
         assertThat(freeGame.getGameType()).isEqualTo(GameType.FREE);
         assertThat(freeGame.getGameStatus()).isEqualTo(GameStatus.NOT_STARTED);
         assertThat(freeGame.getMatchRecordMode()).isEqualTo(MatchRecordMode.RESULT);
+        assertThat(freeGame.getScheduledAt()).isEqualTo(scheduledAt);
         assertThat(freeGame.getLocation()).isEqualTo("잠실 배드민턴장");
 
         then(saveFreeGameSettingPort).should().save(savedGame, 1, 1);
@@ -155,6 +164,7 @@ class CreateFreeGameServiceTest {
         String shareCode = "share-code-123";
         UUID gameId = UUID.randomUUID();
         GameParticipant p1 = savedParticipant("서승재");
+        LocalDateTime scheduledAt = LocalDateTime.of(2026, 4, 1, 15, 10);
 
         CreateFreeGameCommand command = createCommand(
                 MatchRecordMode.STATUS_ONLY,
@@ -169,12 +179,14 @@ class CreateFreeGameServiceTest {
                 GradeType.NATIONAL,
                 MatchRecordMode.STATUS_ONLY,
                 shareCode,
+                scheduledAt,
                 "잠실 배드민턴장"
         );
         ReflectionTestUtils.setField(savedGame, "id", gameId);
 
         given(loadAccountPort.existsById(organizerAccountId)).willReturn(true);
         given(issueShareCodePort.issue()).willReturn(shareCode);
+        given(freeGameScheduleValidator.parseRequiredFuture(command.scheduledAt())).willReturn(scheduledAt);
         given(saveFreeGamePort.save(any())).willReturn(savedGame);
         given(saveGameParticipantPort.saveAll(any(), any())).willReturn(Map.of("p1", p1));
 
@@ -203,6 +215,7 @@ class CreateFreeGameServiceTest {
                 GradeType.NATIONAL,
                 1,
                 1,
+                "2026-04-01T15:10",
                 "잠실 배드민턴장",
                 managerIds,
                 List.of(
@@ -220,7 +233,7 @@ class CreateFreeGameServiceTest {
 
     private GameParticipant savedParticipant(String originalName) {
         GameParticipant participant = GameParticipant.create(
-                FreeGame.create("temp", UUID.randomUUID(), GradeType.NATIONAL, MatchRecordMode.STATUS_ONLY, null, null),
+                FreeGame.create("temp", UUID.randomUUID(), GradeType.NATIONAL, MatchRecordMode.STATUS_ONLY, null, null, null),
                 null,
                 originalName,
                 originalName,

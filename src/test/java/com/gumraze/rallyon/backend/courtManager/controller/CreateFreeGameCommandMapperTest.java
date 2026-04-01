@@ -32,6 +32,7 @@ class CreateFreeGameCommandMapperTest {
                 GradeType.NATIONAL,
                 2,
                 1,
+                "2026-04-01T15:10",
                 "잠실 배드민턴장",
                 List.of(managerId1, managerId2),
                 List.of(
@@ -66,6 +67,7 @@ class CreateFreeGameCommandMapperTest {
         assertThat(command.gradeType()).isEqualTo(GradeType.NATIONAL);
         assertThat(command.courtCount()).isEqualTo(2);
         assertThat(command.roundCount()).isEqualTo(1);
+        assertThat(command.scheduledAt()).isEqualTo("2026-04-01T15:10");
         assertThat(command.location()).isEqualTo("잠실 배드민턴장");
         assertThat(command.managerIds()).containsExactly(managerId1, managerId2);
 
