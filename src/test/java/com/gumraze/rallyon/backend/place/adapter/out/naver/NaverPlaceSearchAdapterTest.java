@@ -2,11 +2,9 @@ package com.gumraze.rallyon.backend.place.adapter.out.naver;
 
 import com.gumraze.rallyon.backend.application.adapter.out.naver.NaverPlaceSearchAdapter;
 import com.gumraze.rallyon.backend.application.adapter.out.naver.NaverPlaceSearchProperties;
-import com.gumraze.rallyon.backend.application.adapter.out.naver.dto.NaverLocalSearchResponse;
 import com.gumraze.rallyon.backend.domain.PlaceSearchResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -38,7 +36,7 @@ class NaverPlaceSearchAdapterTest {
 
         NaverPlaceSearchAdapter adapter = new NaverPlaceSearchAdapter(restClientBuilder, properties);
 
-        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=5&start=1&sort=random"))
+        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=10&start=1&sort=random"))
                 .andExpect(method(GET))
                 .andExpect(header("X-Naver-Client-Id", "client-id"))
                 .andExpect(header("X-Naver-Client-Secret", "client-secret"))
@@ -98,7 +96,7 @@ class NaverPlaceSearchAdapterTest {
 
         NaverPlaceSearchAdapter adapter = new NaverPlaceSearchAdapter(restClientBuilder, properties);
 
-        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=5&start=1&sort=random"))
+        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=10&start=1&sort=random"))
                 .andRespond(withSuccess("""
                         {
                           "lastBuildDate": "Mon, 16 Mar 2026 10:00:00 +0900",
@@ -144,7 +142,7 @@ class NaverPlaceSearchAdapterTest {
 
         NaverPlaceSearchAdapter adapter = new NaverPlaceSearchAdapter(restClientBuilder, properties);
 
-        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=5&start=1&sort=random"))
+        server.expect(requestTo("https://openapi.naver.com/v1/search/local.json?query=%EC%88%99%EC%A7%80%EB%8B%A4%EB%AA%A9%EC%A0%81%EC%B2%B4%EC%9C%A1%EA%B4%80&display=10&start=1&sort=random"))
                 .andRespond(withSuccess("""
                         {
                           "lastBuildDate": "Mon, 16 Mar 2026 10:00:00 +0900",
