@@ -360,7 +360,8 @@ public class BrowserAuthorizationService implements BrowserAuthorizationUseCase 
     }
 
     private String buildDummyStartUrl(String dummyCode) {
-        return UriComponentsBuilder.fromPath("/identity/oauth/" + AuthProvider.DUMMY.name())
+        return UriComponentsBuilder.fromUriString(properties.getIssuer())
+                .path("/identity/oauth/" + AuthProvider.DUMMY.name())
                 .queryParam("dummyCode", dummyCode)
                 .build(true)
                 .toUriString();
